@@ -34,7 +34,7 @@ std::vector<GoodRunLumisection> GoodEventFilter::getGoodRunLumisectionList(){
 
   return res;
 }
-bool GoodEventFilter::testEvent(RunNumber_t irun, Lumisection_t ilumi){
+bool GoodEventFilter::testEvent(RunNumber_t const& irun, Lumisection_t const& ilumi){
   for (GoodRunLumisection const& grl:list_GoodRunLumisection){
     if (grl.testEvent(irun, ilumi)) return true;
   }

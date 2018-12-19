@@ -23,6 +23,14 @@ constexpr float xsecScale = 1;
 
 // LHC sqrts and data period
 constexpr unsigned int theSqrts = 13;
-//const TString theDataPeriod = "2016";
+extern TString theDataPeriod;
+
+// CMS4 trees
+const TString CMS4_EVENTS_TREE_NAME = "Events";
+const TString CMS4_RUNS_TREE_NAME = "Runs";
+
+namespace SampleHelpers{
+  void setDataPeriod(const TString theDataPeriod_);
+}
 
 #endif
