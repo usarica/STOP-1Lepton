@@ -3,8 +3,9 @@
 
 #include <vector>
 
-typedef long long RunNumber_t;
-typedef long long Lumisection_t;
+typedef unsigned int RunNumber_t;
+typedef unsigned int Lumisection_t;
+typedef unsigned long long EventNumber_t;
 
 
 class GoodRunLumisection{
@@ -14,7 +15,7 @@ protected:
   Lumisection_t Lumisection_end;
 
 public:
-  GoodRunLumisection() : RunNumber(-1), Lumisection_begin(-1), Lumisection_end(-1){}
+  GoodRunLumisection() : RunNumber(0), Lumisection_begin(0), Lumisection_end(0){}
   GoodRunLumisection(RunNumber_t RunNumber_, Lumisection_t Lumisection_begin_, Lumisection_t Lumisection_end_) : RunNumber(RunNumber_), Lumisection_begin(Lumisection_begin_), Lumisection_end(Lumisection_end_){}
   GoodRunLumisection(GoodRunLumisection const& other) : RunNumber(other.RunNumber), Lumisection_begin(other.Lumisection_begin), Lumisection_end(other.Lumisection_end){}
 
