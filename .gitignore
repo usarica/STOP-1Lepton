@@ -19,6 +19,8 @@ Analysis/**/getKDConstant*.c
 Analysis/**/make*.c
 Analysis/**/plot*.c
 Analysis/**/*_one.c
+Analysis/*.log
+Analysis/*.txt
 Analysis/test/*.pdf
 Analysis/test/*.png
 Analysis/test/*.eps
