@@ -17,6 +17,7 @@
 #endif
 const TString STOP1LPKGPATH = _stop1lpkgpathstr_;
 const TString STOP1LPKGDATAPATH = STOP1LPKGPATH + "/data/";
+const TString CMSTASCOREPKGPATH = STOP1LPKGPATH + "../../cmstas/CORE/";
 
 //constexpr float xsecScale = 1e3;
 constexpr float xsecScale = 1;
