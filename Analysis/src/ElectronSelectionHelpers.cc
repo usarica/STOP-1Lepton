@@ -19,7 +19,6 @@ int ElectronSelectionHelpers::setEleEffAreaVersion(){
   else if (SampleHelpers::theDataPeriod == "2018") return 4; // FIXME: Needs new version
   else return -1;
 }
-
 float ElectronSelectionHelpers::electronEffArea_DR0p3(ElectronObject const& part){
   float eta = part.eta();
   float const& etaSC = part.extras.etaSC;
@@ -159,6 +158,7 @@ bool ElectronSelectionHelpers::testVetoSelection(ElectronObject const& part){
   if (part.pt()<ptThr_skim_veto || fabs(part.eta())>=etaThr_skim_veto) return false;
   return testVetoCutBasedId(part);
 }
+
 bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
 
@@ -224,4 +224,72 @@ bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
 bool ElectronSelectionHelpers::testLooseSelection(ElectronObject const& part){
   if (part.pt()<ptThr_skim_loose || fabs(part.eta())>=etaThr_skim_loose) return false;
   return testLooseCutBasedId(part);
+}
+
+
+bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
+  ElectronVariables const& extras = part.extras;
+
+  // Id cuts
+  if (extras.conv_vtx_flag) return false;
+  if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isMediumElectronPOGspring15noIso_v1
+    if (fabs(extras.etaSC)>2.5) return false;
+    else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0283) return false;
+      if (fabs(extras.dEtaIn) >= 0.00733) return false;
+      if (fabs(extras.dPhiIn) >= 0.114) return false;
+      if (extras.hOverE >= 0.0678) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.0898) return false;
+      if (fabs(extras.dxyPV) >= 0.0739) return false;
+      if (fabs(extras.dzPV) >= 0.602) return false;
+      if (extras.expectedMissingInnerHits > 1) return false;
+    }
+    else/* if (fabs(extras.etaSC) <= 1.479)*/{ // Barrel cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0101) return false;
+      if (fabs(extras.dEtaIn) >= 0.0103) return false;
+      if (fabs(extras.dPhiIn) >= 0.0336) return false;
+      if (extras.hOverE >= 0.0876) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.0174) return false;
+      if (fabs(extras.dxyPV) >= 0.0118) return false;
+      if (fabs(extras.dzPV) >= 0.373) return false;
+      if (extras.expectedMissingInnerHits > 2) return false;
+    }
+  }
+  else if (SampleHelpers::theDataPeriod == "2017" || SampleHelpers::theDataPeriod == "2018"){ // Same as CORE/ElectronSelections::isMediumElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
+    if (extras.conv_vtx_flag) return false;
+    if (fabs(extras.etaSC)>2.5) return false;
+    else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0387) return false;
+      if (fabs(extras.dEtaIn - extras.etaSC + extras.etaSeedSC) >= 0.00632) return false;
+      if (fabs(extras.dPhiIn) >= 0.0394) return false;
+      if (extras.hOverE >= 0.0275 + (2.52 + 0.183*extras.rho) / extras.energySC) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.0721) return false;
+      if (extras.expectedMissingInnerHits > 1) return false;
+    }
+    else/* if (fabs(extras.etaSC) <= 1.479)*/{ // Barrel cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0106) return false;
+      if (fabs(extras.dEtaIn - extras.etaSC + extras.etaSeedSC) >= 0.0032) return false;
+      if (fabs(extras.dPhiIn) >= 0.0547) return false;
+      if (extras.hOverE >= 0.046 + (1.16 + 0.0324*extras.rho) / extras.energySC) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.184) return false;
+      if (extras.expectedMissingInnerHits > 1) return false;
+    }
+  }
+
+  // Isolation cuts
+  {
+    float pt = part.pt();
+    float dr = 0.2;
+    if (pt>200) dr = 0.05;
+    else if (pt>50) dr = 10./pt;
+    float correction = extras.rho * electronEffArea_DR0p3(part) * (dr/0.3) * (dr/0.3);
+    float absiso = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
+    float reliso = absiso/pt;
+    if (reliso>0.1) return false;
+  }
+  return true;
+}
+bool ElectronSelectionHelpers::testMediumSelection(ElectronObject const& part){
+  if (part.pt()<ptThr_skim_loose || fabs(part.eta())>=etaThr_skim_loose) return false;
+  return testMediumCutBasedId(part);
 }
