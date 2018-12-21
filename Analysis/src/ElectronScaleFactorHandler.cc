@@ -179,7 +179,7 @@ void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelE
     const float theSFtmp = theSF;
     theSF = (1.-(theSFtmp*theIdIsoSF))/(1.-theSFtmp);
     if (theSF<0.) theSF=0.;
-    theSFRelErr = fabs(theSFtmp*theIdIsoSFRelErr/(1.-theSFtmp));
+    theSFRelErr = fabs(theSFtmp*theIdIsoSFRelErr*theIdIsoSF/(1.-theSFtmp));
     if (theSF>0.) theSFRelErr /= theSF;
     else theSFRelErr=0;
   }
