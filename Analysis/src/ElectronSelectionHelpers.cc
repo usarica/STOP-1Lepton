@@ -1,0 +1,162 @@
+#include <cassert>
+#include "Samples.h"
+#include "ElectronSelectionHelpers.h"
+#include "MELAStreamHelpers.hh"
+
+
+using namespace std;
+using namespace MELAStreamHelpers;
+
+
+namespace ElectronSelectionHelpers{
+  int eleEffAreaVersion = ElectronSelectionHelpers::setEleEffAreaVersion();
+}
+
+int ElectronSelectionHelpers::setEleEffAreaVersion(){
+  // From CORE/Config.cc
+  if (SampleHelpers::theDataPeriod == "2016") return 1;
+  else if (SampleHelpers::theDataPeriod == "2017") return 4;
+  else if (SampleHelpers::theDataPeriod == "2018") return 4; // FIXME: Needs new version
+  else return -1;
+}
+
+float ElectronSelectionHelpers::electronEffArea_DR0p3(ElectronObject const& part){
+  float eta = part.eta();
+  float const& etaSC = part.extras.etaSC;
+  float ea = 0.;
+  switch (eleEffAreaVersion){
+  case 0:
+  {
+    //PHYS14 eleEffAreaVersion
+    if (fabs(eta)<=0.800) ea = 0.1013;
+    else if (fabs(eta)<=1.300) ea = 0.0988;
+    else if (fabs(eta)<=2.000) ea = 0.0572;
+    else if (fabs(eta)<=2.200) ea = 0.0842;
+    else if (fabs(eta)<=2.500) ea = 0.1530;
+    break;
+  }
+  case 1:
+  {
+    //Spring15 eleEffAreaVersion
+    if (fabs(etaSC)<=1.000) ea = 0.1752;
+    else if (fabs(etaSC)<=1.479) ea = 0.1862;
+    else if (fabs(etaSC)<=2.000) ea = 0.1411;
+    else if (fabs(etaSC)<=2.200) ea = 0.1534;
+    else if (fabs(etaSC)<=2.300) ea = 0.1903;
+    else if (fabs(etaSC)<=2.400) ea = 0.2243;
+    else if (fabs(etaSC)<=2.500) ea = 0.2687;
+    break;
+  }
+  case 2:
+  {
+    //Spring16 eleEffAreaVersion
+    if (fabs(etaSC)<=1.000) ea = 0.1703;
+    else if (fabs(etaSC)<=1.479) ea = 0.1715;
+    else if (fabs(etaSC)<=2.000) ea = 0.1213;
+    else if (fabs(etaSC)<=2.200) ea = 0.1230;
+    else if (fabs(etaSC)<=2.300) ea = 0.1635;
+    else if (fabs(etaSC)<=2.400) ea = 0.1937;
+    else if (fabs(etaSC)<=2.500) ea = 0.2393;
+    break;
+  }
+  case 3:
+  {
+    //Fall17 92X eleEffAreaVersion https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_92X.txt
+    if (fabs(etaSC)<=1.000) ea = 0.1566;
+    else if (fabs(etaSC)<=1.479) ea = 0.1626;
+    else if (fabs(etaSC)<=2.000) ea = 0.1073;
+    else if (fabs(etaSC)<=2.200) ea = 0.0854;
+    else if (fabs(etaSC)<=2.300) ea = 0.1051;
+    else if (fabs(etaSC)<=2.400) ea = 0.1204;
+    else if (fabs(etaSC)<=2.500) ea = 0.1524;
+    break;
+  }
+  case 4:
+  {
+    //Fall17 94X eleEffAreaVersion https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+    if (fabs(etaSC)<=1.000) ea = 0.1440;
+    else if (fabs(etaSC)<=1.479) ea = 0.1562;
+    else if (fabs(etaSC)<=2.000) ea = 0.1032;
+    else if (fabs(etaSC)<=2.200) ea = 0.0859;
+    else if (fabs(etaSC)<=2.300) ea = 0.1116;
+    else if (fabs(etaSC)<=2.400) ea = 0.1321;
+    else if (fabs(etaSC)<=2.500) ea = 0.1654;
+    break;
+  }
+  default:
+  {
+    MELAerr << "ElectronSelectionHelpers::electronEffArea_DR0p3: ERROR! eleEffAreaVersion=" << eleEffAreaVersion << " is unknown!" << endl;
+    assert(0);
+    break;
+  }
+  }
+  return ea;
+}
+
+bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
+  ElectronVariables const& extras = part.extras;
+
+  // Id cuts
+  if (extras.conv_vtx_flag) return false;
+  if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isVetoElectronPOGspring15noIso_v1
+    if (fabs(extras.etaSC)>2.5) return false;
+    else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0352) return false;
+      if (fabs(extras.dEtaIn) >= 0.0113) return false;
+      if (fabs(extras.dPhiIn) >= 0.237) return false;
+      if (extras.hOverE >= 0.116) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.174) return false;
+      if (fabs(extras.dxyPV) >= 0.222) return false;
+      if (fabs(extras.dzPV) >= 0.921) return false;
+      if (extras.expectedMissingInnerHits > 3) return false;
+    }
+    else/* if (fabs(extras.etaSC) <= 1.479)*/{ // Barrel cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0114) return false;
+      if (fabs(extras.dEtaIn) >= 0.0152) return false;
+      if (fabs(extras.dPhiIn) >= 0.216) return false;
+      if (extras.hOverE >= 0.181) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.207) return false;
+      if (fabs(extras.dxyPV) >= 0.0564) return false;
+      if (fabs(extras.dzPV) >= 0.472) return false;
+      if (extras.expectedMissingInnerHits > 2) return false;
+    }
+  }
+  else if (SampleHelpers::theDataPeriod == "2017" || SampleHelpers::theDataPeriod == "2018"){ // Same as CORE/ElectronSelections::isVetoElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
+    if (extras.conv_vtx_flag) return false;
+    if (fabs(extras.etaSC)>2.5) return false;
+    else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0457) return false;
+      if (fabs(extras.dEtaIn - extras.etaSC + extras.etaSeedSC) >= 0.00814) return false;
+      if (fabs(extras.dPhiIn) >= 0.19) return false;
+      if (extras.hOverE >= 0.05 + (2.54 + 0.183*extras.rho) / extras.energySC) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.132) return false;
+      if (extras.expectedMissingInnerHits > 3) return false;
+    }
+    else/* if (fabs(extras.etaSC) <= 1.479)*/{ // Barrel cuts
+      if (extras.sigmaIEtaIEta_full5x5 >= 0.0126) return false;
+      if (fabs(extras.dEtaIn - extras.etaSC + extras.etaSeedSC) >= 0.00463) return false;
+      if (fabs(extras.dPhiIn) >= 0.148) return false;
+      if (extras.hOverE >= 0.05 + (1.16 + 0.0324*extras.rho) / extras.energySC) return false;
+      if (fabs(part.EinvMinusPinv()) >= 0.209) return false;
+      if (extras.expectedMissingInnerHits > 2) return false;
+    }
+  }
+
+  // Isolation cuts
+  {
+    float pt = part.pt();
+    float dr = 0.2;
+    if (pt>200) dr = 0.05;
+    else if (pt>50) dr = 10./pt;
+    float correction = extras.rho * electronEffArea_DR0p3(part) * (dr/0.3) * (dr/0.3);
+    float absiso = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
+    float reliso = absiso/pt;
+    if (reliso>0.2) return false;
+  }
+  return true;
+}
+
+bool ElectronSelectionHelpers::testVetoSelection(ElectronObject const& part){
+  if (part.pt()<ptThr_skim_veto || fabs(part.eta())>=etaThr_skim_veto) return false;
+  return testVetoCutBasedId(part);
+}

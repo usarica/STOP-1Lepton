@@ -13,6 +13,7 @@ public:
 
   float energySC; // Supercluster energy, eSC
   float etaSC; // Supercluster eta
+  float etaSeedSC; // Supercluster seed eta
   float rho; // evt_fixgridfastjet_all_rho, actually a constant over the event
   float sigmaIEtaIEta_full5x5; // full5x5_sigmaIetaIeta
   float dEtaIn; // abs(dEtaIn)
@@ -22,6 +23,9 @@ public:
   float eOverPIn;
   float dxyPV; // abs(d0)
   float dzPV; // abs(dz)
+  float miniIso_ch; // Charged min. iso.
+  float miniIso_nh; // Neutral min. iso.
+  float miniIso_em; // EM min. iso.
 
   ElectronVariables();
   ElectronVariables(ElectronVariables const& other);
@@ -46,7 +50,7 @@ public:
 
   void swap(ElectronObject& other);
 
-  float EinvMinusPinv();
+  float EinvMinusPinv()const;
 
   float charge()const;
   float m()const{ return momentum.M(); }
