@@ -8,6 +8,7 @@
 <use name="rootmath"/>
 <use name="roofit"/>
 <use name="roofitcore"/>
+#<use name="libxml2"/>
 <use name="ZZMatrixElement/MELA"/>
 <use name="HiggsAnalysis/CombinedLimit"/>
 <use name="CMSDataTools/AnalysisTree"/>

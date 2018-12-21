@@ -1,26 +1,90 @@
+#include <algorithm>
+#include <utility>
 #include "Samples.h"
 #include "ElectronObject.h"
+#include "PDGHelpers.h"
+
+
+using namespace PDGHelpers;
+
+
+ElectronVariables::ElectronVariables() :
+  conv_vtx_flag(false),
+  expectedMissingInnerHits(0),
+  energySC(0),
+  etaSC(0),
+  rho(0),
+  sigmaIEtaIEta_full5x5(0),
+  dEtaIn(0),
+  dPhiIn(0),
+  hOverE(0),
+  ecalEnergy(0),
+  eOverPIn(0),
+  dxyPV(0),
+  dzPV(0)
+{}
+ElectronVariables::ElectronVariables(ElectronVariables const& other) :
+  conv_vtx_flag(other.conv_vtx_flag),
+  expectedMissingInnerHits(other.expectedMissingInnerHits),
+  energySC(other.energySC),
+  etaSC(other.etaSC),
+  rho(other.rho),
+  sigmaIEtaIEta_full5x5(other.sigmaIEtaIEta_full5x5),
+  dEtaIn(other.dEtaIn),
+  dPhiIn(other.dPhiIn),
+  hOverE(other.hOverE),
+  ecalEnergy(other.ecalEnergy),
+  eOverPIn(other.eOverPIn),
+  dxyPV(other.dxyPV),
+  dzPV(other.dzPV)
+{}
+void ElectronVariables::swap(ElectronVariables& other){
+  std::swap(conv_vtx_flag, other.conv_vtx_flag);
+  std::swap(expectedMissingInnerHits, other.expectedMissingInnerHits);
+  std::swap(energySC, other.energySC);
+  std::swap(etaSC, other.etaSC);
+  std::swap(rho, other.rho);
+  std::swap(sigmaIEtaIEta_full5x5, other.sigmaIEtaIEta_full5x5);
+  std::swap(dEtaIn, other.dEtaIn);
+  std::swap(dPhiIn, other.dPhiIn);
+  std::swap(hOverE, other.hOverE);
+  std::swap(ecalEnergy, other.ecalEnergy);
+  std::swap(eOverPIn, other.eOverPIn);
+  std::swap(dxyPV, other.dxyPV);
+  std::swap(dzPV, other.dzPV);
+}
+ElectronVariables& ElectronVariables::operator=(const ElectronVariables& other){
+  ElectronVariables tmp(other);
+  swap(tmp);
+  return *this;
+}
 
 
 ElectronObject::ElectronObject() :
-  MELAParticle()
-{
-  setup_extras();
-}
+  id(-9000),
+  momentum(0, 0, 0, 0),
+  extras()
+{}
 ElectronObject::ElectronObject(int id_) :
-  MELAParticle(id_)
-{
-  setup_extras();
-}
-ElectronObject::ElectronObject(int id_, TLorentzVector p4_) :
-  MELAParticle(id_, p4_)
-{
-  setup_extras();
-}
+  id(id_),
+  momentum(0, 0, 0, 0),
+  extras()
+{}
+ElectronObject::ElectronObject(int id_, CMSLorentzVector momentum_) :
+  id(id_),
+  momentum(momentum_),
+  extras()
+{}
 ElectronObject::ElectronObject(const ElectronObject& other) :
-  MELAParticle(other),
+  id(other.id),
+  momentum(other.momentum),
   extras(other.extras)
 {}
+void ElectronObject::swap(ElectronObject& other){
+  std::swap(id, other.id);
+  std::swap(momentum, other.momentum);
+  extras.swap(other.extras);
+}
 ElectronObject& ElectronObject::operator=(const ElectronObject& other){
   ElectronObject tmp(other);
   swap(tmp);
@@ -28,24 +92,17 @@ ElectronObject& ElectronObject::operator=(const ElectronObject& other){
 }
 ElectronObject::~ElectronObject(){}
 
-void ElectronObject::setup_extras(){
-  extras.setNamedVal<float>("etaSC", 0.f); // Supercluster eta
-  extras.setNamedVal<float>("rho", 0.f); // evt_fixgridfastjet_all_rho, actually a constant over the event
-  extras.setNamedVal<float>("energySC", 0.f); // Supercluster energy, eSC
-  extras.setNamedVal<float>("sigmaIEtaIEta_full5x5", 0.f); // full5x5_sigmaIetaIeta
-  extras.setNamedVal<float>("dEtaIn", 0.f); // abs(dEtaIn)
-  extras.setNamedVal<float>("dPhiIn", 0.f); // abs(dPhiIn)
-  extras.setNamedVal<float>("hOverE", 0.f); // hOverE
-  extras.setNamedVal<float>("ecalEnergy", 0.f);
-  extras.setNamedVal<float>("eOverPIn", 0.f);
-  extras.setNamedVal<float>("dxyPV", 0.f); // abs(d0)
-  extras.setNamedVal<float>("dzPV", 0.f); // abs(dz)
-  extras.setNamedVal<int>("exp_innerlayers", 0); // expectedMissingInnerHits
-  extras.setNamedVal<bool>("conv_vtx_flag", false); // Conversion veto
-}
-
-float ElectronObject::EinvOverPinv(){
-  float const& ecalEnergy = extras.namedfloats["ecalEnergy"];
-  float const& EoverP = extras.namedfloats["eOverPIn"];
+float ElectronObject::EinvMinusPinv(){
+  float const& ecalEnergy = extras.ecalEnergy;
+  float const& EoverP = extras.eOverPIn;
   return (1.f-EoverP)/ecalEnergy;
+}
+float ElectronObject::charge()const{
+  float cpos=0;
+  if (isAWBoson(id) || abs(id)==37 || abs(id)==2212 || abs(id)==211 || abs(id)==321 || abs(id)==411 || abs(id)==521) cpos = 1.;
+  else if (isALepton(id)) cpos = -1.;
+  else if (isUpTypeQuark(id)) cpos = 2./3.;
+  else if (isDownTypeQuark(id)) cpos = -1./3.;
+  if (id<0) cpos *= -1.;
+  return cpos;
 }
