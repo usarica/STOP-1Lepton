@@ -21,6 +21,9 @@ namespace ElectronSelectionHelpers{
   bool testVetoCutBasedId(ElectronObject const& part);
   bool testVetoSelection(ElectronObject const& part);
 
+  bool testLooseCutBasedId(ElectronObject const& part);
+  bool testLooseSelection(ElectronObject const& part);
+
 }
 
 
