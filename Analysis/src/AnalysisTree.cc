@@ -5,9 +5,9 @@
 AnalysisTree::AnalysisTree(TString strsample, bool isMC_, const TString treename) :
   BaseTree(strsample, treename, "", ""),
   associatedSet(nullptr), RunNumberRef(nullptr), LumisectionRef(nullptr), EventNumberRef(nullptr),
-  isMC(isMC_),
-  sampleIdentifier(AnalysisTree::constructSampleIdentifier(strsample))
+  isMC(isMC_)
 {
+  sampleIdentifier = AnalysisTree::constructSampleIdentifier(strsample);
   if (this->isValid()) autoBookBranches();
 }
 

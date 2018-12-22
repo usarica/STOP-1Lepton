@@ -21,7 +21,6 @@ protected:
 
 public:
   const bool isMC;
-  const TString sampleIdentifier;
 
   AnalysisTree(TString strsample, bool isMC_, const TString treename=CMS4_EVENTS_TREE_NAME);
   ~AnalysisTree(){}

@@ -2,99 +2,72 @@
 #include <utility>
 #include <iterator>
 #include <cassert>
-#include "BaseTreeLooper.h"
-#include "BaseTreeLooper.hpp"
+#include "AnalysisTreeLooperBase.h"
+#include "MELAStreamHelpers.hh"
 
 
 using namespace std;
+using namespace MELAStreamHelpers;
 
 
-BaseTreeLooper::BaseTreeLooper() : sampleIdOpt(BaseTreeLooper::kNoStorage), maxNEvents(-1), verbose(false) { setExternalProductList(); setExternalProductTree(); }
-BaseTreeLooper::BaseTreeLooper(AnalysisTree* inTree) : sampleIdOpt(BaseTreeLooper::kNoStorage), maxNEvents(-1), verbose(false) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
-BaseTreeLooper::BaseTreeLooper(std::vector<AnalysisTree*> const& inTreeList) :
-  sampleIdOpt(BaseTreeLooper::kNoStorage),
+AnalysisTreeLooperBase::AnalysisTreeLooperBase() : IvyBase(), sampleIdOpt(AnalysisTreeLooperBase::kNoStorage), maxNEvents(-1) { setExternalProductList(); setExternalProductTree(); }
+AnalysisTreeLooperBase::AnalysisTreeLooperBase(AnalysisTree* inTree) : IvyBase(), sampleIdOpt(AnalysisTreeLooperBase::kNoStorage), maxNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
+AnalysisTreeLooperBase::AnalysisTreeLooperBase(std::vector<AnalysisTree*> const& inTreeList) :
+  IvyBase(),
+  sampleIdOpt(AnalysisTreeLooperBase::kNoStorage),
   treeList(inTreeList),
-  maxNEvents(-1),
-  verbose(false)
+  maxNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
 }
-BaseTreeLooper::BaseTreeLooper(AnalysisSet const* inTreeSet) :
-  sampleIdOpt(BaseTreeLooper::kNoStorage),
+AnalysisTreeLooperBase::AnalysisTreeLooperBase(AnalysisSet const* inTreeSet) :
+  IvyBase(),
+  sampleIdOpt(AnalysisTreeLooperBase::kNoStorage),
   treeList(inTreeSet->getAnalysisTreeList()),
-  maxNEvents(-1),
-  verbose(false)
+  maxNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
 }
-BaseTreeLooper::~BaseTreeLooper(){}
+AnalysisTreeLooperBase::~AnalysisTreeLooperBase(){}
 
-void BaseTreeLooper::setVerbosity(bool flag){ verbose = flag; }
-
-void BaseTreeLooper::addTree(AnalysisTree* tree){ this->treeList.push_back(tree); }
+void AnalysisTreeLooperBase::addTree(AnalysisTree* tree){ this->treeList.push_back(tree); }
 
 
-void BaseTreeLooper::addExternalFunction(TString fcnname, void(*fcn)(BaseTreeLooper*, SimpleEntry&)){
+void AnalysisTreeLooperBase::addExternalFunction(TString fcnname, void(*fcn)(AnalysisTreeLooperBase*, SimpleEntry&)){
   if (!fcn) return;
-  if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "BaseTreeLooper::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
+  if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "AnalysisTreeLooperBase::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
   externalFunctions[fcnname] = fcn;
 }
 
 
-void BaseTreeLooper::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
+void AnalysisTreeLooperBase::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
   if (extProductListRef) this->productListRef=extProductListRef;
   else this->productListRef=&(this->productList);
 }
 
-void BaseTreeLooper::setExternalProductTree(BaseTree* extTree){
+void AnalysisTreeLooperBase::setExternalProductTree(BaseTree* extTree){
   this->productTree=extTree;
   this->productListRef=&(this->productList); // To make sure product list collects some events before flushing
 }
 
-void BaseTreeLooper::setMaximumEvents(int n){ maxNEvents=n; }
+void AnalysisTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
 
-void BaseTreeLooper::setSampleIdStorageOption(BaseTreeLooper::SampleIdStorageType opt){ sampleIdOpt=opt; }
+void AnalysisTreeLooperBase::setSampleIdStorageOption(AnalysisTreeLooperBase::SampleIdStorageType opt){ sampleIdOpt=opt; }
 
-void BaseTreeLooper::addProduct(SimpleEntry& product, unsigned int* ev_rec){
+void AnalysisTreeLooperBase::addProduct(SimpleEntry& product, unsigned int* ev_rec){
   this->productListRef->push_back(product);
   if (ev_rec) (*ev_rec)++;
 }
 
-void BaseTreeLooper::recordProductsToTree(){
+void AnalysisTreeLooperBase::recordProductsToTree(){
   if (!this->productTree) return;
   BaseTree::writeSimpleEntries(this->productListRef->begin(), this->productListRef->end(), this->productTree);
   this->clearProducts();
 }
 
-bool BaseTreeLooper::linkConsumes(AnalysisTree* tree){
-  bool process = tree->isValid();
-  if (process){
-    process &= this->linkConsumed<short>(tree);
-    process &= this->linkConsumed<unsigned int>(tree);
-    process &= this->linkConsumed<int>(tree);
-    process &= this->linkConsumed<unsigned long>(tree);
-    process &= this->linkConsumed<long>(tree);
-    process &= this->linkConsumed<long long>(tree);
-    process &= this->linkConsumed<float>(tree);
-    process &= this->linkConsumed<double>(tree);
-    process &= this->linkConsumed<std::vector<short>>(tree);
-    process &= this->linkConsumed<std::vector<unsigned int>>(tree);
-    process &= this->linkConsumed<std::vector<int>>(tree);
-    process &= this->linkConsumed<std::vector<unsigned long>>(tree);
-    process &= this->linkConsumed<std::vector<long>>(tree);
-    process &= this->linkConsumed<std::vector<long long>>(tree);
-    process &= this->linkConsumed<std::vector<float>>(tree);
-    process &= this->linkConsumed<std::vector<double>>(tree);
-    // Silence unused branches
-    tree->silenceUnused();
-  }
-  if (!process) MELAerr << "BaseTreeLooper::linkConsumes: Linking failed for some reason for tree " << tree->sampleIdentifier << endl;
-  return process;
-}
-
-void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts){
+void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepProducts){
   const TString strVarRunNumber = "uint_eventMaker_evtrun_CMS3.obj";
   const TString strVarEventNumber = "ull_eventMaker_evtevent_CMS3.obj";
   // Loop over the trees
@@ -104,7 +77,7 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
   const bool storeSampleIdByHashVal = (sampleIdOpt==kStoreByHashVal);
   vector<unsigned int> loopRecSelList, loopTotalSelList, loopRecFailList, loopTotalFailList;
   vector<unsigned int>::iterator it_loopRecSelList, it_loopTotalSelList, it_loopRecFailList, it_loopTotalFailList;
-  if (verbose && !treeList.empty()){
+  if (verbosity>=TVar::INFO && !treeList.empty()){
     loopRecSelList.assign(treeList.size(), 0); it_loopRecSelList=loopRecSelList.begin();
     loopTotalSelList.assign(treeList.size(), 0); it_loopTotalSelList=loopTotalSelList.begin();
     loopRecFailList.assign(treeList.size(), 0); it_loopRecFailList=loopRecFailList.begin();
@@ -113,24 +86,24 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
   if (storeSampleIdByRunAndEventNumber){ // Check if RunNumber and EventNumber variables are consumed
     bool doAbort=false;
     if (valuints.find(strVarRunNumber)==valuints.cend()){
-      MELAerr << "BaseTreeLooper::loop: RunNumber is not a consumed variable!" << endl;
+      MELAerr << "AnalysisTreeLooperBase::loop: RunNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
     if (valulonglongs.find(strVarEventNumber)==valulonglongs.cend()){
-      MELAerr << "BaseTreeLooper::loop: EventNumber is not a consumed variable!" << endl;
+      MELAerr << "AnalysisTreeLooperBase::loop: EventNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
     assert(!doAbort);
   }
   for (AnalysisTree*& tree:treeList){
     // Skip the tree if it cannot be linked
-    if (!(this->linkConsumes(tree))) continue;
+    if (!(this->wrapTree(tree))) continue;
 
     float wgtExternal = 1;
     //AnalysisSet const* associatedSet = tree->getAssociatedSet();
     //if (associatedSet) wgtExternal *= associatedSet->getPermanentWeight(tree);
     if (wgtExternal==0.){
-      MELAerr << "BaseTreeLooper::loop: External weights are 0 for the " << tree->sampleIdentifier << " sample. Skipping..." << endl;
+      MELAerr << "AnalysisTreeLooperBase::loop: External weights are 0 for the " << tree->sampleIdentifier << " sample. Skipping..." << endl;
       continue;
     }
 
@@ -139,7 +112,7 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
 
     // Loop over selected events
     if (loopSelected){
-      MELAout << "BaseTreeLooper::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
+      MELAout << "AnalysisTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
       int ev=0;
       const int nevents = tree->getSelectedNEvents();
       while (tree->getSelectedEvent(ev)){
@@ -157,18 +130,18 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
                 product.setNamedVal("EventNumber", *(valulonglongs[strVarEventNumber]));
               }
               this->addProduct(product, &ev_rec);
-              if (verbose) (*it_loopRecSelList)++;
+              if (verbosity>=TVar::INFO) (*it_loopRecSelList)++;
             }
           }
         }
         HelperFunctions::progressbar(ev, nevents);
         ev++; ev_acc++;
-        if (verbose) (*it_loopTotalSelList)++;
+        if (verbosity>=TVar::INFO) (*it_loopTotalSelList)++;
       }
     }
     // Loop over failed events
     if (loopFailed){
-      MELAout << "BaseTreeLooper::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
+      MELAout << "AnalysisTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
       int ev=0;
       const int nevents = tree->getFailedNEvents();
       while (tree->getFailedEvent(ev)){
@@ -186,30 +159,30 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
                 product.setNamedVal("EventNumber", *(valulonglongs[strVarEventNumber]));
               }
               this->addProduct(product, &ev_rec);
-              if (verbose) (*it_loopRecFailList)++;
+              if (verbosity>=TVar::INFO) (*it_loopRecFailList)++;
             }
           }
         }
         HelperFunctions::progressbar(ev, nevents);
         ev++; ev_acc++;
-        if (verbose) (*it_loopTotalFailList)++;
+        if (verbosity>=TVar::INFO) (*it_loopTotalFailList)++;
       }
     }
 
     // Record products to external tree
     this->recordProductsToTree();
 
-    if (verbose){
+    if (verbosity>=TVar::INFO){
       it_loopRecSelList++;
       it_loopRecFailList++;
       it_loopTotalSelList++;
       it_loopTotalFailList++;
     }
   } // End loop over the trees
-  MELAout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
-  if (verbose){
+  MELAout << "AnalysisTreeLooperBase::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
+  if (verbosity>=TVar::INFO){
     for (unsigned int it=0; it<treeList.size(); it++){
-      MELAout << "\t- BaseTreeLooper::loop: Total number of selected | failed products in tree " << it << ": "
+      MELAout << "\t- AnalysisTreeLooperBase::loop: Total number of selected | failed products in tree " << it << ": "
         << loopRecSelList.at(it) << " / " << loopTotalSelList.at(it)
         << " | "
         << loopRecFailList.at(it) << " / " << loopTotalFailList.at(it)
@@ -218,13 +191,13 @@ void BaseTreeLooper::loop(bool loopSelected, bool loopFailed, bool keepProducts)
   }
 }
 
-std::vector<SimpleEntry> const& BaseTreeLooper::getProducts() const{ return *productListRef; }
+std::vector<SimpleEntry> const& AnalysisTreeLooperBase::getProducts() const{ return *productListRef; }
 
-void BaseTreeLooper::moveProducts(std::vector<SimpleEntry>& targetColl){
-  MELAout << "BaseTreeLooper::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
+void AnalysisTreeLooperBase::moveProducts(std::vector<SimpleEntry>& targetColl){
+  MELAout << "AnalysisTreeLooperBase::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
   std::move(productListRef->begin(), productListRef->end(), std::back_inserter(targetColl));
   clearProducts();
-  MELAout << "BaseTreeLooper::moveProducts: Target list final size: " << targetColl.size() << endl;
+  MELAout << "AnalysisTreeLooperBase::moveProducts: Target list final size: " << targetColl.size() << endl;
 }
 
-void BaseTreeLooper::clearProducts(){ std::vector<SimpleEntry> emptyList; std::swap(emptyList, *productListRef); }
+void AnalysisTreeLooperBase::clearProducts(){ std::vector<SimpleEntry> emptyList; std::swap(emptyList, *productListRef); }
