@@ -19,7 +19,7 @@ int ElectronSelectionHelpers::setEleEffAreaVersion(){
   else if (SampleHelpers::theDataPeriod == "2018") return 4; // FIXME: Needs new version
   else return -1;
 }
-float ElectronSelectionHelpers::electronEffArea_DR0p3(ElectronObject const& part){
+float ElectronSelectionHelpers::electronEffArea(ElectronObject const& part){
   float eta = part.eta();
   float const& etaSC = part.extras.etaSC;
   float ea = 0.;
@@ -84,12 +84,23 @@ float ElectronSelectionHelpers::electronEffArea_DR0p3(ElectronObject const& part
   }
   default:
   {
-    MELAerr << "ElectronSelectionHelpers::electronEffArea_DR0p3: ERROR! eleEffAreaVersion=" << eleEffAreaVersion << " is unknown!" << endl;
+    MELAerr << "ElectronSelectionHelpers::electronEffArea: ERROR! eleEffAreaVersion=" << eleEffAreaVersion << " is unknown!" << endl;
     assert(0);
     break;
   }
   }
   return ea;
+}
+float ElectronSelectionHelpers::miniAbsIso_DR0p3(ElectronObject const& part){
+  ElectronVariables const& extras = part.extras;
+  float pt = part.pt();
+  float dr = 0.2;
+  if (pt>200.f) dr = 0.05;
+  else if (pt>50.f) dr = 10.f/pt;
+  dr /= 0.3f;
+  float correction = extras.rho * electronEffArea(part) * pow(dr, 2);
+  float res = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
+  return res;
 }
 
 bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
@@ -141,28 +152,22 @@ bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
     }
   }
 
-  // Isolation cuts
-  {
-    float pt = part.pt();
-    float dr = 0.2;
-    if (pt>200) dr = 0.05;
-    else if (pt>50) dr = 10./pt;
-    float correction = extras.rho * electronEffArea_DR0p3(part) * (dr/0.3) * (dr/0.3);
-    float absiso = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
-    float reliso = absiso/pt;
-    if (reliso>0.2) return false;
-  }
   return true;
 }
 bool ElectronSelectionHelpers::testVetoSelection(ElectronObject const& part){
+  // pT and eta skim cut
   if (part.pt()<ptThr_skim_veto || fabs(part.eta())>=etaThr_skim_veto) return false;
-  return testVetoCutBasedId(part);
+  // Id cut
+  if (!testVetoCutBasedId(part)) return false;
+  // Iso cut
+  float reliso = miniRelIso_DR0p3(part);
+  if (reliso>0.2) return false;
+  return true;
 }
 
 bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
 
-  // Id cuts
   if (extras.conv_vtx_flag) return false;
   if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isLooseElectronPOGspring15noIso_v1
     if (fabs(extras.etaSC)>2.5) return false;
@@ -208,29 +213,23 @@ bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
     }
   }
 
-  // Isolation cuts
-  {
-    float pt = part.pt();
-    float dr = 0.2;
-    if (pt>200) dr = 0.05;
-    else if (pt>50) dr = 10./pt;
-    float correction = extras.rho * electronEffArea_DR0p3(part) * (dr/0.3) * (dr/0.3);
-    float absiso = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
-    float reliso = absiso/pt;
-    if (reliso>0.2) return false;
-  }
   return true;
 }
 bool ElectronSelectionHelpers::testLooseSelection(ElectronObject const& part){
+  // pT and eta skim cut
   if (part.pt()<ptThr_skim_loose || fabs(part.eta())>=etaThr_skim_loose) return false;
-  return testLooseCutBasedId(part);
+  // Id cut
+  if (!testLooseCutBasedId(part)) return false;
+  // Iso cut
+  float reliso = miniRelIso_DR0p3(part);
+  if (reliso>0.2) return false;
+  return true;
 }
 
 
 bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
 
-  // Id cuts
   if (extras.conv_vtx_flag) return false;
   if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isMediumElectronPOGspring15noIso_v1
     if (fabs(extras.etaSC)>2.5) return false;
@@ -276,20 +275,19 @@ bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
     }
   }
 
-  // Isolation cuts
-  {
-    float pt = part.pt();
-    float dr = 0.2;
-    if (pt>200) dr = 0.05;
-    else if (pt>50) dr = 10./pt;
-    float correction = extras.rho * electronEffArea_DR0p3(part) * (dr/0.3) * (dr/0.3);
-    float absiso = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
-    float reliso = absiso/pt;
-    if (reliso>0.1) return false;
-  }
   return true;
 }
 bool ElectronSelectionHelpers::testMediumSelection(ElectronObject const& part){
-  if (part.pt()<ptThr_skim_loose || fabs(part.eta())>=etaThr_skim_loose) return false;
-  return testMediumCutBasedId(part);
+  // pT and eta skim cut
+  if (part.pt()<ptThr_skim_medium || fabs(part.eta())>=etaThr_skim_medium) return false;
+  // Id cut
+  if (!testMediumCutBasedId(part)) return false;
+  // Iso cut
+  float reliso = miniRelIso_DR0p3(part);
+  if (reliso>0.1) return false;
+  return true;
+}
+
+bool ElectronSelectionHelpers::testPreselection(ElectronObject const& part){
+  return testMediumSelection(part);
 }
