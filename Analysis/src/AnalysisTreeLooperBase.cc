@@ -35,6 +35,15 @@ AnalysisTreeLooperBase::~AnalysisTreeLooperBase(){}
 void AnalysisTreeLooperBase::addTree(AnalysisTree* tree){ this->treeList.push_back(tree); }
 
 
+void AnalysisTreeLooperBase::addExternalIvyObject(TString objname, IvyBase* obj){
+  if (!obj) return;
+  if (obj == (IvyBase*)this){
+    if (verbosity>=TVar::ERROR) MELAerr << "AnalysisTreeLooperBase::addExternalIvyObject: " << objname << " is the same as the AnalysisTreeLooperBase! This object can never be added, so ignoring the association!" << endl;
+    return;
+  }
+  if (externalIvyObjects.find(objname)!=externalIvyObjects.end() && verbosity>=TVar::ERROR) MELAerr << "AnalysisTreeLooperBase::addExternalIvyObject: " << objname << " already exists but will override it regardless." << endl;
+  externalIvyObjects[objname] = obj;
+}
 void AnalysisTreeLooperBase::addExternalFunction(TString fcnname, void(*fcn)(AnalysisTreeLooperBase*, SimpleEntry&)){
   if (!fcn) return;
   if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "AnalysisTreeLooperBase::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
@@ -98,6 +107,11 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
   for (AnalysisTree*& tree:treeList){
     // Skip the tree if it cannot be linked
     if (!(this->wrapTree(tree))) continue;
+
+    // Wrap external ivy objects to the current tree
+    bool externalObjectsWrapped = true;
+    for (auto it_ivy=externalIvyObjects.begin(); it_ivy!=externalIvyObjects.end(); it_ivy++) externalObjectsWrapped &= it_ivy->second->wrapTree(tree);
+    if (!externalObjectsWrapped) continue;
 
     float wgtExternal = 1;
     //AnalysisSet const* associatedSet = tree->getAssociatedSet();

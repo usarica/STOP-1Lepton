@@ -24,6 +24,7 @@ protected:
   int maxNEvents;
 
   // External dependencies
+  std::unordered_map<TString, IvyBase*> externalIvyObjects;
   std::unordered_map<TString, void(*)(AnalysisTreeLooperBase*, SimpleEntry&)> externalFunctions;
 
   // List of products
@@ -51,6 +52,7 @@ public:
   virtual ~AnalysisTreeLooperBase();
 
   // Add the necessary objects
+  void addExternalIvyObject(TString objname, IvyBase* obj);
   void addExternalFunction(TString fcnname, void(*fcn)(AnalysisTreeLooperBase*, SimpleEntry&));
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
   void setExternalProductTree(BaseTree* extTree=nullptr);
