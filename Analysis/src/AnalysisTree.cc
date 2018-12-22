@@ -4,7 +4,7 @@
 
 AnalysisTree::AnalysisTree(TString strsample, bool isMC_, const TString treename) :
   BaseTree(strsample, treename, "", ""),
-  associatedSet(nullptr), RunNumberRef(nullptr), LumisectionRef(nullptr),
+  associatedSet(nullptr), RunNumberRef(nullptr), LumisectionRef(nullptr), EventNumberRef(nullptr),
   isMC(isMC_),
   sampleIdentifier(AnalysisTree::constructSampleIdentifier(strsample))
 {
@@ -26,6 +26,7 @@ void AnalysisTree::autoBookBranches(){
   if (!isMC){
     this->bookBranch<RunNumber_t>("uint_eventMaker_evtrun_CMS3.obj", 0); this->getValRef("uint_eventMaker_evtrun_CMS3.obj", RunNumberRef);
     this->bookBranch<Lumisection_t>("uint_eventMaker_evtlumiBlock_CMS3.obj", 0); this->getValRef("uint_eventMaker_evtlumiBlock_CMS3.obj", LumisectionRef);
+    this->bookBranch<EventNumber_t>("ull_eventMaker_evtevent_CMS3.obj", 0); this->getValRef("ull_eventMaker_evtevent_CMS3.obj", EventNumberRef);
   }
   else{
     // Calculation of xsec * BR is done outside

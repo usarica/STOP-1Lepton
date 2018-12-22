@@ -15,6 +15,7 @@ protected:
   AnalysisSet* associatedSet;
   RunNumber_t* RunNumberRef;
   Lumisection_t* LumisectionRef;
+  EventNumber_t* EventNumberRef;
 
   void autoBookBranches();
 
