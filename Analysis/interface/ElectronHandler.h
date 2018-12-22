@@ -17,14 +17,12 @@ protected:
 
 public:
   // Constructors
-  ElectronHandler() : IvyBase() {}
+  ElectronHandler();
 
   // Destructors
   ~ElectronHandler(){ clear(); }
 
   bool constructElectrons();
-
-  bool wrapTree(BaseTree* tree);
 
   static void bookBranches(BaseTree* tree);
 
