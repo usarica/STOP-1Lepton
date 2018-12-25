@@ -25,12 +25,11 @@ protected:
   std::unordered_map<AnalysisTree*, float> permanentWeights;
 
 public:
-  AnalysisSet(const TString& strname, const bool isMC, const TString treename);
-  AnalysisSet(const std::vector<TString>& strlist, const bool isMC, const TString treename);
+  AnalysisSet(FrameworkOptionParser const& opts, const TString treename);
   ~AnalysisSet();
 
-  bool addAnalysisTree(const TString& strname, const bool isMC, const TString treename);
-  bool addAnalysisTreeList(const std::vector<TString>& strlist, const bool isMC, const TString treename);
+  bool addAnalysisTree(FrameworkOptionParser const& opts, const TString& fname, const TString treename);
+  bool addAnalysisTreeList(FrameworkOptionParser const& opts, const TString treename);
   bool dissociateAnalysisTree(AnalysisTree*& tree);
   bool associateAnalysisTree(AnalysisTree*& tree);
 

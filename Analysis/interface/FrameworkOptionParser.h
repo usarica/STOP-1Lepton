@@ -16,6 +16,7 @@ protected:
   std::string outputName;
   std::string theDataPeriod;
   int maxEvents;
+  bool isMCflag;
 
   bool findTagFromDatasetFile();
 
@@ -35,6 +36,8 @@ public:
   std::string const& sampleTag() const{ return sampletag; }
   std::string const& dataPeriod() const{ return theDataPeriod; }
   int const& maxEventsToProcess() const{ return maxEvents; }
+  bool isMC() const{ return isMCflag; }
+  bool isData() const{ return !this->isMC(); }
 
 };
 

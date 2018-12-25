@@ -19,7 +19,8 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   sampletag(""),
   outputName("tmp.root"),
   theDataPeriod(""),
-  maxEvents(-1)
+  maxEvents(-1),
+  isMCflag(true)
 {
   if (argc>0) MELAout << "Executing " << argv[0] << " with " << (argc>1 ? "options" : "no options.");
   for (int a=1; a<argc; a++){
@@ -37,7 +38,8 @@ FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
   sampletag(""),
   outputName("tmp.root"),
   theDataPeriod(""),
-  maxEvents(-1)
+  maxEvents(-1),
+  isMCflag(true)
 {
   splitOptionRecursive(opts, rawOptions, ' ');
   analyze();
@@ -104,6 +106,8 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
 
   else if (wish=="maxevents") maxEvents = (int) atoi(value.c_str());
 
+  else if (wish=="ismc" || wish=="isdata"){ HelperFunctions::castStringToValue(value, isMCflag); if (wish=="isdata") isMCflag = !isMCflag; }
+
   else MELAerr << "Unknown specified argument: " << value << " with specifier " << wish << endl;
 }
 
@@ -134,6 +138,7 @@ void FrameworkOptionParser::printOptionsHelp(){
   MELAout << "- outfile: Output file name. Default=\"tmp.root\"\n\n";
   MELAout << "- period/dataperiod/year: The data period (2016, 2017, 2018 etc.). Default=\"\"\n\n";
   MELAout << "- maxevents: Maximum number of events to process. Default=-1 (all events)\n\n";
+  MELAout << "- ismc/isdata: Specify whether the sample is from simulation or real data. Default=true (ismc=true)\n\n";
 
   MELAout << endl;
   assert(0);

@@ -6,28 +6,29 @@
 using namespace std;
 
 
-AnalysisSet::AnalysisSet(const TString& strname, const bool isMC, const TString treename){
-  addAnalysisTree(strname, isMC, treename);
-}
-AnalysisSet::AnalysisSet(const std::vector<TString>& strlist, const bool isMC, const TString treename){
-  addAnalysisTreeList(strlist, isMC, treename);
+AnalysisSet::AnalysisSet(FrameworkOptionParser const& opts, const TString treename){
+  addAnalysisTreeList(opts, treename);
 }
 AnalysisSet::~AnalysisSet(){
   for (auto& tree:treeList) delete tree;
   treeList.clear();
 }
-bool AnalysisSet::addAnalysisTree(const TString& strname, const bool isMC, const TString treename){
-  AnalysisTree* tree = new AnalysisTree(strname, isMC, treename);
+bool AnalysisSet::addAnalysisTree(FrameworkOptionParser const& opts, const TString& fname, const TString treename){
+  AnalysisTree* tree = new AnalysisTree(opts, fname, treename);
   if (tree->isValid()) treeList.push_back(tree);
   else{ delete tree; tree=nullptr; }
-  if (!tree) cerr << "AnalysisSet::addAnalysisTree(" << strname << ") is invalid!" << endl;
-  else cout << "AnalysisSet::addAnalysisTree(" << strname << ") is successful!" << endl;
+  if (!tree) cerr << "AnalysisSet::addAnalysisTree: Tree is invalid!" << endl;
+  else cout << "AnalysisSet::addAnalysisTree is successful!" << endl;
   if (tree) tree->setAssociatedSet(this);
   return (tree!=nullptr);
 }
-bool AnalysisSet::addAnalysisTreeList(const std::vector<TString>& strlist, const bool isMC, const TString treename){
+bool AnalysisSet::addAnalysisTreeList(FrameworkOptionParser const& opts, const TString treename){
   bool res=true;
-  for (auto const& s:strlist) res &= addAnalysisTree(s, isMC, treename);
+  TString dirname=SampleHelpers::getDatasetDirectoryName(opts);
+  std::vector<TString> fnamelist = SampleHelpers::lsdir(dirname);
+  for (auto const& s:fnamelist){
+    if (s.Contains(".root")) res &= addAnalysisTree(opts, s, treename);
+  }
   return res;
 }
 bool AnalysisSet::dissociateAnalysisTree(AnalysisTree*& tree){
