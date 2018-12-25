@@ -17,6 +17,8 @@ protected:
   std::string theDataPeriod;
   int maxEvents;
 
+  bool findTagFromDatasetFile();
+
 public:
   FrameworkOptionParser(int argc, char** argv);
   FrameworkOptionParser(std::string opts);

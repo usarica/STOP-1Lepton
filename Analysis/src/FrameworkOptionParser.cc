@@ -3,6 +3,7 @@
 #include "MELAStreamHelpers.hh"
 #include "Samples.h"
 #include "SampleHelpers.h"
+#include "FrameworkTag.h"
 #include <algorithm>
 
 
@@ -59,7 +60,13 @@ void FrameworkOptionParser::analyze(){
     MELAerr << "Sample name " << sample << " cannot have the \\.root\\ exptension!" << endl;
     hasInvalidOption |= true;
   }
-  if (sampletag==""){ MELAerr << "You have to specify the input sample tag." << endl; hasInvalidOption |= true; }
+  if (sampletag==""){
+    MELAerr << "You have to specify the input sample tag." << endl;
+    if (sample.find('/')==0){ // Attempt to find the latest tag for this sample
+      hasInvalidOption |= !findTagFromDatasetFile();
+    }
+    else hasInvalidOption |= true;
+  }
   if (theDataPeriod==""){ MELAerr << "You have to specify the dataset period." << endl; hasInvalidOption |= true; }
 
   // Check for any invalid options and print an error
@@ -98,6 +105,22 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
   else if (wish=="maxevents") maxEvents = (int) atoi(value.c_str());
 
   else MELAerr << "Unknown specified argument: " << value << " with specifier " << wish << endl;
+}
+
+bool FrameworkOptionParser::findTagFromDatasetFile(){
+  MELAout << "FrameworkOptionParser::findTagFromDatasetFile: Attempting to find the latest tag for sample " << sample << "..." << endl;
+  std::unordered_map<std::string, DatasetInfoExtractor::datasetInfo> const& dsmap = SampleHelpers::datasetInfoExtractor.get_dslist();
+  FrameworkTag latest_tag;
+  for (std::unordered_map<std::string, DatasetInfoExtractor::datasetInfo>::const_iterator it=dsmap.cbegin(); it!=dsmap.cend(); it++){
+    std::string strkey = it->first;
+    if (strkey.find(sample)!=string::npos){
+      replaceString<std::string, const char*>(strkey, sample.c_str(), "");
+      FrameworkTag tmp_tag(strkey);
+      if (tmp_tag>=latest_tag) latest_tag=tmp_tag;
+    }
+  }
+  if (latest_tag != FrameworkTag()){ sampletag=latest_tag.getRawTag(); return true; }
+  else return false;
 }
 
 void FrameworkOptionParser::printOptionsHelp(){
