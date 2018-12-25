@@ -31,7 +31,11 @@ const TString CMS4_RUNS_TREE_NAME = "Runs";
 
 namespace SampleHelpers{
   extern TString theDataPeriod;
-  void setDataPeriod(const TString theDataPeriod_);
+  extern TString theInputDirectory;
+
+  void setDataPeriod(const TString s);
+  void setInputDirectory(const TString s);
+
 }
 
 #endif
