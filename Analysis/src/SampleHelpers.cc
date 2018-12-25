@@ -1,8 +1,11 @@
+#include <cassert>
 #include "SampleHelpers.h"
 #include "HelperFunctions.h"
+#include "MELAStreamHelpers.hh"
 
 
 using namespace std;
+using namespace MELAStreamHelpers;
 using namespace HelperFunctions;
 
 
@@ -27,7 +30,8 @@ TString SampleHelpers::getDatasetDirectoryName(FrameworkOptionParser const& opts
     replaceAllSlashes = replaceString<std::string, const char*>(sname, "/", "_");
   }
   while (replaceAllSlashes);
-  return Form("%s_%s", sname.c_str(), stag.c_str());
+  if (theInputDirectory==""){ MELAerr << "SampleHelpers::getDatasetDirectoryName: The main input directory is not set up!" << endl; assert(0); }
+  return Form("%s/%s_%s", theInputDirectory.Data(), sname.c_str(), stag.c_str());
 }
 
 void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts){
