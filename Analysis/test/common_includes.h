@@ -1,2 +1,5 @@
 #include "SampleHelpers.h"
 #include "FrameworkTag.h"
+#include "FrameworkOptionParser.h"
+#include "FrameworkSet.h"
+#include "FrameworkTreeLooperBase.h"

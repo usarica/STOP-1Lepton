@@ -112,14 +112,27 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
 }
 
 bool FrameworkOptionParser::findTagFromDatasetFile(){
+  if (sample=="") return false;
   MELAout << "FrameworkOptionParser::findTagFromDatasetFile: Attempting to find the latest tag for sample " << sample << "..." << endl;
   std::unordered_map<std::string, DatasetInfoExtractor::datasetInfo> const& dsmap = SampleHelpers::datasetInfoExtractor.get_dslist();
   FrameworkTag latest_tag;
-  for (std::unordered_map<std::string, DatasetInfoExtractor::datasetInfo>::const_iterator it=dsmap.cbegin(); it!=dsmap.cend(); it++){
-    std::string strkey = it->first;
-    if (strkey.find(sample)!=string::npos){
-      replaceString<std::string, const char*>(strkey, sample.c_str(), "");
-      FrameworkTag tmp_tag(strkey);
+  if (this->isMC()){ // Search the DS info file for the MC
+    for (std::unordered_map<std::string, DatasetInfoExtractor::datasetInfo>::const_iterator it=dsmap.cbegin(); it!=dsmap.cend(); it++){
+      std::string strkey = it->first;
+      if (strkey.find(sample)!=string::npos){
+        replaceString<std::string, const char*>(strkey, sample.c_str(), "");
+        FrameworkTag tmp_tag(strkey);
+        if (tmp_tag>=latest_tag) latest_tag=tmp_tag;
+      }
+    }
+  }
+  else{ // Search the available folders for the data
+    TString partial_sample = SampleHelpers::getDatasetDirectoryName(sample, "");
+    std::vector<TString> dirlist = SampleHelpers::lsdir(indir);
+    for (auto const& dir:dirlist){
+      TString tmptag = dir;
+      if (tmptag.Contains(partial_sample)) replaceString<TString, const char*>(tmptag, (partial_sample+"_").Data(), "");
+      FrameworkTag tmp_tag(tmptag.Data());
       if (tmp_tag>=latest_tag) latest_tag=tmp_tag;
     }
   }

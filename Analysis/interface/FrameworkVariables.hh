@@ -3,18 +3,21 @@
 
 // This header defines the branch aliases
 
+// Event variables
+
 
 // Electron variables
-// bool
+// float
+#define _electrons_rho_ "evt_fixgridfastjet_all_rho"
+// vbool
 #define _electrons_conv_vtx_flag_ "els_conv_vtx_flag"
-// int
+// vint
 #define _electrons_charge_ "els_charge"
 #define _electrons_expectedMissingInnerHits_ "els_exp_innerlayers"
-// float
+// vfloat
 #define _electrons_energySC_ "els_eSC"
 #define _electrons_etaSC_ "els_etaSC"
 #define _electrons_etaSeedSC_ "els_scSeedEta"
-#define _electrons_rho_ "evt_fixgridfastjet_all_rho"
 #define _electrons_sigmaIEtaIEta_full5x5_ "els_sigmaIEtaIEta_full5x5"
 #define _electrons_dEtaIn_ "els_dEtaIn"
 #define _electrons_dPhiIn_ "els_dPhiIn"

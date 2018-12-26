@@ -2,7 +2,7 @@
 #include <utility>
 #include <iterator>
 #include <cassert>
-#include "AnalysisTreeLooperBase.h"
+#include "FrameworkTreeLooperBase.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -10,73 +10,73 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-AnalysisTreeLooperBase::AnalysisTreeLooperBase() : IvyBase(), sampleIdOpt(AnalysisTreeLooperBase::kNoStorage), maxNEvents(-1) { setExternalProductList(); setExternalProductTree(); }
-AnalysisTreeLooperBase::AnalysisTreeLooperBase(AnalysisTree* inTree) : IvyBase(), sampleIdOpt(AnalysisTreeLooperBase::kNoStorage), maxNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
-AnalysisTreeLooperBase::AnalysisTreeLooperBase(std::vector<AnalysisTree*> const& inTreeList) :
+FrameworkTreeLooperBase::FrameworkTreeLooperBase() : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1) { setExternalProductList(); setExternalProductTree(); }
+FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
+FrameworkTreeLooperBase::FrameworkTreeLooperBase(std::vector<FrameworkTree*> const& inTreeList) :
   IvyBase(),
-  sampleIdOpt(AnalysisTreeLooperBase::kNoStorage),
+  sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeList),
   maxNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
 }
-AnalysisTreeLooperBase::AnalysisTreeLooperBase(AnalysisSet const* inTreeSet) :
+FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkSet const* inTreeSet) :
   IvyBase(),
-  sampleIdOpt(AnalysisTreeLooperBase::kNoStorage),
-  treeList(inTreeSet->getAnalysisTreeList()),
+  sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
+  treeList(inTreeSet->getFrameworkTreeList()),
   maxNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
 }
-AnalysisTreeLooperBase::~AnalysisTreeLooperBase(){}
+FrameworkTreeLooperBase::~FrameworkTreeLooperBase(){}
 
-void AnalysisTreeLooperBase::addTree(AnalysisTree* tree){ this->treeList.push_back(tree); }
+void FrameworkTreeLooperBase::addTree(FrameworkTree* tree){ this->treeList.push_back(tree); }
 
 
-void AnalysisTreeLooperBase::addExternalIvyObject(TString objname, IvyBase* obj){
+void FrameworkTreeLooperBase::addExternalIvyObject(TString objname, IvyBase* obj){
   if (!obj) return;
   if (obj == (IvyBase*)this){
-    if (verbosity>=TVar::ERROR) MELAerr << "AnalysisTreeLooperBase::addExternalIvyObject: " << objname << " is the same as the AnalysisTreeLooperBase! This object can never be added, so ignoring the association!" << endl;
+    if (verbosity>=TVar::ERROR) MELAerr << "FrameworkTreeLooperBase::addExternalIvyObject: " << objname << " is the same as the FrameworkTreeLooperBase! This object can never be added, so ignoring the association!" << endl;
     return;
   }
-  if (externalIvyObjects.find(objname)!=externalIvyObjects.end() && verbosity>=TVar::ERROR) MELAerr << "AnalysisTreeLooperBase::addExternalIvyObject: " << objname << " already exists but will override it regardless." << endl;
+  if (externalIvyObjects.find(objname)!=externalIvyObjects.end() && verbosity>=TVar::ERROR) MELAerr << "FrameworkTreeLooperBase::addExternalIvyObject: " << objname << " already exists but will override it regardless." << endl;
   externalIvyObjects[objname] = obj;
 }
-void AnalysisTreeLooperBase::addExternalFunction(TString fcnname, void(*fcn)(AnalysisTreeLooperBase*, SimpleEntry&)){
+void FrameworkTreeLooperBase::addExternalFunction(TString fcnname, void(*fcn)(FrameworkTreeLooperBase*, SimpleEntry&)){
   if (!fcn) return;
-  if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "AnalysisTreeLooperBase::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
+  if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "FrameworkTreeLooperBase::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
   externalFunctions[fcnname] = fcn;
 }
 
 
-void AnalysisTreeLooperBase::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
+void FrameworkTreeLooperBase::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
   if (extProductListRef) this->productListRef=extProductListRef;
   else this->productListRef=&(this->productList);
 }
 
-void AnalysisTreeLooperBase::setExternalProductTree(BaseTree* extTree){
+void FrameworkTreeLooperBase::setExternalProductTree(BaseTree* extTree){
   this->productTree=extTree;
   this->productListRef=&(this->productList); // To make sure product list collects some events before flushing
 }
 
-void AnalysisTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
+void FrameworkTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
 
-void AnalysisTreeLooperBase::setSampleIdStorageOption(AnalysisTreeLooperBase::SampleIdStorageType opt){ sampleIdOpt=opt; }
+void FrameworkTreeLooperBase::setSampleIdStorageOption(FrameworkTreeLooperBase::SampleIdStorageType opt){ sampleIdOpt=opt; }
 
-void AnalysisTreeLooperBase::addProduct(SimpleEntry& product, unsigned int* ev_rec){
+void FrameworkTreeLooperBase::addProduct(SimpleEntry& product, unsigned int* ev_rec){
   this->productListRef->push_back(product);
   if (ev_rec) (*ev_rec)++;
 }
 
-void AnalysisTreeLooperBase::recordProductsToTree(){
+void FrameworkTreeLooperBase::recordProductsToTree(){
   if (!this->productTree) return;
   BaseTree::writeSimpleEntries(this->productListRef->begin(), this->productListRef->end(), this->productTree);
   this->clearProducts();
 }
 
-void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepProducts){
+void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepProducts){
   const TString strVarRunNumber = "uint_eventMaker_evtrun_CMS3.obj";
   const TString strVarEventNumber = "ull_eventMaker_evtevent_CMS3.obj";
   // Loop over the trees
@@ -95,16 +95,16 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
   if (storeSampleIdByRunAndEventNumber){ // Check if RunNumber and EventNumber variables are consumed
     bool doAbort=false;
     if (valuints.find(strVarRunNumber)==valuints.cend()){
-      MELAerr << "AnalysisTreeLooperBase::loop: RunNumber is not a consumed variable!" << endl;
+      MELAerr << "FrameworkTreeLooperBase::loop: RunNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
     if (valulonglongs.find(strVarEventNumber)==valulonglongs.cend()){
-      MELAerr << "AnalysisTreeLooperBase::loop: EventNumber is not a consumed variable!" << endl;
+      MELAerr << "FrameworkTreeLooperBase::loop: EventNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
     assert(!doAbort);
   }
-  for (AnalysisTree*& tree:treeList){
+  for (FrameworkTree*& tree:treeList){
     // Skip the tree if it cannot be linked
     if (!(this->wrapTree(tree))) continue;
 
@@ -114,10 +114,10 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
     if (!externalObjectsWrapped) continue;
 
     float wgtExternal = 1;
-    //AnalysisSet const* associatedSet = tree->getAssociatedSet();
+    //FrameworkSet const* associatedSet = tree->getAssociatedSet();
     //if (associatedSet) wgtExternal *= associatedSet->getPermanentWeight(tree);
     if (wgtExternal==0.){
-      MELAerr << "AnalysisTreeLooperBase::loop: External weights are 0 for the " << tree->sampleIdentifier << " sample. Skipping..." << endl;
+      MELAerr << "FrameworkTreeLooperBase::loop: External weights are 0 for the " << tree->sampleIdentifier << " sample. Skipping..." << endl;
       continue;
     }
 
@@ -126,7 +126,7 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
 
     // Loop over selected events
     if (loopSelected){
-      MELAout << "AnalysisTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
+      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
       int ev=0;
       const int nevents = tree->getSelectedNEvents();
       while (tree->getSelectedEvent(ev)){
@@ -155,7 +155,7 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
     }
     // Loop over failed events
     if (loopFailed){
-      MELAout << "AnalysisTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
+      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
       int ev=0;
       const int nevents = tree->getFailedNEvents();
       while (tree->getFailedEvent(ev)){
@@ -193,10 +193,10 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
       it_loopTotalFailList++;
     }
   } // End loop over the trees
-  MELAout << "AnalysisTreeLooperBase::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
+  MELAout << "FrameworkTreeLooperBase::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
   if (verbosity>=TVar::INFO){
     for (unsigned int it=0; it<treeList.size(); it++){
-      MELAout << "\t- AnalysisTreeLooperBase::loop: Total number of selected | failed products in tree " << it << ": "
+      MELAout << "\t- FrameworkTreeLooperBase::loop: Total number of selected | failed products in tree " << it << ": "
         << loopRecSelList.at(it) << " / " << loopTotalSelList.at(it)
         << " | "
         << loopRecFailList.at(it) << " / " << loopTotalFailList.at(it)
@@ -205,13 +205,13 @@ void AnalysisTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepP
   }
 }
 
-std::vector<SimpleEntry> const& AnalysisTreeLooperBase::getProducts() const{ return *productListRef; }
+std::vector<SimpleEntry> const& FrameworkTreeLooperBase::getProducts() const{ return *productListRef; }
 
-void AnalysisTreeLooperBase::moveProducts(std::vector<SimpleEntry>& targetColl){
-  MELAout << "AnalysisTreeLooperBase::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
+void FrameworkTreeLooperBase::moveProducts(std::vector<SimpleEntry>& targetColl){
+  MELAout << "FrameworkTreeLooperBase::moveProducts: Moving " << productListRef->size() << " products into a list of initial size " << targetColl.size() << endl;
   std::move(productListRef->begin(), productListRef->end(), std::back_inserter(targetColl));
   clearProducts();
-  MELAout << "AnalysisTreeLooperBase::moveProducts: Target list final size: " << targetColl.size() << endl;
+  MELAout << "FrameworkTreeLooperBase::moveProducts: Target list final size: " << targetColl.size() << endl;
 }
 
-void AnalysisTreeLooperBase::clearProducts(){ std::vector<SimpleEntry> emptyList; std::swap(emptyList, *productListRef); }
+void FrameworkTreeLooperBase::clearProducts(){ std::vector<SimpleEntry> emptyList; std::swap(emptyList, *productListRef); }

@@ -1,5 +1,5 @@
-#ifndef ANALYSISTREE_H
-#define ANALYSISTREE_H
+#ifndef FRAMEWORKTREE_H
+#define FRAMEWORKTREE_H
 
 #include "SampleHelpers.h"
 #include "BaseTree.h"
@@ -9,15 +9,15 @@
 
 
 // Forward declarations
-class AnalysisSet;
+class FrameworkSet;
 
 
-class AnalysisTree : public BaseTree{
+class FrameworkTree : public BaseTree{
 protected:
   FrameworkOptionParser options;
   FrameworkTag tag;
 
-  AnalysisSet* associatedSet;
+  FrameworkSet* associatedSet;
   RunNumber_t* RunNumberRef;
   Lumisection_t* LumisectionRef;
   EventNumber_t* EventNumberRef;
@@ -25,12 +25,12 @@ protected:
   void autoBookBranches();
 
 public:
-  AnalysisTree(FrameworkOptionParser const& opts, const TString fname, const TString treename=CMS4_EVENTS_TREE_NAME);
-  ~AnalysisTree(){}
+  FrameworkTree(FrameworkOptionParser const& opts, const TString fname, const TString treename=CMS4_EVENTS_TREE_NAME);
+  ~FrameworkTree(){}
 
-  void setAssociatedSet(AnalysisSet* inSet){ associatedSet = inSet; }
-  AnalysisSet* getAssociatedSet(){ return associatedSet; }
-  AnalysisSet const* getAssociatedSet() const{ return associatedSet; }
+  void setAssociatedSet(FrameworkSet* inSet){ associatedSet = inSet; }
+  FrameworkSet* getAssociatedSet(){ return associatedSet; }
+  FrameworkSet const* getAssociatedSet() const{ return associatedSet; }
 
   bool isMC() const{ return options.isMC(); }
   bool isValidEvent() const;

@@ -7,6 +7,8 @@ using namespace std;
 
 ElectronHandler::ElectronHandler() : IvyBase()
 {
+  this->addConsumed<float>(_electrons_rho_);
+
   this->addConsumed<std::vector<bool>>(_electrons_conv_vtx_flag_);
 
   this->addConsumed<std::vector<int>>(_electrons_charge_);
@@ -15,7 +17,6 @@ ElectronHandler::ElectronHandler() : IvyBase()
   this->addConsumed<std::vector<float>>(_electrons_energySC_);
   this->addConsumed<std::vector<float>>(_electrons_etaSC_);
   this->addConsumed<std::vector<float>>(_electrons_etaSeedSC_);
-  this->addConsumed<std::vector<float>>(_electrons_rho_);
   this->addConsumed<std::vector<float>>(_electrons_sigmaIEtaIEta_full5x5_);
   this->addConsumed<std::vector<float>>(_electrons_dEtaIn_);
   this->addConsumed<std::vector<float>>(_electrons_dPhiIn_);
@@ -39,6 +40,8 @@ bool ElectronHandler::constructElectrons(){
   vector<int> const* charge = valVints[_electrons_charge_];
   vector<CMSLorentzVector> const* momentum = valVCMSLorentzVectors[_electrons_momentum_];
 
+  float const* rho = valfloats[_electrons_rho_];
+
   vector<bool> const* conv_vtx_flag = valVbools[_electrons_conv_vtx_flag_];
 
   vector<int> const* expectedMissingInnerHits = valVints[_electrons_expectedMissingInnerHits_];
@@ -46,7 +49,6 @@ bool ElectronHandler::constructElectrons(){
   vector<float> const* energySC = valVfloats[_electrons_energySC_];
   vector<float> const* etaSC = valVfloats[_electrons_etaSC_];
   vector<float> const* etaSeedSC = valVfloats[_electrons_etaSeedSC_];
-  vector<float> const* rho = valVfloats[_electrons_rho_];
   vector<float> const* sigmaIEtaIEta_full5x5 = valVfloats[_electrons_sigmaIEtaIEta_full5x5_];
   vector<float> const* dEtaIn = valVfloats[_electrons_dEtaIn_];
   vector<float> const* dPhiIn = valVfloats[_electrons_dPhiIn_];
@@ -67,6 +69,8 @@ bool ElectronHandler::constructElectrons(){
     productList.push_back(new ElectronObject(-11*(charge->at(ip)>0 ? 1 : -1), momentum->at(ip)));
     ElectronObject*& obj = productList.back();
 
+    obj->extras.rho = *rho;
+
     obj->extras.conv_vtx_flag = conv_vtx_flag->at(ip);
 
     obj->extras.expectedMissingInnerHits = expectedMissingInnerHits->at(ip);
@@ -74,7 +78,6 @@ bool ElectronHandler::constructElectrons(){
     obj->extras.energySC = energySC->at(ip);
     obj->extras.etaSC = etaSC->at(ip);
     obj->extras.etaSeedSC = etaSeedSC->at(ip);
-    obj->extras.rho = rho->at(ip);
     obj->extras.sigmaIEtaIEta_full5x5 = sigmaIEtaIEta_full5x5->at(ip);
     obj->extras.dEtaIn = dEtaIn->at(ip);
     obj->extras.dPhiIn = dPhiIn->at(ip);

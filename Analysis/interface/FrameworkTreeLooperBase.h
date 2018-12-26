@@ -1,12 +1,12 @@
-#ifndef ANALYSISTREELOOPERBASE_H
-#define ANALYSISTREELOOPERBASE_H
+#ifndef FRAMEWORKTREELOOPERBASE_H
+#define FRAMEWORKTREELOOPERBASE_H
 
 #include "IvyBase.h"
-#include "AnalysisSet.h"
+#include "FrameworkSet.h"
 #include "HelperFunctions.h"
 
 
-class AnalysisTreeLooperBase : public IvyBase{
+class FrameworkTreeLooperBase : public IvyBase{
 public:
   enum SampleIdStorageType{
     kNoStorage,
@@ -18,14 +18,14 @@ protected:
   SampleIdStorageType sampleIdOpt; // When not kNoStorage, stores a sample identifier and original tree entry index in each output event
 
   // List of trees to loop over
-  std::vector<AnalysisTree*> treeList;
+  std::vector<FrameworkTree*> treeList;
 
   // Max. events to process
   int maxNEvents;
 
   // External dependencies
   std::unordered_map<TString, IvyBase*> externalIvyObjects;
-  std::unordered_map<TString, void(*)(AnalysisTreeLooperBase*, SimpleEntry&)> externalFunctions;
+  std::unordered_map<TString, void(*)(FrameworkTreeLooperBase*, SimpleEntry&)> externalFunctions;
 
   // List of products
   std::vector<SimpleEntry> productList;
@@ -37,23 +37,23 @@ protected:
   void recordProductsToTree();
 
   // Abstract function to loop over a single event
-  virtual bool runEvent(AnalysisTree* tree, float const& externalWgt, SimpleEntry& product)=0;
+  virtual bool runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product)=0;
 
 public:
   // Constructors
-  AnalysisTreeLooperBase();
-  AnalysisTreeLooperBase(AnalysisTree* inTree);
-  AnalysisTreeLooperBase(std::vector<AnalysisTree*> const& inTreeList);
-  AnalysisTreeLooperBase(AnalysisSet const* inTreeSet);
+  FrameworkTreeLooperBase();
+  FrameworkTreeLooperBase(FrameworkTree* inTree);
+  FrameworkTreeLooperBase(std::vector<FrameworkTree*> const& inTreeList);
+  FrameworkTreeLooperBase(FrameworkSet const* inTreeSet);
 
-  void addTree(AnalysisTree* tree);
+  void addTree(FrameworkTree* tree);
 
   // Destructors
-  virtual ~AnalysisTreeLooperBase();
+  virtual ~FrameworkTreeLooperBase();
 
   // Add the necessary objects
   void addExternalIvyObject(TString objname, IvyBase* obj);
-  void addExternalFunction(TString fcnname, void(*fcn)(AnalysisTreeLooperBase*, SimpleEntry&));
+  void addExternalFunction(TString fcnname, void(*fcn)(FrameworkTreeLooperBase*, SimpleEntry&));
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
   void setExternalProductTree(BaseTree* extTree=nullptr);
 
