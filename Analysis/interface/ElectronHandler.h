@@ -23,6 +23,7 @@ public:
   ~ElectronHandler(){ clear(); }
 
   bool constructElectrons();
+  std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
   static void bookBranches(BaseTree* tree);
 

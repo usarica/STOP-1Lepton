@@ -4,6 +4,8 @@
 <flags CPPDEFINES="_stop1lpkgpathstr_='TString(std::getenv(xstr_lit(CMSSW_BASE)))+TString(xstr_lit(/src/STOP_1Lepton/Analysis/))'" />
 <flags LDFLAGS="-Wl,-rpath=$(CMSSW_BASE)/src/cmstas/CORE -L$(CMSSW_BASE)/src/cmstas/CORE -l:CMS3_CORE.so" />
 
+<use name="FWCore/MessageLogger"/>
+<use name="FWCore/Utilities"/>
 <use name="root"/>
 <use name="rootmath"/>
 <use name="roofit"/>

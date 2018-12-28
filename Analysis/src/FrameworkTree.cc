@@ -1,3 +1,4 @@
+#include "FrameworkVariables.hh"
 #include "SampleHelpersCore.h"
 #include "FrameworkTree.h"
 
@@ -22,13 +23,11 @@ TString FrameworkTree::constructSampleIdentifier(){
 
 void FrameworkTree::autoBookBranches(){
   if (!this->isMC()){
-    this->bookBranch<RunNumber_t>("uint_eventMaker_evtrun_CMS3.obj", 0); this->getValRef("uint_eventMaker_evtrun_CMS3.obj", RunNumberRef);
-    this->bookBranch<Lumisection_t>("uint_eventMaker_evtlumiBlock_CMS3.obj", 0); this->getValRef("uint_eventMaker_evtlumiBlock_CMS3.obj", LumisectionRef);
-    this->bookBranch<EventNumber_t>("ull_eventMaker_evtevent_CMS3.obj", 0); this->getValRef("ull_eventMaker_evtevent_CMS3.obj", EventNumberRef);
+    this->bookBranch<RunNumber_t>(_event_RunNumber_, 0); this->getValRef(_event_RunNumber_, RunNumberRef);
+    this->bookBranch<Lumisection_t>(_event_Lumisection_, 0); this->getValRef(_event_Lumisection_, LumisectionRef);
+    this->bookBranch<EventNumber_t>(_event_EventNumber_, 0); this->getValRef(_event_EventNumber_, EventNumberRef);
   }
-  else{
-    // Calculation of xsec * BR is done outside
-  }
+  // Calculation of xsec * BR is done outside in this framework
 }
 
 bool FrameworkTree::isValidEvent() const{

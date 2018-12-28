@@ -23,6 +23,9 @@ public:
 protected:
   std::vector<FrameworkTree*> treeList;
   std::unordered_map<FrameworkTree*, float> permanentWeights;
+  std::unordered_map<TString, std::vector<std::string>> sampleHeaders;
+
+  void addSampleHeader(FrameworkTree* tree);
 
 public:
   FrameworkSet(FrameworkOptionParser const& opts, const TString treename);
@@ -39,6 +42,8 @@ public:
 
   FrameworkTree* getSelectedEvent(const int evid);
   FrameworkTree* getFailedEvent(const int evid);
+
+  std::vector<std::string> getSampleHeader(FrameworkTree* tree);
 
 };
 

@@ -20,7 +20,8 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   outputName("tmp.root"),
   theDataPeriod(""),
   maxEvents(-1),
-  isMCflag(true)
+  isMCflag(true),
+  exceptionalCases()
 {
   if (argc>0) MELAout << "Executing " << argv[0] << " with " << (argc>1 ? "options" : "no options.");
   for (int a=1; a<argc; a++){
@@ -39,7 +40,8 @@ FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
   outputName("tmp.root"),
   theDataPeriod(""),
   maxEvents(-1),
-  isMCflag(true)
+  isMCflag(true),
+  exceptionalCases()
 {
   splitOptionRecursive(opts, rawOptions, ' ');
   analyze();
@@ -108,6 +110,10 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
 
   else if (wish=="ismc" || wish=="isdata"){ HelperFunctions::castStringToValue(value, isMCflag); if (wish=="isdata") isMCflag = !isMCflag; }
 
+  else if (wish=="specialpdf_nnpdf30_nlo_nf_4_pdfas_madgraph_1000offset_powhegstyle_case1") HelperFunctions::castStringToValue(value, exceptionalCases.specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1);
+  else if (wish=="specialpdf_nnpdf31_nnlo_as_0118_nf_4") HelperFunctions::castStringToValue(value, exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_nf_4);
+  else if (wish=="specialpdf_nnpdf31_nnlo_as_0118_madgraph_1000offset_case1") HelperFunctions::castStringToValue(value, exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1);
+
   else MELAerr << "Unknown specified argument: " << value << " with specifier " << wish << endl;
 }
 
@@ -152,6 +158,9 @@ void FrameworkOptionParser::printOptionsHelp(){
   MELAout << "- period/dataperiod/year: The data period (2016, 2017, 2018 etc.). Default=\"\"\n\n";
   MELAout << "- maxevents: Maximum number of events to process. Default=-1 (all events)\n\n";
   MELAout << "- ismc/isdata: Specify whether the sample is from simulation or real data. Default=true (ismc=true)\n\n";
+  MELAout << "- specialpdf_nnpdf30_nlo_nf_4_pdfas_madgraph_1000offset_powhegstyle_case1: Set the MC LHE weights flag for specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1. Default=false\n\n";
+  MELAout << "- specialpdf_nnpdf31_nnlo_as_0118_nf_4: Set the MC LHE weights flag for specialPDF_NNPDF31_NNLO_as_0118_nf_4. Default=false\n\n";
+  MELAout << "- specialpdf_nnpdf31_nnlo_as_0118_madgraph_1000offset_case1: Set the MC LHE weights flag for specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1. Default=false\n\n";
 
   MELAout << endl;
   assert(0);

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "LHEWeightHandler.h"
 
 
 class FrameworkOptionParser{
@@ -17,6 +18,8 @@ protected:
   std::string theDataPeriod;
   int maxEvents;
   bool isMCflag;
+
+  LHEWeightHandler::ExceptionalCases exceptionalCases;
 
   bool findTagFromDatasetFile();
 
@@ -38,6 +41,7 @@ public:
   int const& maxEventsToProcess() const{ return maxEvents; }
   bool isMC() const{ return isMCflag; }
   bool isData() const{ return !this->isMC(); }
+  LHEWeightHandler::ExceptionalCases const& getLHEExceptionalCases() const{ return exceptionalCases; }
 
 };
 

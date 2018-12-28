@@ -2,10 +2,7 @@
 #define GOODEVENTFILTER_H
 
 #include <vector>
-
-typedef unsigned int RunNumber_t;
-typedef unsigned int Lumisection_t;
-typedef unsigned long long EventNumber_t;
+#include "FrameworkVariables.hh"
 
 
 class GoodRunLumisection{
