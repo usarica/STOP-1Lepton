@@ -49,6 +49,10 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       MELAerr << "EventAnalyzer::runEvent: Weight product is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
       return validProducts;
     }
+    if (wgtProduct->extras.wgt_central==0.f){
+      MELAerr << "EventAnalyzer::runEvent: Weight " << wgt << " is invalid (Tree " << tree->sampleIdentifier << ")." << endl;
+      exit(1);
+    }
     wgt *= wgtProduct->extras.wgt_central;
   }
 
@@ -72,13 +76,14 @@ void testWeights(){
   std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
   FrameworkOptionParser opts(stropts);
 
-  TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
   BaseTree outtree("test"); // The tree to record into the ROOT file
+  TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
   curdir->cd();
 
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
 
   WeightsHandler wgtHandler;
+  wgtHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
   EventAnalyzer analyzer(&theSet);
@@ -86,10 +91,7 @@ void testWeights(){
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.setExternalProductTree(&outtree);
 
-  foutput->cd();
   analyzer.loop(true, false, true);
-  curdir->cd();
-
   MELAout << "There are " << outtree.getNEvents() << " products" << endl;
   outtree.writeToFile(foutput);
 

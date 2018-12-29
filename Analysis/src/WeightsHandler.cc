@@ -21,10 +21,18 @@ WeightsHandler::WeightsHandler() :
 {}
 
 bool WeightsHandler::constructWeights(){
+  static bool first_event=true;
+
   clear();
-  if (!currentTree) return false;
+  if (!currentTree){
+    if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Current tree is null!" << endl;
+    return false;
+  }
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
-  if (!fwktree) return false;
+  if (!fwktree){
+    if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Current tree is not derived from a FrameworkTree class!" << endl;
+    return false;
+  }
 
   std::vector<float> const* weights = valVfloats[_genweights_];
   std::vector<std::string> const* weightIds = valVstrings[_genweightIDs_];
@@ -33,6 +41,8 @@ bool WeightsHandler::constructWeights(){
   auto& productExtras = product->extras;
   bool hasNewWeights = currentTree->branchExists(_genHEPMCweight_); // Should have been already booked by now
   if (hasNewWeights){
+    if (first_event && verbosity>=TVar::INFO) MELAout << "WeightsHandler::constructWeights: Case hasNewWeights=true" << endl;
+
     float const* genHEPMCweight = valfloats[_genHEPMCweight_];
     float const* LHEweight_QCDscale_muR1_muF2 = valfloats[_LHEweight_QCDscale_muR1_muF2_];
     float const* LHEweight_QCDscale_muR1_muF0p5 = valfloats[_LHEweight_QCDscale_muR1_muF0p5_];
@@ -48,6 +58,8 @@ bool WeightsHandler::constructWeights(){
     float const* LHEweight_AsMZ_Up_2016 = nullptr;
     float const* LHEweight_AsMZ_Dn_2016 = nullptr;
     if (SampleHelpers::theDataPeriod!="2016"){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Linking also 2016-like weights" << endl;
+
       genHEPMCweight_2016 = valfloats[_genHEPMCweight_2016_];
       LHEweight_PDFVariation_Up_2016 = valfloats[_LHEweight_PDFVariation_Up_2016_];
       LHEweight_PDFVariation_Dn_2016 = valfloats[_LHEweight_PDFVariation_Dn_2016_];
@@ -58,6 +70,8 @@ bool WeightsHandler::constructWeights(){
     bool use2016 = (genHEPMCweight_2016!=nullptr);
     if (use2016) use2016 &= (((*genHEPMCweight_2016)==0.) || !((*LHEweight_PDFVariation_Up_2016)==1.f && (*LHEweight_PDFVariation_Dn_2016)==1.f));
     if (use2016){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using 2016-like weights" << endl;
+
       productExtras.wgt_central = (*genHEPMCweight_2016);
       productExtras.wgt_PDFVariationUp = productExtras.wgt_central * (*LHEweight_PDFVariation_Up_2016);
       productExtras.wgt_PDFVariationDn = productExtras.wgt_central * (*LHEweight_PDFVariation_Dn_2016);
@@ -65,6 +79,8 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_AsMZDn = productExtras.wgt_central * (*LHEweight_AsMZ_Dn_2016);
     }
     else{
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using default weights" << endl;
+
       productExtras.wgt_central = (*genHEPMCweight);
       productExtras.wgt_PDFVariationUp = productExtras.wgt_central * (*LHEweight_PDFVariation_Up);
       productExtras.wgt_PDFVariationDn = productExtras.wgt_central * (*LHEweight_PDFVariation_Dn);
@@ -77,12 +93,14 @@ bool WeightsHandler::constructWeights(){
     productExtras.wgt_muF0p5 = productExtras.wgt_central * (*LHEweight_QCDscale_muR1_muF0p5);
   }
   else if (weights && weightIds){
+    if (first_event && verbosity>=TVar::INFO) MELAout << "WeightsHandler::constructWeights: Case hasNewWeights=false" << endl;
+
     int year;
     if (SampleHelpers::theDataPeriod == "2016") year=2016;
     else if (SampleHelpers::theDataPeriod == "2017") year=2017;
     else if (SampleHelpers::theDataPeriod == "2018") year=2018;
     else{
-      MELAerr << "WeightsHandler::constructWeights: Year cannot be determined!" << endl;
+      if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Year cannot be determined!" << endl;
       assert(0);
       return false;
     }
@@ -94,6 +112,8 @@ bool WeightsHandler::constructWeights(){
     auto const& exceptionalCases = fwktree->getOptions().getLHEExceptionalCases();
     bool use2016 = false;
     if (weightHandler_2016){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Constructing 2016-like weights" << endl;
+
       weightHandler_2016->set_specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1(exceptionalCases.specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1);
       weightHandler_2016->set_specialPDF_NNPDF31_NNLO_as_0118_nf_4(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_nf_4);
       weightHandler_2016->set_specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1);
@@ -105,6 +125,8 @@ bool WeightsHandler::constructWeights(){
       use2016 = ((cvwgt==0.) || !(pdfup==1.f && pdfdn==1.f));
     }
     if (use2016){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using 2016-like weights" << endl;
+
       productExtras.wgt_central = weightHandler_2016->getLHEOriginalWeight() * weightHandler_2016->getWeightRescale();
       productExtras.wgt_muF2 = productExtras.wgt_central * weightHandler_2016->getLHEWeight(1, 1.);
       productExtras.wgt_muF0p5 = productExtras.wgt_central * weightHandler_2016->getLHEWeight(2, 1.);
@@ -116,10 +138,14 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_AsMZDn = productExtras.wgt_central * weightHandler_2016->getLHEWeigh_AsMZUpDn(-1, 1.);
     }
     else if (weightHandler_DefaultPDF){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Constructing default weights" << endl;
+
       weightHandler_DefaultPDF->set_specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1(exceptionalCases.specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1);
       weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_nf_4(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_nf_4);
       weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1);
       weightHandler_DefaultPDF->extract(*genHEPMCweight_old, *weights, *weightIds);
+
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using default weights" << endl;
 
       productExtras.wgt_central = weightHandler_DefaultPDF->getLHEOriginalWeight() * weightHandler_DefaultPDF->getWeightRescale();
       productExtras.wgt_muF2 = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight(1, 1.);
@@ -133,8 +159,8 @@ bool WeightsHandler::constructWeights(){
     }
   }
   else{
-    if (!weights) MELAerr << "WeightsHandler::constructWeights: The weight list is null!" << endl;
-    if (!weightIds) MELAerr << "WeightsHandler::constructWeights: The weight id list is null!" << endl;
+    if (!weights && verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: The weight list is null!" << endl;
+    if (!weightIds && verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: The weight id list is null!" << endl;
     assert(0);
     return false;
   }
@@ -151,7 +177,7 @@ bool WeightsHandler::constructWeights(){
     if (it_copy_begin!=weights->cend()) std::copy(it_copy_begin, weights->cend(), std::back_inserter(genwgtvars));
     if (genwgtvars.size()>1){
       if (genwgtvars.size()!=14 || genwgtvars.at(0) != genwgtvars.at(1)){
-        MELAerr << "Expected to find 1 gen weight, or 14 with the first two the same, found " << genwgtvars.size() << ": " << genwgtvars << endl;
+        if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Expected to find 1 gen weight, or 14 with the first two the same, found " << genwgtvars.size() << ": " << genwgtvars << endl;
         assert(0);
         return false;
       }
@@ -174,6 +200,8 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_PSDn = productExtras.wgt_central * PythiaWeight_isr_muR0p25*PythiaWeight_fsr_muR0p25;
     }
   }
+
+  if (first_event) first_event=false;
 
   return true;
 }
