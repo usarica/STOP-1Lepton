@@ -67,9 +67,31 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
 
 void testWeights(){
+  TDirectory* curdir = gDirectory;
+
   std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
   FrameworkOptionParser opts(stropts);
+
+  TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
+  BaseTree outtree("test"); // The tree to record into the ROOT file
+  curdir->cd();
+
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
 
-  //EventAnalyzer analyzer(theSet);
+  WeightsHandler wgtHandler;
+  for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
+
+  EventAnalyzer analyzer(&theSet);
+  analyzer.setMaximumEvents(opts.maxEventsToProcess());
+  analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
+  analyzer.setExternalProductTree(&outtree);
+
+  foutput->cd();
+  analyzer.loop(true, false, true);
+  curdir->cd();
+
+  MELAout << "There are " << outtree.getNEvents() << " products" << endl;
+  outtree.writeToFile(foutput);
+
+  foutput->Close();
 }

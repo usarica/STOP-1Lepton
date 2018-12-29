@@ -13,6 +13,9 @@
 #include "WeightsHandler.h"
 #include "ElectronHandler.h"
 #include "MELAStreamHelpers.hh"
+#include "TSystem.h"
+#include "TDirectory.h"
+#include "TFile.h"
 
 
 using namespace std;
