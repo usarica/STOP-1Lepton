@@ -33,8 +33,12 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname, std::string st
 }
 TString SampleHelpers::getDatasetDirectoryName(TString sname, TString stag){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data()), std::string(stag.Data())); }
 TString SampleHelpers::getDatasetDirectoryName(FrameworkOptionParser const& opts){
+  SampleHelpers::setupUsingOptions(opts);
   TString sname_tag = SampleHelpers::getDatasetDirectoryName(opts.sampleName(), opts.sampleTag());
-  if (theInputDirectory==""){ MELAerr << "SampleHelpers::getDatasetDirectoryName: The main input directory is not set up!" << endl; assert(0); }
+  if (theInputDirectory=="" || (opts.sampleName().find('/')!=std::string::npos && theInputDirectory=="./")){
+    MELAerr << "SampleHelpers::getDatasetDirectoryName: The main input directory is not set up!" << endl;
+    assert(0);
+  }
   return Form("%s/%s", theInputDirectory.Data(), sname_tag.Data());
 }
 

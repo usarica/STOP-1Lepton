@@ -2,6 +2,7 @@
 #include <utility>
 #include <iterator>
 #include <cassert>
+#include "FrameworkVariables.hh"
 #include "FrameworkTreeLooperBase.h"
 #include "MELAStreamHelpers.hh"
 
@@ -77,8 +78,6 @@ void FrameworkTreeLooperBase::recordProductsToTree(){
 }
 
 void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keepProducts){
-  const TString strVarRunNumber = "uint_eventMaker_evtrun_CMS3.obj";
-  const TString strVarEventNumber = "ull_eventMaker_evtevent_CMS3.obj";
   // Loop over the trees
   unsigned int ev_acc=0;
   unsigned int ev_rec=0;
@@ -94,11 +93,11 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
   }
   if (storeSampleIdByRunAndEventNumber){ // Check if RunNumber and EventNumber variables are consumed
     bool doAbort=false;
-    if (valuints.find(strVarRunNumber)==valuints.cend()){
+    if (valuints.find(_event_RunNumber_)==valuints.cend()){
       MELAerr << "FrameworkTreeLooperBase::loop: RunNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
-    if (valulonglongs.find(strVarEventNumber)==valulonglongs.cend()){
+    if (valulonglongs.find(_event_EventNumber_)==valulonglongs.cend()){
       MELAerr << "FrameworkTreeLooperBase::loop: EventNumber is not a consumed variable!" << endl;
       doAbort=true;
     }
@@ -140,8 +139,8 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
                 product.setNamedVal("EventNumber", ev_acc);
               }
               else if (storeSampleIdByRunAndEventNumber){
-                product.setNamedVal("RunNumber", *(valuints[strVarRunNumber]));
-                product.setNamedVal("EventNumber", *(valulonglongs[strVarEventNumber]));
+                product.setNamedVal("RunNumber", *(valuints[_event_RunNumber_]));
+                product.setNamedVal("EventNumber", *(valulonglongs[_event_EventNumber_]));
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecSelList)++;
@@ -169,8 +168,8 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
                 product.setNamedVal("EventNumber", ev_acc);
               }
               else if (storeSampleIdByRunAndEventNumber){
-                product.setNamedVal("RunNumber", *(valuints[strVarRunNumber]));
-                product.setNamedVal("EventNumber", *(valulonglongs[strVarEventNumber]));
+                product.setNamedVal("RunNumber", *(valuints[_event_RunNumber_]));
+                product.setNamedVal("EventNumber", *(valulonglongs[_event_EventNumber_]));
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecFailList)++;

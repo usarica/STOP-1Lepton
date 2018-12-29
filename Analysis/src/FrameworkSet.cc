@@ -1,9 +1,11 @@
+#include <algorithm>
 #include "SampleHelpers.h"
 #include "FrameworkSet.h"
-#include <algorithm>
+#include "MELAStreamHelpers.hh"
 
 
 using namespace std;
+using namespace MELAStreamHelpers;
 
 
 FrameworkSet::FrameworkSet(FrameworkOptionParser const& opts, const TString treename){
@@ -16,10 +18,13 @@ FrameworkSet::~FrameworkSet(){
 
 bool FrameworkSet::addFrameworkTree(FrameworkOptionParser const& opts, const TString& fname, const TString treename){
   FrameworkTree* tree = new FrameworkTree(opts, fname, treename);
-  if (tree->isValid()) treeList.push_back(tree);
+  if (tree->isValid()){
+    tree->silenceUnused();
+    treeList.push_back(tree);
+  }
   else{ delete tree; tree=nullptr; }
-  if (!tree) cerr << "FrameworkSet::addFrameworkTree: Tree is invalid!" << endl;
-  else cout << "FrameworkSet::addFrameworkTree is successful!" << endl;
+  if (!tree) MELAerr << "FrameworkSet::addFrameworkTree: Tree from file " << fname << " is invalid!" << endl;
+  else MELAout << "FrameworkSet::addFrameworkTree(" << fname << "::" << treename << ") is successful!" << endl;
   if (tree) tree->setAssociatedSet(this);
   return (tree!=nullptr);
 }

@@ -142,7 +142,11 @@ bool FrameworkOptionParser::findTagFromDatasetFile(){
       if (tmp_tag>=latest_tag) latest_tag=tmp_tag;
     }
   }
-  if (latest_tag != FrameworkTag()){ sampletag=latest_tag.getRawTag(); return true; }
+  if (latest_tag != FrameworkTag()){
+    sampletag=latest_tag.getRawTag();
+    MELAout << "FrameworkOptionParser::findTagFromDatasetFile: Tag " << sampletag << " is found!" << endl;
+    return true;
+  }
   else return false;
 }
 
