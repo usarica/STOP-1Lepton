@@ -1,3 +1,4 @@
+#include <cassert>
 #include "ElectronHandler.h"
 #include "FrameworkVariables.hh"
 #include "FrameworkTree.h"
@@ -12,27 +13,27 @@ ElectronHandler::ElectronHandler() : IvyBase()
 {
   this->addConsumed<float>(_electrons_rho_);
 
-  this->addConsumed<std::vector<bool>* const>(_electrons_conv_vtx_flag_);
+  this->addConsumed<std::vector<bool>*>(_electrons_conv_vtx_flag_);
 
-  this->addConsumed<std::vector<int>* const>(_electrons_charge_);
-  this->addConsumed<std::vector<int>* const>(_electrons_expectedMissingInnerHits_);
+  this->addConsumed<std::vector<int>*>(_electrons_charge_);
+  this->addConsumed<std::vector<int>*>(_electrons_expectedMissingInnerHits_);
 
-  this->addConsumed<std::vector<float>* const>(_electrons_energySC_);
-  this->addConsumed<std::vector<float>* const>(_electrons_etaSC_);
-  this->addConsumed<std::vector<float>* const>(_electrons_etaSeedSC_);
-  this->addConsumed<std::vector<float>* const>(_electrons_sigmaIEtaIEta_full5x5_);
-  this->addConsumed<std::vector<float>* const>(_electrons_dEtaIn_);
-  this->addConsumed<std::vector<float>* const>(_electrons_dPhiIn_);
-  this->addConsumed<std::vector<float>* const>(_electrons_hOverE_);
-  this->addConsumed<std::vector<float>* const>(_electrons_ecalEnergy_);
-  this->addConsumed<std::vector<float>* const>(_electrons_eOverPIn_);
-  this->addConsumed<std::vector<float>* const>(_electrons_dxyPV_);
-  this->addConsumed<std::vector<float>* const>(_electrons_dzPV_);
-  this->addConsumed<std::vector<float>* const>(_electrons_miniIso_ch_);
-  this->addConsumed<std::vector<float>* const>(_electrons_miniIso_nh_);
-  this->addConsumed<std::vector<float>* const>(_electrons_miniIso_em_);
+  this->addConsumed<std::vector<float>*>(_electrons_energySC_);
+  this->addConsumed<std::vector<float>*>(_electrons_etaSC_);
+  this->addConsumed<std::vector<float>*>(_electrons_etaSeedSC_);
+  this->addConsumed<std::vector<float>*>(_electrons_sigmaIEtaIEta_full5x5_);
+  this->addConsumed<std::vector<float>*>(_electrons_dEtaIn_);
+  this->addConsumed<std::vector<float>*>(_electrons_dPhiIn_);
+  this->addConsumed<std::vector<float>*>(_electrons_hOverE_);
+  this->addConsumed<std::vector<float>*>(_electrons_ecalEnergy_);
+  this->addConsumed<std::vector<float>*>(_electrons_eOverPIn_);
+  this->addConsumed<std::vector<float>*>(_electrons_dxyPV_);
+  this->addConsumed<std::vector<float>*>(_electrons_dzPV_);
+  this->addConsumed<std::vector<float>*>(_electrons_miniIso_ch_);
+  this->addConsumed<std::vector<float>*>(_electrons_miniIso_nh_);
+  this->addConsumed<std::vector<float>*>(_electrons_miniIso_em_);
 
-  this->addConsumed<std::vector<CMSLorentzVector>* const>(_electrons_momentum_);
+  this->addConsumed<std::vector<CMSLorentzVector>*>(_electrons_momentum_);
 }
 
 
@@ -40,47 +41,75 @@ bool ElectronHandler::constructElectrons(){
   clear();
   if (!currentTree) return false;
 
-  vector<int> const* charge = nullptr;
-  vector<int>* const* chargePtr = valVints[_electrons_charge_];
-  vector<CMSLorentzVector> const* momentum = nullptr;
-  vector<CMSLorentzVector>* const* momentumPtr = valVCMSLorentzVectors[_electrons_momentum_];
+  float rho = 0;
 
-  float const* rho = valfloats[_electrons_rho_];
+  vector<bool>* conv_vtx_flag = nullptr;
 
-  vector<bool> const* conv_vtx_flag = nullptr;
-  vector<bool>* const* conv_vtx_flagPtr = valVbools[_electrons_conv_vtx_flag_];
+  vector<int>* charge = nullptr;
+  vector<int>* expectedMissingInnerHits = nullptr;
 
-  vector<int> const* expectedMissingInnerHits = nullptr;
-  vector<int>* const* expectedMissingInnerHitsPtr = valVints[_electrons_expectedMissingInnerHits_];
+  vector<float>* energySC = nullptr;
+  vector<float>* etaSC = nullptr;
+  vector<float>* etaSeedSC = nullptr;
+  vector<float>* sigmaIEtaIEta_full5x5 = nullptr;
+  vector<float>* dEtaIn = nullptr;
+  vector<float>* dPhiIn = nullptr;
+  vector<float>* hOverE = nullptr;
+  vector<float>* ecalEnergy = nullptr;
+  vector<float>* eOverPIn = nullptr;
+  vector<float>* dxyPV = nullptr;
+  vector<float>* dzPV = nullptr;
+  vector<float>* miniIso_ch = nullptr;
+  vector<float>* miniIso_nh = nullptr;
+  vector<float>* miniIso_em = nullptr;
 
-  vector<float> const* energySC = nullptr;
-  vector<float>* const* energySCPtr = valVfloats[_electrons_energySC_];
-  vector<float> const* etaSC = nullptr;
-  vector<float>* const* etaSCPtr = valVfloats[_electrons_etaSC_];
-  vector<float> const* etaSeedSC = nullptr;
-  vector<float>* const* etaSeedSCPtr = valVfloats[_electrons_etaSeedSC_];
-  vector<float> const* sigmaIEtaIEta_full5x5 = nullptr;
-  vector<float>* const* sigmaIEtaIEta_full5x5Ptr = valVfloats[_electrons_sigmaIEtaIEta_full5x5_];
-  vector<float> const* dEtaIn = nullptr;
-  vector<float>* const* dEtaInPtr = valVfloats[_electrons_dEtaIn_];
-  vector<float> const* dPhiIn = nullptr;
-  vector<float>* const* dPhiInPtr = valVfloats[_electrons_dPhiIn_];
-  vector<float> const* hOverE = nullptr;
-  vector<float>* const* hOverEPtr = valVfloats[_electrons_hOverE_];
-  vector<float> const* ecalEnergy = nullptr;
-  vector<float>* const* ecalEnergyPtr = valVfloats[_electrons_ecalEnergy_];
-  vector<float> const* eOverPIn = nullptr;
-  vector<float>* const* eOverPInPtr = valVfloats[_electrons_eOverPIn_];
-  vector<float> const* dxyPV = nullptr;
-  vector<float>* const* dxyPVPtr = valVfloats[_electrons_dxyPV_];
-  vector<float> const* dzPV = nullptr;
-  vector<float>* const* dzPVPtr = valVfloats[_electrons_dzPV_];
-  vector<float> const* miniIso_ch = nullptr;
-  vector<float>* const* miniIso_chPtr = valVfloats[_electrons_miniIso_ch_];
-  vector<float> const* miniIso_nh = nullptr;
-  vector<float>* const* miniIso_nhPtr = valVfloats[_electrons_miniIso_nh_];
-  vector<float> const* miniIso_em = nullptr;
-  vector<float>* const* miniIso_emPtr = valVfloats[_electrons_miniIso_em_];
+  vector<CMSLorentzVector>* momentum = nullptr;
+
+
+  bool allVariablesPresent = (
+    this->getConsumedValue(_electrons_rho_, rho)
+    &&
+    this->getConsumedValue(_electrons_conv_vtx_flag_, conv_vtx_flag)
+    &&
+    this->getConsumedValue(_electrons_charge_, charge)
+    &&
+    this->getConsumedValue(_electrons_expectedMissingInnerHits_, expectedMissingInnerHits)
+    &&
+    this->getConsumedValue(_electrons_energySC_, energySC)
+    &&
+    this->getConsumedValue(_electrons_etaSC_, etaSC)
+    &&
+    this->getConsumedValue(_electrons_etaSeedSC_, etaSeedSC)
+    &&
+    this->getConsumedValue(_electrons_sigmaIEtaIEta_full5x5_, sigmaIEtaIEta_full5x5)
+    &&
+    this->getConsumedValue(_electrons_dEtaIn_, dEtaIn)
+    &&
+    this->getConsumedValue(_electrons_dPhiIn_, dPhiIn)
+    &&
+    this->getConsumedValue(_electrons_hOverE_, hOverE)
+    &&
+    this->getConsumedValue(_electrons_ecalEnergy_, ecalEnergy)
+    &&
+    this->getConsumedValue(_electrons_eOverPIn_, eOverPIn)
+    &&
+    this->getConsumedValue(_electrons_dxyPV_, dxyPV)
+    &&
+    this->getConsumedValue(_electrons_dzPV_, dzPV)
+    &&
+    this->getConsumedValue(_electrons_miniIso_ch_, miniIso_ch)
+    &&
+    this->getConsumedValue(_electrons_miniIso_nh_, miniIso_nh)
+    &&
+    this->getConsumedValue(_electrons_miniIso_em_, miniIso_em)
+    &&
+    this->getConsumedValue(_electrons_momentum_, momentum)
+    );
+
+  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
+    MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "ElectronHandler::constructElectrons: All variables are set up!" << endl;
   if (!charge){
@@ -98,7 +127,7 @@ bool ElectronHandler::constructElectrons(){
     productList.push_back(new ElectronObject(-11*(charge->at(ip)>0 ? 1 : -1), momentum->at(ip)));
     ElectronObject*& obj = productList.back();
 
-    obj->extras.rho = *rho;
+    obj->extras.rho = rho;
 
     obj->extras.conv_vtx_flag = conv_vtx_flag->at(ip);
 

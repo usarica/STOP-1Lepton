@@ -97,15 +97,7 @@ bool WeightsHandler::constructWeights(){
   else if (weights && weightIds){
     if (first_event && verbosity>=TVar::INFO) MELAout << "WeightsHandler::constructWeights: Case hasNewWeights=false" << endl;
 
-    int year;
-    if (SampleHelpers::theDataPeriod == "2016") year=2016;
-    else if (SampleHelpers::theDataPeriod == "2017") year=2017;
-    else if (SampleHelpers::theDataPeriod == "2018") year=2018;
-    else{
-      if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Year cannot be determined!" << endl;
-      assert(0);
-      return false;
-    }
+    int const& year = SampleHelpers::theDataYear;
     if (!weightHandler_DefaultPDF) weightHandler_DefaultPDF = new LHEWeightHandler(year, LHEWeightHandler::keepDefaultPDF, LHEWeightHandler::keepDefaultQCDOrder);
     if (year!=2016 && !weightHandler_2016) weightHandler_2016 = new LHEWeightHandler(year, LHEWeightHandler::tryNNPDF30, LHEWeightHandler::tryNLO);
 
@@ -274,8 +266,8 @@ void WeightsHandler::bookBranches(BaseTree* tree){
   fwktree->bookEDMBranch<std::vector<float>*>(_genweights_, nullptr);
   fwktree->bookEDMBranch<std::vector<std::string>*>(_genweightIDs_, nullptr);
 
-  this->addConsumed<std::vector<float>* const>(_genweights_);
-  this->addConsumed<std::vector<std::string>* const>(_genweightIDs_);
+  this->addConsumed<std::vector<float>*>(_genweights_);
+  this->addConsumed<std::vector<std::string>*>(_genweightIDs_);
 }
 
 bool WeightsHandler::recordWeights(SimpleEntry& entry, float multiplier) const{

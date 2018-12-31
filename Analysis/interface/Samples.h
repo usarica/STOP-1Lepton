@@ -30,6 +30,7 @@ const TString CMS4_EVENTS_TREE_NAME = "Events";
 const TString CMS4_RUNS_TREE_NAME = "Runs";
 
 namespace SampleHelpers{
+  extern int theDataYear;
   extern TString theDataPeriod;
   extern TString theInputDirectory;
 

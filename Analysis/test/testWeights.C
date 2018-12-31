@@ -20,8 +20,8 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) : Fr
 EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) : FrameworkTreeLooperBase(inTreeSet) {}
 
 bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product){
-  constexpr bool doWeights=true;
-  constexpr bool doElectrons=false;
+  constexpr bool doWeights=false;
+  constexpr bool doElectrons=true;
 
   bool validProducts = (tree!=nullptr);
   if (!validProducts) return validProducts;
