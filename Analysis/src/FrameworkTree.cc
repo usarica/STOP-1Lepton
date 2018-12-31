@@ -4,7 +4,7 @@
 
 
 FrameworkTree::FrameworkTree(FrameworkOptionParser const& opts, const TString fname, const TString treename) :
-  BaseTree(SampleHelpers::getDatasetDirectoryName(opts)+'/'+fname, treename, "", ""),
+  BaseEDMInputTree(SampleHelpers::getDatasetDirectoryName(opts)+'/'+fname, treename, "", ""),
   options(opts),
   tag(opts.sampleTag()),
   associatedSet(nullptr), RunNumberRef(nullptr), LumisectionRef(nullptr), EventNumberRef(nullptr)
@@ -31,7 +31,7 @@ void FrameworkTree::autoBookBranches(){
 }
 
 bool FrameworkTree::isValidEvent() const{
-  if (!BaseTree::isValidEvent()) return false;
+  if (!BaseEDMInputTree::isValidEvent()) return false;
   if (this->isMC()) return true;
   if (!RunNumberRef || !LumisectionRef) return false;
   return GoodEventFilter::testEvent(*RunNumberRef, *LumisectionRef);

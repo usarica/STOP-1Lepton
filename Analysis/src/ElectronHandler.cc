@@ -1,5 +1,6 @@
 #include "ElectronHandler.h"
 #include "FrameworkVariables.hh"
+#include "FrameworkTree.h"
 
 
 using namespace std;
@@ -96,27 +97,30 @@ bool ElectronHandler::constructElectrons(){
 
 void ElectronHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
-  tree->bookBranch<std::vector<bool>*>(_electrons_conv_vtx_flag_, nullptr);
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
+  if (!fwktree) return;
 
-  tree->bookBranch<std::vector<int>*>(_electrons_charge_, nullptr);
-  tree->bookBranch<std::vector<int>*>(_electrons_expectedMissingInnerHits_, nullptr);
+  fwktree->bookEDMBranch<std::vector<bool>*>(_electrons_conv_vtx_flag_, nullptr);
 
-  tree->bookBranch<std::vector<float>*>(_electrons_energySC_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_etaSC_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_etaSeedSC_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_rho_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_sigmaIEtaIEta_full5x5_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_dEtaIn_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_dPhiIn_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_hOverE_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_ecalEnergy_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_eOverPIn_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_dxyPV_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_dzPV_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_miniIso_ch_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_miniIso_nh_, nullptr);
-  tree->bookBranch<std::vector<float>*>(_electrons_miniIso_em_, nullptr);
+  fwktree->bookEDMBranch<std::vector<int>*>(_electrons_charge_, nullptr);
+  fwktree->bookEDMBranch<std::vector<int>*>(_electrons_expectedMissingInnerHits_, nullptr);
 
-  tree->bookBranch<std::vector<CMSLorentzVector>*>(_electrons_momentum_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_energySC_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_etaSC_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_etaSeedSC_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_rho_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_sigmaIEtaIEta_full5x5_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_dEtaIn_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_dPhiIn_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_hOverE_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_ecalEnergy_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_eOverPIn_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_dxyPV_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_dzPV_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_miniIso_ch_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_miniIso_nh_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_electrons_miniIso_em_, nullptr);
+
+  fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_electrons_momentum_, nullptr);
 }
 

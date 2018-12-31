@@ -208,17 +208,20 @@ bool WeightsHandler::constructWeights(){
 
 void WeightsHandler::bookBranches(BaseTree* tree){
   if (!tree || !tree->isValid()) return;
-  bool hasNewWeights = (SampleHelpers::branchExists(tree->getSelectedTree(), _genHEPMCweight_) || SampleHelpers::aliasExists(tree->getSelectedTree(), _genHEPMCweight_));
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
+  if (!fwktree) return;
+
+  bool hasNewWeights = (SampleHelpers::branchExists(fwktree->getSelectedTree(), _genHEPMCweight_) || SampleHelpers::aliasExists(fwktree->getSelectedTree(), _genHEPMCweight_));
   if (hasNewWeights){
-    tree->bookBranch<float>(_genHEPMCweight_, 0);
-    tree->bookBranch<float>(_LHEweight_QCDscale_muR1_muF2_, 0);
-    tree->bookBranch<float>(_LHEweight_QCDscale_muR1_muF0p5_, 0);
-    tree->bookBranch<float>(_LHEweight_QCDscale_muR2_muF1_, 0);
-    tree->bookBranch<float>(_LHEweight_QCDscale_muR0p5_muF1_, 0);
-    tree->bookBranch<float>(_LHEweight_PDFVariation_Up_, 0);
-    tree->bookBranch<float>(_LHEweight_PDFVariation_Dn_, 0);
-    tree->bookBranch<float>(_LHEweight_AsMZ_Up_, 0);
-    tree->bookBranch<float>(_LHEweight_AsMZ_Dn_, 0);
+    fwktree->bookEDMBranch<float>(_genHEPMCweight_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_QCDscale_muR1_muF2_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_QCDscale_muR1_muF0p5_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_QCDscale_muR2_muF1_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_QCDscale_muR0p5_muF1_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Up_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Dn_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_AsMZ_Up_, 0);
+    fwktree->bookEDMBranch<float>(_LHEweight_AsMZ_Dn_, 0);
 
     this->addConsumed<float>(_genHEPMCweight_);
     this->addConsumed<float>(_LHEweight_QCDscale_muR1_muF2_);
@@ -241,11 +244,11 @@ void WeightsHandler::bookBranches(BaseTree* tree){
     this->defineConsumedSloppy(_LHEweight_AsMZ_Dn_);
 
     if (SampleHelpers::theDataPeriod!="2016"){ // Not needed for 2016
-      tree->bookBranch<float>(_genHEPMCweight_2016_, 0);
-      tree->bookBranch<float>(_LHEweight_PDFVariation_Up_2016_, 0);
-      tree->bookBranch<float>(_LHEweight_PDFVariation_Dn_2016_, 0);
-      tree->bookBranch<float>(_LHEweight_AsMZ_Up_2016_, 0);
-      tree->bookBranch<float>(_LHEweight_AsMZ_Dn_2016_, 0);
+      fwktree->bookEDMBranch<float>(_genHEPMCweight_2016_, 0);
+      fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Up_2016_, 0);
+      fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Dn_2016_, 0);
+      fwktree->bookEDMBranch<float>(_LHEweight_AsMZ_Up_2016_, 0);
+      fwktree->bookEDMBranch<float>(_LHEweight_AsMZ_Dn_2016_, 0);
 
       this->addConsumed<float>(_genHEPMCweight_2016_);
       this->addConsumed<float>(_LHEweight_PDFVariation_Up_2016_);
@@ -261,13 +264,13 @@ void WeightsHandler::bookBranches(BaseTree* tree){
     }
   }
   else{
-    tree->bookBranch<float>(_genHEPMCweight_old_, 0);
+    fwktree->bookEDMBranch<float>(_genHEPMCweight_old_, 0);
 
     this->addConsumed<float>(_genHEPMCweight_old_);
   }
   // These weights are also used for Pythia variations, so keep them as common
-  tree->bookBranch<std::vector<float>*>(_genweights_, nullptr);
-  tree->bookBranch<std::vector<std::string>*>(_genweightIDs_, nullptr);
+  fwktree->bookEDMBranch<std::vector<float>*>(_genweights_, nullptr);
+  fwktree->bookEDMBranch<std::vector<std::string>*>(_genweightIDs_, nullptr);
 
   this->addConsumed<std::vector<float>>(_genweights_);
   this->addConsumed<std::vector<std::string>>(_genweightIDs_);

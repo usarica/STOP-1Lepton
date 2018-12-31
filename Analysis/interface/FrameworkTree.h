@@ -2,7 +2,7 @@
 #define FRAMEWORKTREE_H
 
 #include "SampleHelpers.h"
-#include "BaseTree.h"
+#include "BaseEDMInputTree.h"
 #include "GoodEventFilter.h"
 #include "FrameworkOptionParser.h"
 #include "FrameworkTag.h"
@@ -12,7 +12,7 @@
 class FrameworkSet;
 
 
-class FrameworkTree : public BaseTree{
+class FrameworkTree : public BaseEDMInputTree{
 protected:
   FrameworkOptionParser options;
   FrameworkTag tag;

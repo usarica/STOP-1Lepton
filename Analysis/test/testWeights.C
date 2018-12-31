@@ -51,6 +51,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     }
     if (wgtProduct->extras.wgt_central==0.f){
       MELAerr << "EventAnalyzer::runEvent: Weight " << wgt << " is invalid (Tree " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
       exit(1);
     }
     wgt *= wgtProduct->extras.wgt_central;
