@@ -25,6 +25,7 @@ protected:
   void autoBookBranches();
 
 public:
+  FrameworkTree() = delete;
   FrameworkTree(FrameworkOptionParser const& opts, const TString fname, const TString treename=CMS4_EVENTS_TREE_NAME);
   ~FrameworkTree(){}
 
