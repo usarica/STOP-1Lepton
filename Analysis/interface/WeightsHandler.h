@@ -2,6 +2,7 @@
 #define WEIGHTSHANDLER_H
 
 #include <vector>
+#include "SimpleEntry.h"
 #include "IvyBase.h"
 #include "WeightsObject.h"
 #include "LHEWeightHandler.h"
@@ -29,6 +30,8 @@ public:
   ProductType_t const* getProduct() const{ return product; }
 
   void bookBranches(BaseTree* tree);
+
+  bool recordWeights(SimpleEntry&, float) const;
 
 };
 

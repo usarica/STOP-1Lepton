@@ -1,14 +1,26 @@
 #ifndef WEIGHTSOBJECT_H
 #define WEIGHTSOBJECT_H
 
+#include "TString.h"
+
 
 class WeightVariables{
 public:
+  enum WeightType{
+    wCentral=0,
+    wFacScaleUp, wFacScaleDn,
+    wRenScaleUp, wRenScaleDn,
+    wPDFUp, wPDFDn,
+    wAsMZUp, wAsMZDn,
+    wPSUp, wPSDn,
+    nWeightTypes
+  };
+
   float wgt_central;
-  float wgt_muR2;
-  float wgt_muR0p5;
   float wgt_muF2;
   float wgt_muF0p5;
+  float wgt_muR2;
+  float wgt_muR0p5;
   float wgt_PDFVariationUp;
   float wgt_PDFVariationDn;
   float wgt_AsMZUp;
@@ -21,6 +33,10 @@ public:
   WeightVariables& operator=(const WeightVariables& other);
 
   void swap(WeightVariables& other);
+
+  static TString getWeightName(WeightVariables::WeightType type);
+  float getWeight(WeightVariables::WeightType type) const;
+
 
 };
 

@@ -34,8 +34,10 @@ bool WeightsHandler::constructWeights(){
     return false;
   }
 
-  std::vector<float> const* weights = valVfloats[_genweights_];
-  std::vector<std::string> const* weightIds = valVstrings[_genweightIDs_];
+  std::vector<float>* const* weightsPtr = valVfloats[_genweights_];
+  std::vector<float> const* weights = (weightsPtr ? *weightsPtr : nullptr);
+  std::vector<std::string>* const* weightIdsPtr = valVstrings[_genweightIDs_];
+  std::vector<std::string> const* weightIds = (weightIdsPtr ? *weightIdsPtr : nullptr);
 
   product = new ProductType_t;
   auto& productExtras = product->extras;
@@ -87,10 +89,10 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_AsMZUp = productExtras.wgt_central * (*LHEweight_AsMZ_Up);
       productExtras.wgt_AsMZDn = productExtras.wgt_central * (*LHEweight_AsMZ_Dn);
     }
-    productExtras.wgt_muR2 = productExtras.wgt_central * (*LHEweight_QCDscale_muR2_muF1);
-    productExtras.wgt_muR0p5 = productExtras.wgt_central * (*LHEweight_QCDscale_muR0p5_muF1);
     productExtras.wgt_muF2 = productExtras.wgt_central * (*LHEweight_QCDscale_muR1_muF2);
     productExtras.wgt_muF0p5 = productExtras.wgt_central * (*LHEweight_QCDscale_muR1_muF0p5);
+    productExtras.wgt_muR2 = productExtras.wgt_central * (*LHEweight_QCDscale_muR2_muF1);
+    productExtras.wgt_muR0p5 = productExtras.wgt_central * (*LHEweight_QCDscale_muR0p5_muF1);
   }
   else if (weights && weightIds){
     if (first_event && verbosity>=TVar::INFO) MELAout << "WeightsHandler::constructWeights: Case hasNewWeights=false" << endl;
@@ -176,8 +178,8 @@ bool WeightsHandler::constructWeights(){
     }
     if (it_copy_begin!=weights->cend()) std::copy(it_copy_begin, weights->cend(), std::back_inserter(genwgtvars));
     if (genwgtvars.size()>1){
-      if (genwgtvars.size()!=14 || genwgtvars.at(0) != genwgtvars.at(1)){
-        if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Expected to find 1 gen weight, or 14 with the first two the same, found " << genwgtvars.size() << ": " << genwgtvars << endl;
+      if (genwgtvars.size()<14 || genwgtvars.at(0) != genwgtvars.at(1)){
+        if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Expected to find 1 gen weight, or >=14 with the first two the same, found " << genwgtvars.size() << ": " << genwgtvars << endl;
         assert(0);
         return false;
       }
@@ -272,7 +274,26 @@ void WeightsHandler::bookBranches(BaseTree* tree){
   fwktree->bookEDMBranch<std::vector<float>*>(_genweights_, nullptr);
   fwktree->bookEDMBranch<std::vector<std::string>*>(_genweightIDs_, nullptr);
 
-  this->addConsumed<std::vector<float>>(_genweights_);
-  this->addConsumed<std::vector<std::string>>(_genweightIDs_);
+  this->addConsumed<std::vector<float>* const>(_genweights_);
+  this->addConsumed<std::vector<std::string>* const>(_genweightIDs_);
+}
+
+bool WeightsHandler::recordWeights(SimpleEntry& entry, float multiplier) const{
+  if (product){
+    for (int iw=WeightVariables::wCentral; iw<WeightVariables::nWeightTypes; iw++){
+      TString s = WeightVariables::getWeightName((WeightVariables::WeightType)iw);
+      float v = multiplier * product->extras.getWeight((WeightVariables::WeightType)iw);
+      entry.setNamedVal<float>(s, v);
+    }
+    return true;
+  }
+  else{
+    MELAerr << "WeightsHandler::recordWeights: Product is invalid! You should probably run WeightsHandler::constructWeights() first." << endl;
+    for (int iw=WeightVariables::wCentral; iw<WeightVariables::nWeightTypes; iw++){
+      TString s = WeightVariables::getWeightName((WeightVariables::WeightType)iw);
+      entry.setNamedVal<float>(s, 0);
+    }
+    return false;
+  }
 }
 

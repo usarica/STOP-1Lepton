@@ -35,6 +35,7 @@ public:
   FrameworkSet const* getAssociatedSet() const{ return associatedSet; }
 
   bool isMC() const{ return options.isMC(); }
+  bool isData() const{ return !this->isMC(); }
   bool isValidEvent() const;
   FrameworkOptionParser const& getOptions() const{ return options; }
   FrameworkTag const& getTag() const{ return tag; }
