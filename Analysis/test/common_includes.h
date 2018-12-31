@@ -12,6 +12,8 @@
 #include "FrameworkTreeLooperBase.h"
 #include "WeightsHandler.h"
 #include "ElectronHandler.h"
+#include "ElectronSelectionHelpers.h"
+#include "ElectronScaleFactorHandler.h"
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"
 #include "TDirectory.h"

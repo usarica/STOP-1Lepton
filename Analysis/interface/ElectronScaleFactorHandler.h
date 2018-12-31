@@ -6,9 +6,10 @@
 #include "TFile.h"
 #include "TString.h"
 #include "Samples.h"
+#include "ScaleFactorHandlerBase.h"
 
 
-class ElectronScaleFactorHandler{
+class ElectronScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
   TFile* finput_SF;
   TFile* finput_SF_tracking;
@@ -36,7 +37,6 @@ protected:
   TH2F* h_SF_veto_eff;
 
   void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, TH2F const* hist, bool etaOnY, bool useAbsEta) const;
-  void closeFile(TFile* f){ if (f && f->IsOpen()) f->Close(); }
 
 public:
   ElectronScaleFactorHandler();

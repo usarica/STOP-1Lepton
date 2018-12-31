@@ -7,6 +7,7 @@ using namespace SampleHelpers;
 
 
 ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
+  ScaleFactorHandlerBase(),
   finput_SF(nullptr),
   finput_SF_tracking(nullptr),
   finput_SF_veto_eff(nullptr),
@@ -58,7 +59,7 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
     finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D");
 
   }
-  else if (theDataPeriod == "2017"){
+  else if (theDataPeriod == "2017" || theDataPeriod == "2018"){
     // ID/Iso. and tracking SF files
     finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/ElectronScaleFactors_Run2017.root", "read");
     finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root", "read");
@@ -89,21 +90,21 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
     finput_SF_FastSim_veto_id->cd(); h_SF_FastSim_veto_id = (TH2F*) finput_SF_FastSim_veto_id->Get("histo2D");
     finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D");
   }
-  else if (theDataPeriod == "2018"){
-    // FIXME: To be implemented
-  }
+  //else if (theDataPeriod == "2018"){
+  // FIXME: To be implemented
+  //}
 
   curdir->cd();
 }
 
 ElectronScaleFactorHandler::~ElectronScaleFactorHandler(){
-  this->closeFile(finput_SF);
-  this->closeFile(finput_SF_tracking);
-  this->closeFile(finput_SF_veto_eff);
-  this->closeFile(finput_SF_FastSim_id);
-  this->closeFile(finput_SF_FastSim_iso);
-  this->closeFile(finput_SF_FastSim_veto_id);
-  this->closeFile(finput_SF_FastSim_veto_iso);
+  ScaleFactorHandlerBase::closeFile(finput_SF);
+  ScaleFactorHandlerBase::closeFile(finput_SF_tracking);
+  ScaleFactorHandlerBase::closeFile(finput_SF_veto_eff);
+  ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_id);
+  ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_iso);
+  ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_veto_id);
+  ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_veto_iso);
 }
 
 

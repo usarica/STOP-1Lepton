@@ -20,6 +20,8 @@ int ElectronSelectionHelpers::setEleEffAreaVersion(){
   else return -1;
 }
 float ElectronSelectionHelpers::electronEffArea(ElectronObject const& part){
+  if (eleEffAreaVersion<0) eleEffAreaVersion = ElectronSelectionHelpers::setEleEffAreaVersion();
+
   float eta = part.eta();
   float const& etaSC = part.extras.etaSC;
   float ea = 0.;

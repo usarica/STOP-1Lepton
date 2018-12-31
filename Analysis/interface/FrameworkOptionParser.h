@@ -18,6 +18,7 @@ protected:
   std::string theDataPeriod;
   int maxEvents;
   bool isMCflag;
+  bool isFastSimflag;
 
   LHEWeightHandler::ExceptionalCases exceptionalCases;
 
@@ -39,6 +40,7 @@ public:
   std::string const& sampleTag() const{ return sampletag; }
   std::string const& dataPeriod() const{ return theDataPeriod; }
   int const& maxEventsToProcess() const{ return maxEvents; }
+  bool isFastSim() const{ return isFastSimflag; }
   bool isMC() const{ return isMCflag; }
   bool isData() const{ return !this->isMC(); }
   LHEWeightHandler::ExceptionalCases const& getLHEExceptionalCases() const{ return exceptionalCases; }

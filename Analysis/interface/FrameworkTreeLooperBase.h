@@ -4,6 +4,7 @@
 #include "IvyBase.h"
 #include "FrameworkSet.h"
 #include "HelperFunctions.h"
+#include "ScaleFactorHandlerBase.h"
 
 
 class FrameworkTreeLooperBase : public IvyBase{
@@ -25,6 +26,7 @@ protected:
 
   // External dependencies
   std::unordered_map<TString, IvyBase*> externalIvyObjects;
+  std::unordered_map<TString, ScaleFactorHandlerBase*> externalScaleFactorHandlers;
   std::unordered_map<TString, void(*)(FrameworkTreeLooperBase*, SimpleEntry&)> externalFunctions;
 
   // List of products
@@ -53,7 +55,10 @@ public:
 
   // Add the necessary objects
   void addExternalIvyObject(TString objname, IvyBase* obj);
+  void addExternalScaleFactorHandler(TString objname, ScaleFactorHandlerBase* obj);
   void addExternalFunction(TString fcnname, void(*fcn)(FrameworkTreeLooperBase*, SimpleEntry&));
+
+  // Set the alternative output methods
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
   void setExternalProductTree(BaseTree* extTree=nullptr);
 

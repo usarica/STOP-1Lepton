@@ -96,9 +96,13 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<float> miniIso_ch;
     std::vector<float> miniIso_nh;
     std::vector<float> miniIso_em;
+    std::vector<bool> isVeto;
+    std::vector<bool> isLoose;
+    std::vector<bool> isMedium;
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
       ElectronVariables const& extras = electron->extras;
+
       conv_vtx_flag.push_back(extras.conv_vtx_flag);
       expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
       energySC.push_back(extras.energySC);
@@ -116,6 +120,10 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       miniIso_ch.push_back(extras.miniIso_ch);
       miniIso_nh.push_back(extras.miniIso_nh);
       miniIso_em.push_back(extras.miniIso_em);
+
+      isVeto.push_back(ElectronSelectionHelpers::testVetoSelection(*electron));
+      isLoose.push_back(ElectronSelectionHelpers::testLooseSelection(*electron));
+      isMedium.push_back(ElectronSelectionHelpers::testMediumSelection(*electron));
     }
     product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
     product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
@@ -134,6 +142,10 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     product.setNamedVal<std::vector<float>>("electrons_miniIso_ch", miniIso_ch);
     product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
     product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
+
+    product.setNamedVal<std::vector<bool>>("electrons_isVeto", isVeto);
+    product.setNamedVal<std::vector<bool>>("electrons_isLoose", isLoose);
+    product.setNamedVal<std::vector<bool>>("electrons_isMedium", isMedium);
   }
 
   return validProducts;

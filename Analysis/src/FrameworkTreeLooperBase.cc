@@ -45,6 +45,11 @@ void FrameworkTreeLooperBase::addExternalIvyObject(TString objname, IvyBase* obj
   if (externalIvyObjects.find(objname)!=externalIvyObjects.end() && verbosity>=TVar::ERROR) MELAerr << "FrameworkTreeLooperBase::addExternalIvyObject: " << objname << " already exists but will override it regardless." << endl;
   externalIvyObjects[objname] = obj;
 }
+void FrameworkTreeLooperBase::addExternalScaleFactorHandler(TString objname, ScaleFactorHandlerBase* obj){
+  if (!obj) return;
+  if (externalScaleFactorHandlers.find(objname)!=externalScaleFactorHandlers.end() && verbosity>=TVar::ERROR) MELAerr << "FrameworkTreeLooperBase::addExternalScaleFactorHandler: " << objname << " already exists but will override it regardless." << endl;
+  externalScaleFactorHandlers[objname] = obj;
+}
 void FrameworkTreeLooperBase::addExternalFunction(TString fcnname, void(*fcn)(FrameworkTreeLooperBase*, SimpleEntry&)){
   if (!fcn) return;
   if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "FrameworkTreeLooperBase::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
