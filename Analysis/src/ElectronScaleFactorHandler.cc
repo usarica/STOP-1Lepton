@@ -26,7 +26,18 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
   h_SF_FastSim_veto_iso(nullptr),
   h_SF_veto_eff(nullptr)
 {
+  setup();
+}
+
+ElectronScaleFactorHandler::~ElectronScaleFactorHandler(){ this->reset(); }
+
+
+bool ElectronScaleFactorHandler::setup(){
+  bool res = true;
   TDirectory* curdir = gDirectory;
+
+  this->reset();
+
   // Recipe: https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
   // More info: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations
   if (theDataPeriod == "2016"){
@@ -43,20 +54,20 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
 
     // FullSim SFs
     finput_SF->cd();
-    h_SF_id = (TH2F*) finput_SF->Get("GsfElectronToCutBasedSpring15M");
-    h_SF_iso = (TH2F*) finput_SF->Get("MVAVLooseElectronToMini");
-    h_SF_veto_id = (TH2F*) finput_SF->Get("GsfElectronToCutBasedSpring15V");
-    h_SF_veto_iso = (TH2F*) finput_SF->Get("MVAVLooseElectronToMini2");
+    h_SF_id = (TH2F*) finput_SF->Get("GsfElectronToCutBasedSpring15M"); res &= (h_SF_id!=nullptr);
+    h_SF_iso = (TH2F*) finput_SF->Get("MVAVLooseElectronToMini"); res &= (h_SF_iso!=nullptr);
+    h_SF_veto_id = (TH2F*) finput_SF->Get("GsfElectronToCutBasedSpring15V"); res &= (h_SF_veto_id!=nullptr);
+    h_SF_veto_iso = (TH2F*) finput_SF->Get("MVAVLooseElectronToMini2"); res &= (h_SF_veto_iso!=nullptr);
     finput_SF_tracking->cd();
-    h_SF_tracking = (TH2F*) finput_SF_tracking->Get("EGamma_SF2D");
+    h_SF_tracking = (TH2F*) finput_SF_tracking->Get("EGamma_SF2D"); res &= (h_SF_tracking!=nullptr);
     finput_SF_veto_eff->cd();
-    h_SF_veto_eff = (TH2F*) finput_SF_veto_eff->Get("h2_lepEff_vetoSel_Eff_el");
+    h_SF_veto_eff = (TH2F*) finput_SF_veto_eff->Get("h2_lepEff_vetoSel_Eff_el"); res &= (h_SF_veto_eff!=nullptr);
 
     // FastSim/FullSim SFs
-    finput_SF_FastSim_id->cd(); h_SF_FastSim_id = (TH2F*) finput_SF_FastSim_id->Get("histo2D");
-    finput_SF_FastSim_iso->cd(); h_SF_FastSim_iso = (TH2F*) finput_SF_FastSim_iso->Get("histo2D");
-    finput_SF_FastSim_veto_id->cd(); h_SF_FastSim_veto_id = (TH2F*) finput_SF_FastSim_veto_id->Get("histo2D");
-    finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D");
+    finput_SF_FastSim_id->cd(); h_SF_FastSim_id = (TH2F*) finput_SF_FastSim_id->Get("histo2D"); res &= (h_SF_FastSim_id!=nullptr);
+    finput_SF_FastSim_iso->cd(); h_SF_FastSim_iso = (TH2F*) finput_SF_FastSim_iso->Get("histo2D"); res &= (h_SF_FastSim_iso!=nullptr);
+    finput_SF_FastSim_veto_id->cd(); h_SF_FastSim_veto_id = (TH2F*) finput_SF_FastSim_veto_id->Get("histo2D"); res &= (h_SF_FastSim_veto_id!=nullptr);
+    finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D"); res &= (h_SF_FastSim_veto_iso!=nullptr);
 
   }
   else if (theDataPeriod == "2017" || theDataPeriod == "2018"){
@@ -74,30 +85,31 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
 
     // FullSim SFs
     finput_SF->cd();
-    h_SF_id = (TH2F*) finput_SF->Get("Run2017_CutBasedMediumNoIso94XV2"); // Cut-based medium ID
-    h_SF_iso = (TH2F*) finput_SF->Get("Run2017_MVAVLooseTightIP2DMini"); // MiniIso < 0.1
-    h_SF_veto_id = (TH2F*) finput_SF->Get("Run2017_CutBasedVetoNoIso94XV2"); // Cut-based veto ID
-    h_SF_veto_iso = (TH2F*) finput_SF->Get("Run2017_MVAVLooseTightIP2DMini2"); // MiniIso<0.2
+    h_SF_id = (TH2F*) finput_SF->Get("Run2017_CutBasedMediumNoIso94XV2"); res &= (h_SF_id!=nullptr); // Cut-based medium ID
+    h_SF_iso = (TH2F*) finput_SF->Get("Run2017_MVAVLooseTightIP2DMini"); res &= (h_SF_iso!=nullptr); // MiniIso < 0.1
+    h_SF_veto_id = (TH2F*) finput_SF->Get("Run2017_CutBasedVetoNoIso94XV2"); res &= (h_SF_veto_id!=nullptr); // Cut-based veto ID
+    h_SF_veto_iso = (TH2F*) finput_SF->Get("Run2017_MVAVLooseTightIP2DMini2"); res &= (h_SF_veto_iso!=nullptr); // MiniIso<0.2
     finput_SF_tracking->cd();
-    h_SF_tracking = (TH2F*) finput_SF_tracking->Get("EGamma_SF2D");
+    h_SF_tracking = (TH2F*) finput_SF_tracking->Get("EGamma_SF2D"); res &= (h_SF_tracking!=nullptr);
     // FIXME: Get veto eff. for 2017
     //finput_SF_veto_eff->cd();
-    //h_SF_veto_eff = (TH2F*) finput_SF_veto_eff->Get("h2_lepEff_vetoSel_Eff_el");
+    //h_SF_veto_eff = (TH2F*) finput_SF_veto_eff->Get("h2_lepEff_vetoSel_Eff_el"); res &= (h_SF_veto_eff!=nullptr);
 
     // FastSim/FullSim SFs
-    finput_SF_FastSim_id->cd(); h_SF_FastSim_id = (TH2F*) finput_SF_FastSim_id->Get("histo2D");
-    finput_SF_FastSim_iso->cd(); h_SF_FastSim_iso = (TH2F*) finput_SF_FastSim_iso->Get("histo2D");
-    finput_SF_FastSim_veto_id->cd(); h_SF_FastSim_veto_id = (TH2F*) finput_SF_FastSim_veto_id->Get("histo2D");
-    finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D");
+    finput_SF_FastSim_id->cd(); h_SF_FastSim_id = (TH2F*) finput_SF_FastSim_id->Get("histo2D"); res &= (h_SF_FastSim_id!=nullptr);
+    finput_SF_FastSim_iso->cd(); h_SF_FastSim_iso = (TH2F*) finput_SF_FastSim_iso->Get("histo2D"); res &= (h_SF_FastSim_iso!=nullptr);
+    finput_SF_FastSim_veto_id->cd(); h_SF_FastSim_veto_id = (TH2F*) finput_SF_FastSim_veto_id->Get("histo2D"); res &= (h_SF_FastSim_veto_id!=nullptr);
+    finput_SF_FastSim_veto_iso->cd(); h_SF_FastSim_veto_iso = (TH2F*) finput_SF_FastSim_veto_iso->Get("histo2D"); res &= (h_SF_FastSim_veto_iso!=nullptr);
   }
   //else if (theDataPeriod == "2018"){
   // FIXME: To be implemented
   //}
 
   curdir->cd();
-}
 
-ElectronScaleFactorHandler::~ElectronScaleFactorHandler(){
+  return res;
+}
+void ElectronScaleFactorHandler::reset(){
   ScaleFactorHandlerBase::closeFile(finput_SF);
   ScaleFactorHandlerBase::closeFile(finput_SF_tracking);
   ScaleFactorHandlerBase::closeFile(finput_SF_veto_eff);
@@ -105,6 +117,17 @@ ElectronScaleFactorHandler::~ElectronScaleFactorHandler(){
   ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_iso);
   ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_veto_id);
   ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_veto_iso);
+
+  h_SF_id = nullptr;
+  h_SF_iso = nullptr;
+  h_SF_tracking = nullptr;
+  h_SF_veto_id = nullptr;
+  h_SF_veto_iso = nullptr;
+  h_SF_FastSim_id = nullptr;
+  h_SF_FastSim_iso = nullptr;
+  h_SF_FastSim_veto_id = nullptr;
+  h_SF_FastSim_veto_iso = nullptr;
+  h_SF_veto_eff = nullptr;
 }
 
 

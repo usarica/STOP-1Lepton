@@ -112,10 +112,17 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     // Skip the tree if it cannot be linked
     if (!(this->wrapTree(tree))) continue;
 
+    // Setup tree-specific dataset details
+    SampleHelpers::setupUsingOptions(tree->getOptions());
+
     // Wrap external ivy objects to the current tree
     bool externalObjectsWrapped = true;
-    for (auto it_ivy=externalIvyObjects.begin(); it_ivy!=externalIvyObjects.end(); it_ivy++) externalObjectsWrapped &= it_ivy->second->wrapTree(tree);
+    for (auto it_ext=externalIvyObjects.begin(); it_ext!=externalIvyObjects.end(); it_ext++) externalObjectsWrapped &= it_ext->second->wrapTree(tree);
     if (!externalObjectsWrapped) continue;
+
+    bool externalSFHandlersSetup = true;
+    for (auto it_ext=externalScaleFactorHandlers.begin(); it_ext!=externalScaleFactorHandlers.end(); it_ext++) externalSFHandlersSetup &= it_ext->second->setup();
+    if (!externalSFHandlersSetup) continue;
 
     float wgtExternal = 1;
     //FrameworkSet const* associatedSet = tree->getAssociatedSet();

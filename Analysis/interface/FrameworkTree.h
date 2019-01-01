@@ -34,6 +34,7 @@ public:
   FrameworkSet* getAssociatedSet(){ return associatedSet; }
   FrameworkSet const* getAssociatedSet() const{ return associatedSet; }
 
+  bool isFastSim() const{ return options.isFastSim(); }
   bool isMC() const{ return options.isMC(); }
   bool isData() const{ return !this->isMC(); }
   bool isValidEvent() const;

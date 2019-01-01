@@ -42,6 +42,9 @@ public:
   ElectronScaleFactorHandler();
   ~ElectronScaleFactorHandler();
 
+  bool setup();
+  void reset();
+
   void getIdIsoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, bool isVeto, bool useFastSim) const;
   void getRecoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc) const;
   void getGenSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_eta, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const;

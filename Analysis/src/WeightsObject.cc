@@ -54,30 +54,30 @@ TString WeightVariables::getWeightName(WeightVariables::WeightType type){
   using MELAStreamHelpers::MELAerr;
   using std::endl;
 
-  TString prefix = "weight_";
+  TString prefix = "genweight";
   switch (type){
   case wCentral:
-    return prefix + "Central";
+    return prefix;
   case wFacScaleUp:
-    return prefix + "FacScaleUp";
+    return prefix + "_FacScaleUp";
   case wFacScaleDn:
-    return prefix + "FacScaleDn";
+    return prefix + "_FacScaleDn";
   case wRenScaleUp:
-    return prefix + "RenScaleUp";
+    return prefix + "_RenScaleUp";
   case wRenScaleDn:
-    return prefix + "RenScaleDn";
+    return prefix + "_RenScaleDn";
   case wPDFUp:
-    return prefix + "PDFUp";
+    return prefix + "_PDFUp";
   case wPDFDn:
-    return prefix + "PDFDn";
+    return prefix + "_PDFDn";
   case wAsMZUp:
-    return prefix + "AsMZUp";
+    return prefix + "_AsMZUp";
   case wAsMZDn:
-    return prefix + "AsMZDn";
+    return prefix + "_AsMZDn";
   case wPSUp:
-    return prefix + "PSUp";
+    return prefix + "_PSUp";
   case wPSDn:
-    return prefix + "PSDn";
+    return prefix + "_PSDn";
   default:
     MELAerr << "WeightVariables::getWeightName: Weight type " << (int) type << " is unknown. Please modify this function." << endl;
     assert(0);

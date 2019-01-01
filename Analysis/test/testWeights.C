@@ -26,11 +26,18 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   bool validProducts = (tree!=nullptr);
   if (!validProducts) return validProducts;
 
+  // Ivy handlers
   WeightsHandler* wgtHandler=nullptr;
   ElectronHandler* eleHandler=nullptr;
-  for (auto it_ivy=this->externalIvyObjects.begin(); it_ivy!=this->externalIvyObjects.end(); it_ivy++){
-    if (doWeights){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it_ivy->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
-    if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it_ivy->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
+  for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
+    if (doWeights){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
+    if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
+  }
+
+  // SF handlers
+  ElectronScaleFactorHandler* eleSFHandler=nullptr;
+  for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
+    if (doElectrons){ ElectronScaleFactorHandler* ele_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && ele_sfs){ eleSFHandler = ele_sfs; } }
   }
 
   /*********************/
@@ -79,6 +86,13 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       return validProducts;
     }
     std::vector<ElectronObject*> const& electrons = eleHandler->getProducts();
+
+    std::vector<int> id;
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
     std::vector<bool> conv_vtx_flag;
     std::vector<int> expectedMissingInnerHits;
     std::vector<float> energySC;
@@ -99,9 +113,24 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<bool> isVeto;
     std::vector<bool> isLoose;
     std::vector<bool> isMedium;
+    std::vector<bool> isPreselected;
+
+    float SF_IdIso=1;
+    float SF_Reco=1;
+    float SF_Gen=1;
+    float SFerr_IdIso=0;
+    float SFerr_Reco=0;
+    float SFerr_Gen=0;
+
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
       ElectronVariables const& extras = electron->extras;
+
+      id.push_back(electron->id);
+      pt.push_back(electron->pt());
+      eta.push_back(electron->eta());
+      phi.push_back(electron->phi());
+      mass.push_back(electron->m());
 
       conv_vtx_flag.push_back(extras.conv_vtx_flag);
       expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
@@ -124,7 +153,48 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       isVeto.push_back(ElectronSelectionHelpers::testVetoSelection(*electron));
       isLoose.push_back(ElectronSelectionHelpers::testLooseSelection(*electron));
       isMedium.push_back(ElectronSelectionHelpers::testMediumSelection(*electron));
+      isPreselected.push_back(ElectronSelectionHelpers::testPreselection(*electron));
+
+      if (eleSFHandler && (isVeto.back() || isPreselected.back())){
+        if (isPreselected.back() && !isVeto.back()){
+          if (verbosity>=TVar::ERROR) MELAerr << "EventAnalyzer::runEvent: Electron is preselected but not a veto!" << endl;
+          exit(1);
+        }
+
+        float tmp_SF_IdIso=1;
+        float tmp_SF_Reco=1;
+        float tmp_SF_Gen=1;
+        float tmp_SFerr_IdIso=0;
+        float tmp_SFerr_Reco=0;
+        float tmp_SFerr_Gen=0;
+
+        eleSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, pt.back(), etaSC.back(), (isVeto.back() && !isPreselected.back()), tree->isFastSim());
+        eleSFHandler->getRecoSFAndError(tmp_SF_Reco, tmp_SFerr_Reco, pt.back(), etaSC.back());
+        eleSFHandler->getGenSFAndError(tmp_SF_Gen, tmp_SFerr_Gen, pt.back(), eta.back(), tmp_SF_IdIso, tmp_SFerr_IdIso);
+
+        if (!(isfinite(tmp_SF_IdIso) && isfinite(tmp_SF_Reco) && isfinite(tmp_SF_Gen) && isfinite(tmp_SFerr_IdIso) && isfinite(tmp_SFerr_Reco) && isfinite(tmp_SFerr_Gen))){
+          if (verbosity>=TVar::ERROR){
+            MELAerr << "EventAnalyzer::runEvent: Some electron scale factors are not finite!" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_IdIso << " * (1 +- " << tmp_SFerr_IdIso << ")" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_Reco << " * (1 +- " << tmp_SFerr_Reco << ")" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_Gen << " * (1 +- " << tmp_SFerr_Gen << ")" << endl;
+          }
+          exit(1);
+        }
+        SF_IdIso *= tmp_SF_IdIso;
+        SFerr_IdIso = sqrt(pow(SFerr_IdIso, 2) + pow(tmp_SFerr_IdIso, 2));
+        SF_Reco *= tmp_SF_Reco;
+        SFerr_Reco = sqrt(pow(SFerr_Reco, 2) + pow(tmp_SFerr_Reco, 2));
+        SF_Gen *= tmp_SF_Gen;
+        SFerr_Gen = sqrt(pow(SFerr_Gen, 2) + pow(tmp_SFerr_Gen, 2));
+      }
     }
+    product.setNamedVal<std::vector<int>>("electrons_id", id);
+    product.setNamedVal<std::vector<float>>("electrons_pt", pt);
+    product.setNamedVal<std::vector<float>>("electrons_eta", eta);
+    product.setNamedVal<std::vector<float>>("electrons_phi", phi);
+    product.setNamedVal<std::vector<float>>("electrons_mass", mass);
+
     product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
     product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
     product.setNamedVal<std::vector<float>>("electrons_energySC", energySC);
@@ -146,6 +216,18 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     product.setNamedVal<std::vector<bool>>("electrons_isVeto", isVeto);
     product.setNamedVal<std::vector<bool>>("electrons_isLoose", isLoose);
     product.setNamedVal<std::vector<bool>>("electrons_isMedium", isMedium);
+    product.setNamedVal<std::vector<bool>>("electrons_isPreselected", isPreselected);
+
+    float electronSF = SF_IdIso*SF_Reco*SF_Gen;
+    float electronSFRelErr = sqrt(pow(SFerr_Gen, 2) + pow(SFerr_Reco, 2) + pow(SFerr_IdIso, 2));
+    float electronSFUp = electronSF*(1.f + electronSFRelErr);
+    float electronSFDn = electronSF*(1.f - electronSFRelErr);
+    electronSF = std::min(1.f, electronSF);
+    electronSFUp = std::min(1.f, electronSFUp);
+    electronSFDn = std::min(electronSF, electronSFDn);
+    product.setNamedVal<float>("weight_electrons", electronSF);
+    product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
+    product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
   }
 
   return validProducts;
@@ -168,14 +250,20 @@ void testWeights(){
   wgtHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
+  ElectronScaleFactorHandler eleSFHandler;
   ElectronHandler eleHandler;
   eleHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) eleHandler.bookBranches(tree);
 
   EventAnalyzer analyzer(&theSet);
+  // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
+  // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("ElectronHandler", &eleHandler);
+  // SF handlers
+  analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &eleSFHandler);
+  // Output tree setup
   analyzer.setExternalProductTree(&outtree);
 
   analyzer.loop(true, false, true);
