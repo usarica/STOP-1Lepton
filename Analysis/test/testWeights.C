@@ -20,7 +20,7 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) : Fr
 EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) : FrameworkTreeLooperBase(inTreeSet) {}
 
 bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product){
-  constexpr bool doWeights=false;
+  constexpr bool doWeights=true;
   constexpr bool doElectrons=true;
 
   bool validProducts = (tree!=nullptr);
@@ -110,17 +110,17 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<float> miniIso_ch;
     std::vector<float> miniIso_nh;
     std::vector<float> miniIso_em;
-    std::vector<bool> isVeto;
-    std::vector<bool> isLoose;
-    std::vector<bool> isMedium;
-    std::vector<bool> isPreselected;
+    std::vector<long long> selectionBits;
 
     float SF_IdIso=1;
     float SF_Reco=1;
     float SF_Gen=1;
-    float SFerr_IdIso=0;
-    float SFerr_Reco=0;
-    float SFerr_Gen=0;
+    float SF_IdIso_Up=1;
+    float SF_Reco_Up=1;
+    float SF_Gen_Up=1;
+    float SF_IdIso_Dn=1;
+    float SF_Reco_Dn=1;
+    float SF_Gen_Dn=1;
 
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
@@ -150,17 +150,9 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       miniIso_nh.push_back(extras.miniIso_nh);
       miniIso_em.push_back(extras.miniIso_em);
 
-      isVeto.push_back(ElectronSelectionHelpers::testVetoSelection(*electron));
-      isLoose.push_back(ElectronSelectionHelpers::testLooseSelection(*electron));
-      isMedium.push_back(ElectronSelectionHelpers::testMediumSelection(*electron));
-      isPreselected.push_back(ElectronSelectionHelpers::testPreselection(*electron));
+      selectionBits.push_back(electron->selectionBits);
 
-      if (eleSFHandler && (isVeto.back() || isPreselected.back())){
-        if (isPreselected.back() && !isVeto.back()){
-          if (verbosity>=TVar::ERROR) MELAerr << "EventAnalyzer::runEvent: Electron is preselected but not a veto!" << endl;
-          exit(1);
-        }
-
+      if (eleSFHandler){
         float tmp_SF_IdIso=1;
         float tmp_SF_Reco=1;
         float tmp_SF_Gen=1;
@@ -168,9 +160,9 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
         float tmp_SFerr_Reco=0;
         float tmp_SFerr_Gen=0;
 
-        eleSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, pt.back(), etaSC.back(), (isVeto.back() && !isPreselected.back()), tree->isFastSim());
-        eleSFHandler->getRecoSFAndError(tmp_SF_Reco, tmp_SFerr_Reco, pt.back(), etaSC.back());
-        eleSFHandler->getGenSFAndError(tmp_SF_Gen, tmp_SFerr_Gen, pt.back(), eta.back(), tmp_SF_IdIso, tmp_SFerr_IdIso);
+        eleSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, electron, tree->isFastSim());
+        eleSFHandler->getRecoSFAndError(tmp_SF_Reco, tmp_SFerr_Reco, electron);
+        eleSFHandler->getGenSFAndError(tmp_SF_Gen, tmp_SFerr_Gen, electron, tmp_SF_IdIso, tmp_SFerr_IdIso);
 
         if (!(isfinite(tmp_SF_IdIso) && isfinite(tmp_SF_Reco) && isfinite(tmp_SF_Gen) && isfinite(tmp_SFerr_IdIso) && isfinite(tmp_SFerr_Reco) && isfinite(tmp_SFerr_Gen))){
           if (verbosity>=TVar::ERROR){
@@ -181,12 +173,15 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
           }
           exit(1);
         }
-        SF_IdIso *= tmp_SF_IdIso;
-        SFerr_IdIso = sqrt(pow(SFerr_IdIso, 2) + pow(tmp_SFerr_IdIso, 2));
-        SF_Reco *= tmp_SF_Reco;
-        SFerr_Reco = sqrt(pow(SFerr_Reco, 2) + pow(tmp_SFerr_Reco, 2));
-        SF_Gen *= tmp_SF_Gen;
-        SFerr_Gen = sqrt(pow(SFerr_Gen, 2) + pow(tmp_SFerr_Gen, 2));
+        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
+        SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
+        SF_Gen *= std::min(1.f, std::max(0.f, tmp_SF_Gen));
+        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
+        SF_Reco_Up *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f + tmp_SFerr_Reco)));
+        SF_Gen_Up *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f + tmp_SFerr_Gen)));
+        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
+        SF_Reco_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f - tmp_SFerr_Reco)));
+        SF_Gen_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f - tmp_SFerr_Gen)));
       }
     }
     product.setNamedVal<std::vector<int>>("electrons_id", id);
@@ -213,18 +208,11 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
     product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
 
-    product.setNamedVal<std::vector<bool>>("electrons_isVeto", isVeto);
-    product.setNamedVal<std::vector<bool>>("electrons_isLoose", isLoose);
-    product.setNamedVal<std::vector<bool>>("electrons_isMedium", isMedium);
-    product.setNamedVal<std::vector<bool>>("electrons_isPreselected", isPreselected);
+    product.setNamedVal<std::vector<long long>>("electrons_selectionBits", selectionBits);
 
-    float electronSF = SF_IdIso*SF_Reco*SF_Gen;
-    float electronSFRelErr = sqrt(pow(SFerr_Gen, 2) + pow(SFerr_Reco, 2) + pow(SFerr_IdIso, 2));
-    float electronSFUp = electronSF*(1.f + electronSFRelErr);
-    float electronSFDn = electronSF*(1.f - electronSFRelErr);
-    electronSF = std::min(1.f, electronSF);
-    electronSFUp = std::min(1.f, electronSFUp);
-    electronSFDn = std::min(electronSF, electronSFDn);
+    float electronSF = SF_IdIso*SF_Reco;
+    float electronSFUp = SF_IdIso_Up*SF_Reco_Up;
+    float electronSFDn = SF_IdIso_Dn*SF_Reco_Dn;
     product.setNamedVal<float>("weight_electrons", electronSF);
     product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
     product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
