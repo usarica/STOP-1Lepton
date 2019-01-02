@@ -30,12 +30,20 @@ const TString CMS4_EVENTS_TREE_NAME = "Events";
 const TString CMS4_RUNS_TREE_NAME = "Runs";
 
 namespace SampleHelpers{
+  enum DataVersion{
+    kCMSSW_8_0_X,
+    kCMSSW_9_4_X,
+    kCMSSW_10_X
+  };
+
   extern int theDataYear;
+  extern DataVersion theDataVersion;
   extern TString theDataPeriod;
   extern TString theInputDirectory;
 
-  void setDataPeriod(const TString s);
-  void setInputDirectory(const TString s);
+  void setDataPeriod(TString s);
+  void setDataVersion(TString s);
+  void setInputDirectory(TString s);
 
 }
 

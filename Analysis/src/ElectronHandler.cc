@@ -1,5 +1,6 @@
 #include <cassert>
 #include "ElectronHandler.h"
+#include "ElectronSelectionHelpers.h"
 #include "FrameworkVariables.hh"
 #include "FrameworkTree.h"
 #include "MELAStreamHelpers.hh"
@@ -65,7 +66,7 @@ bool ElectronHandler::constructElectrons(){
 
   vector<CMSLorentzVector>* momentum = nullptr;
 
-
+  // Beyond this point starts checks and selection
   bool allVariablesPresent = (
     this->getConsumedValue(_electrons_rho_, rho)
     &&
@@ -147,6 +148,9 @@ bool ElectronHandler::constructElectrons(){
     obj->extras.miniIso_ch = miniIso_ch->at(ip);
     obj->extras.miniIso_nh = miniIso_nh->at(ip);
     obj->extras.miniIso_em = miniIso_em->at(ip);
+
+    // Set the selection bits
+    ElectronSelectionHelpers::setSelectionBits(*obj);
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }

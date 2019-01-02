@@ -44,5 +44,6 @@ TString SampleHelpers::getDatasetDirectoryName(FrameworkOptionParser const& opts
 
 void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts){
   setDataPeriod(opts.dataPeriod().c_str());
+  setDataVersion(opts.dataVersion().c_str());
   setInputDirectory(opts.inputDir().c_str());
 }

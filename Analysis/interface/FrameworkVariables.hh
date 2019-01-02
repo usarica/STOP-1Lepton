@@ -64,9 +64,35 @@ typedef unsigned long long EventNumber_t;
 #define _electrons_miniIso_ch_ "els_miniIso_ch"
 #define _electrons_miniIso_nh_ "els_miniIso_nh"
 #define _electrons_miniIso_em_ "els_miniIso_em"
-// CMSLorentzVector
+// vCMSLorentzVector
 #define _electrons_momentum_ "els_p4"
 // End electron variables
+
+
+// Muon variables
+// float
+#define _muons_rho_ "evt_fixgridfastjet_all_rho"
+// vuint
+#define _muons_POGSelectorBit_ "mus_selectors"
+// vint
+#define _muons_charge_ "mus_charge"
+#define _muons_isPFMuon_ "mus_pid_PFMuon" // Why is this an int???
+#define _muons_type_ "mus_type"
+#define _muons_validHits_ "mus_validHits"
+#define _muons_lostHits_ "mus_lostHits"
+#define _muons_expectedMissingInnerHits_ "mus_exp_innerlayers"
+#define _muons_expectedMissingOuterHits_ "mus_exp_outerlayers"
+#define _muons_GlobalFit_Ndof_ "mus_gfit_ndof"
+// vfloat
+#define _muons_GlobalFit_Chisq_ "mus_gfit_chi2"
+#define _muons_LocalPos_Chisq_ "mus_chi2LocalPosition"
+#define _muons_TrkKink_ "mus_trkKink"
+#define _muons_SegComp_ "mus_segmCompatibility"
+#define _muons_dxyPV_ "mus_dxyPV"
+#define _muons_dzPV_ "mus_dzPV"
+// vCMSLorentzVector
+#define _muons_momentum_ "mus_p4"
+// End muon variables
 
 
 #endif

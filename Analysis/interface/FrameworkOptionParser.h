@@ -16,6 +16,7 @@ protected:
   std::string sampletag;
   std::string outputName;
   std::string theDataPeriod;
+  std::string theDataVersion;
   int maxEvents;
   bool isMCflag;
   bool isFastSimflag;
@@ -39,6 +40,7 @@ public:
   std::string const& sampleName() const{ return sample; }
   std::string const& sampleTag() const{ return sampletag; }
   std::string const& dataPeriod() const{ return theDataPeriod; }
+  std::string const& dataVersion() const{ return theDataVersion; }
   int const& maxEventsToProcess() const{ return maxEvents; }
   bool isFastSim() const{ return isFastSimflag; }
   bool isMC() const{ return isMCflag; }

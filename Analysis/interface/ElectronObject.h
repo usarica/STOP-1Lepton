@@ -1,8 +1,7 @@
 #ifndef ELECTRONOBJECT_H
 #define ELECTRONOBJECT_H
 
-#include "TLorentzVector.h"
-#include "CMSLorentzVector.h"
+#include "ParticleObject.h"
 
 
 class ElectronVariables{
@@ -35,10 +34,8 @@ public:
 
 };
 
-class ElectronObject{
+class ElectronObject : public ParticleObject{
 public:
-  int id;
-  CMSLorentzVector momentum;
   ElectronVariables extras;
 
   ElectronObject();
@@ -50,28 +47,7 @@ public:
 
   void swap(ElectronObject& other);
 
-  float EinvMinusPinv()const;
-
-  float charge()const;
-  float m()const{ return momentum.M(); }
-  float x()const{ return momentum.X(); }
-  float y()const{ return momentum.Y(); }
-  float z()const{ return momentum.Z(); }
-  float t()const{ return momentum.T(); }
-  float p()const{ return momentum.P(); }
-  float pt()const{ return momentum.Pt(); }
-  float eta()const{ return momentum.Eta(); }
-  float phi()const{ return momentum.Phi(); }
-  float rapidity()const{ return momentum.Rapidity(); }
-  float dot(const TLorentzVector& v)const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
-  float dot(const CMSLorentzVector& v)const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
-  float dot(const ElectronObject& part)const{ return dot(part.momentum); }
-  float dot(const ElectronObject* part)const{ if (part!=0) return dot(*part); else return 0; }
-  float deltaR(const TLorentzVector& v)const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.DeltaR(v); }
-  float deltaR(const CMSLorentzVector& v)const{ TLorentzVector tmp(v.X(), v.Y(), v.Z(), v.T()); return deltaR(tmp); }
-  float deltaR(const ElectronObject& part)const{ return deltaR(part.momentum); }
-  float deltaR(const ElectronObject* part)const{ if (part!=0) return deltaR(*part); else return -1; }
-  TVector3 vect()const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.Vect(); }
+  float EinvMinusPinv() const;
 
 };
 

@@ -19,6 +19,7 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   sampletag(""),
   outputName("tmp.root"),
   theDataPeriod(""),
+  theDataVersion(""),
   maxEvents(-1),
   isMCflag(true),
   isFastSimflag(false),
@@ -40,6 +41,7 @@ FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
   sampletag(""),
   outputName("tmp.root"),
   theDataPeriod(""),
+  theDataVersion(""),
   maxEvents(-1),
   isMCflag(true),
   isFastSimflag(false),
@@ -73,7 +75,20 @@ void FrameworkOptionParser::analyze(){
     }
     else hasInvalidOption |= true;
   }
-  if (theDataPeriod==""){ MELAerr << "You have to specify the dataset period." << endl; hasInvalidOption |= true; }
+  if (theDataPeriod==""){ MELAerr << "You have to specify the data set period." << endl; hasInvalidOption |= true; }
+  else if (theDataVersion==""){
+    MELAout << "You have to specify the data set version, but attempting to find out from the data period." << endl;
+    if (theDataPeriod.find("2018")!=std::string::npos) theDataVersion="10x";
+    else if (theDataPeriod.find("2017")!=std::string::npos) theDataVersion="94x";
+    else if (theDataPeriod.find("2016")!=std::string::npos){
+      if (sample.find("2018")!=std::string::npos || sample.find("2019")!=std::string::npos) theDataVersion="94x"; // 94X samples are made in 2018 and 2019
+      else theDataVersion="80x";
+    }
+    else{
+      MELAerr << "\t- Could not determine the data set version." << endl;
+      hasInvalidOption |= true;
+    }
+  }
 
   // Check for any invalid options and print an error
   //
@@ -108,6 +123,7 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
   else if (wish=="sampletag" || wish=="tag") sampletag = value;
   else if (wish=="outfile") outputName = value;
   else if (wish=="period" || wish=="dataperiod" || wish=="year") theDataPeriod = value;
+  else if (wish=="version" || wish=="dataversion" || wish=="release") theDataVersion = value;
 
   else if (wish=="maxevents") maxEvents = (int) atoi(value.c_str());
 
@@ -164,6 +180,7 @@ void FrameworkOptionParser::printOptionsHelp(){
   MELAout << "- sampletag/tag: Sample tag. Example: sampletag=CMS4_V09-04-19. Default=\"\"\n\n";
   MELAout << "- outfile: Output file name. Default=\"tmp.root\"\n\n";
   MELAout << "- period/dataperiod/year: The data period (2016, 2017, 2018 etc.). Default=\"\"\n\n";
+  MELAout << "- version/dataversion/release: The data version (80x, 94x, 10x etc.). Default depends on the data period.\n\n";
   MELAout << "- maxevents: Maximum number of events to process. Default=-1 (all events)\n\n";
   MELAout << "- ismc/isdata: Specify whether the sample is from simulation or real data. Default=true (ismc=true)\n\n";
   MELAout << "- isfastsim: Specify whether the simulation sample is using FastSim. Default=false\n\n";

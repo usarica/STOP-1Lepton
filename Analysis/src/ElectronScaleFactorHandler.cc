@@ -1,9 +1,11 @@
 #include "ElectronScaleFactorHandler.h"
+#include "ElectronSelectionHelpers.h"
 #include "TDirectory.h"
 
 
 using namespace std;
 using namespace SampleHelpers;
+using namespace ElectronSelectionHelpers;
 
 
 ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
@@ -132,8 +134,12 @@ void ElectronScaleFactorHandler::reset(){
 
 
 
-void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, TH2F const* hist, bool etaOnY, bool useAbsEta) const{
+void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, ElectronObject const* obj, TH2F const* hist, bool etaOnY, bool useAbsEta) const{
   if (!hist) return;
+  if (!obj) return;
+
+  float const ele_pt = obj->pt();
+  float const& ele_etasc = obj->extras.etaSC;
 
   int ix, iy;
   int nbinsx = hist->GetNbinsX();
@@ -159,45 +165,59 @@ void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, floa
   theSF *= bc; theSFRelErr = sqrt(pow(theSFRelErr, 2)+pow(be, 2));
 }
 
-void ElectronScaleFactorHandler::getIdIsoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, bool isVeto, bool useFastSim) const{
+void ElectronScaleFactorHandler::getIdIsoSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, bool useFastSim) const{
   theSF=1; theSFRelErr=0;
 
+  if (!obj) return;
+  bool passSel = obj->testSelection(bit_preselection_idiso);
+  bool passVeto = obj->testSelection(kVetoID) && !passSel;
+  if (!passSel && !passVeto) return;
+
   if (!useFastSim){
-    if (!isVeto){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_id, (theDataPeriod=="2016"), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_iso, (theDataPeriod=="2016"), false);
+    if (passSel){
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_id, (theDataPeriod=="2016"), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_iso, (theDataPeriod=="2016"), false);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_veto_id, (theDataPeriod=="2016"), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_veto_iso, (theDataPeriod=="2016"), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_id, (theDataPeriod=="2016"), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_iso, (theDataPeriod=="2016"), false);
     }
   }
   else{
     // FIXME: Need to check axis inversion after 2017 hists are obtained
-    if (!isVeto){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_FastSim_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_FastSim_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+    if (passSel){
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_FastSim_veto_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_FastSim_veto_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
     }
   }
 
   // Uncertainty in veto id+iso eff. is doubled as pT thr. is lower in this analysis
-  if (isVeto && !useFastSim) theSFRelErr *= 2.f;
+  if (passVeto && !useFastSim) theSFRelErr *= 2.f;
 }
-void ElectronScaleFactorHandler::getRecoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc) const{
+void ElectronScaleFactorHandler::getRecoSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj) const{
   theSF=1; theSFRelErr=0;
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_etasc, h_SF_tracking, false, false);
+
+  if (!obj) return;
+  bool passSel = obj->testSelection(bit_preselection_idisoreco);
+  //bool passVeto = obj->testSelection(kVetoIDReco) && !passSel;
+  //if (!passSel && !passVeto) return;
+  if (!passSel) return;
+
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_tracking, false, false);
 }
 
-void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_eta, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const{
+void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const{
   theSF=1; theSFRelErr=0;
-  if (ele_pt<5. || fabs(ele_eta)>2.4) return; // FIXME: MAKE 2.4 AND 5. ADJUSTABLE VALUES (ANALYSIS CUTS)
+
+  if (!obj) return;
+  if (!obj->testSelection(kGenPtEta)) return;
 
   // FIXME: Histogram for 2017 might not use abs(eta) or be swapped.
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, ele_pt, ele_eta, h_SF_veto_eff, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
 
   if (theSF<1.){
     const float theSFtmp = theSF;

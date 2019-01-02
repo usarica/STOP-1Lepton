@@ -7,6 +7,7 @@
 #include "TString.h"
 #include "Samples.h"
 #include "ScaleFactorHandlerBase.h"
+#include "ElectronObject.h"
 
 
 class ElectronScaleFactorHandler : public ScaleFactorHandlerBase{
@@ -36,7 +37,7 @@ protected:
   // FastSim/FullSim SFs
   TH2F* h_SF_veto_eff;
 
-  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, TH2F const* hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, ElectronObject const* obj, TH2F const* hist, bool etaOnY, bool useAbsEta) const;
 
 public:
   ElectronScaleFactorHandler();
@@ -45,9 +46,9 @@ public:
   bool setup();
   void reset();
 
-  void getIdIsoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc, bool isVeto, bool useFastSim) const;
-  void getRecoSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_etasc) const;
-  void getGenSFAndError(float& theSF, float& theSFRelErr, float const& ele_pt, float const& ele_eta, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const;
+  void getIdIsoSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, bool useFastSim) const;
+  void getRecoSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj) const;
+  void getGenSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const;
 
 };
 

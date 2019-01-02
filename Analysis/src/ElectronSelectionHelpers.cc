@@ -93,6 +93,7 @@ float ElectronSelectionHelpers::electronEffArea(ElectronObject const& part){
   }
   return ea;
 }
+
 float ElectronSelectionHelpers::miniAbsIso_DR0p3(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
   float pt = part.pt();
@@ -104,6 +105,7 @@ float ElectronSelectionHelpers::miniAbsIso_DR0p3(ElectronObject const& part){
   float res = extras.miniIso_ch + std::max(0.f, extras.miniIso_nh + extras.miniIso_em - correction);
   return res;
 }
+float ElectronSelectionHelpers::miniRelIso_DR0p3(ElectronObject const& part){ float pt = part.pt(); return (pt>0. ? miniAbsIso_DR0p3(part)/pt : 0.f); }
 
 bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
@@ -157,8 +159,6 @@ bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
   return true;
 }
 bool ElectronSelectionHelpers::testVetoSelection(ElectronObject const& part){
-  // pT and eta skim cut
-  if (part.pt()<ptThr_skim_veto || fabs(part.eta())>=etaThr_skim_veto) return false;
   // Id cut
   if (!testVetoCutBasedId(part)) return false;
   // Iso cut
@@ -218,8 +218,6 @@ bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
   return true;
 }
 bool ElectronSelectionHelpers::testLooseSelection(ElectronObject const& part){
-  // pT and eta skim cut
-  if (part.pt()<ptThr_skim_loose || fabs(part.eta())>=etaThr_skim_loose) return false;
   // Id cut
   if (!testLooseCutBasedId(part)) return false;
   // Iso cut
@@ -280,8 +278,6 @@ bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
   return true;
 }
 bool ElectronSelectionHelpers::testMediumSelection(ElectronObject const& part){
-  // pT and eta skim cut
-  if (part.pt()<ptThr_skim_medium || fabs(part.eta())>=etaThr_skim_medium) return false;
   // Id cut
   if (!testMediumCutBasedId(part)) return false;
   // Iso cut
@@ -290,6 +286,33 @@ bool ElectronSelectionHelpers::testMediumSelection(ElectronObject const& part){
   return true;
 }
 
-bool ElectronSelectionHelpers::testPreselection(ElectronObject const& part){
-  return testMediumSelection(part);
+bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){
+  // pT and eta gen cut
+  return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+}
+bool ElectronSelectionHelpers::testPtEtaSkim(ElectronObject const& part){
+  // pT and eta skim cut
+  if (
+    (testMediumSelection(part) && (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium))
+    ||
+    (testLooseSelection(part) && (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose))
+    ||
+    (testVetoSelection(part) && (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto))
+    ) return true;
+  return false;
+}
+bool ElectronSelectionHelpers::testPreselection(ElectronObject const& part){ return (testMediumSelection(part) && testPtEtaSkim(part)); }
+
+void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
+  if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
+  if (testVetoCutBasedId(part)) part.setSelectionBit(kVetoID);
+  if (testVetoSelection(part)) part.setSelectionBit(kVetoIDReco);
+  if (testLooseCutBasedId(part)) part.setSelectionBit(kLooseID);
+  if (testLooseSelection(part)) part.setSelectionBit(kLooseIDReco);
+  if (testMediumCutBasedId(part)) part.setSelectionBit(kMediumID);
+  if (testMediumSelection(part)) part.setSelectionBit(kMediumIDReco);
+  //if (testTightCutBasedId(part)) part.setSelectionBit(kTightID);
+  //if (testTightSelection(part)) part.setSelectionBit(kTightIDReco);
+  if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
+  if (testPreselection(part)) part.setSelectionBit(kPreselection);
 }
