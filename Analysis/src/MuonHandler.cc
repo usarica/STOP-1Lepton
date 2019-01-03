@@ -127,9 +127,9 @@ bool MuonHandler::constructMuons(){
   unsigned int nProducts = charge->size();
   productList.reserve(nProducts);
   for (unsigned int ip=0; ip<nProducts; ip++){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting electron " << ip << "..." << endl;
+    if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting muon " << ip << "..." << endl;
 
-    productList.push_back(new MuonObject(-11*(charge->at(ip)>0 ? 1 : -1), momentum->at(ip)));
+    productList.push_back(new MuonObject(-13*(charge->at(ip)>0 ? 1 : -1), momentum->at(ip)));
     MuonObject*& obj = productList.back();
 
     obj->extras.rho = rho;
