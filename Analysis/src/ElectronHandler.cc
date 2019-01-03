@@ -44,27 +44,27 @@ bool ElectronHandler::constructElectrons(){
 
   float rho = 0;
 
-  vector<bool>* conv_vtx_flag = nullptr;
+  std::vector<bool>* conv_vtx_flag = nullptr;
 
-  vector<int>* charge = nullptr;
-  vector<int>* expectedMissingInnerHits = nullptr;
+  std::vector<int>* charge = nullptr;
+  std::vector<int>* expectedMissingInnerHits = nullptr;
 
-  vector<float>* energySC = nullptr;
-  vector<float>* etaSC = nullptr;
-  vector<float>* etaSeedSC = nullptr;
-  vector<float>* sigmaIEtaIEta_full5x5 = nullptr;
-  vector<float>* dEtaIn = nullptr;
-  vector<float>* dPhiIn = nullptr;
-  vector<float>* hOverE = nullptr;
-  vector<float>* ecalEnergy = nullptr;
-  vector<float>* eOverPIn = nullptr;
-  vector<float>* dxyPV = nullptr;
-  vector<float>* dzPV = nullptr;
-  vector<float>* miniIso_ch = nullptr;
-  vector<float>* miniIso_nh = nullptr;
-  vector<float>* miniIso_em = nullptr;
+  std::vector<float>* energySC = nullptr;
+  std::vector<float>* etaSC = nullptr;
+  std::vector<float>* etaSeedSC = nullptr;
+  std::vector<float>* sigmaIEtaIEta_full5x5 = nullptr;
+  std::vector<float>* dEtaIn = nullptr;
+  std::vector<float>* dPhiIn = nullptr;
+  std::vector<float>* hOverE = nullptr;
+  std::vector<float>* ecalEnergy = nullptr;
+  std::vector<float>* eOverPIn = nullptr;
+  std::vector<float>* dxyPV = nullptr;
+  std::vector<float>* dzPV = nullptr;
+  std::vector<float>* miniIso_ch = nullptr;
+  std::vector<float>* miniIso_nh = nullptr;
+  std::vector<float>* miniIso_em = nullptr;
 
-  vector<CMSLorentzVector>* momentum = nullptr;
+  std::vector<CMSLorentzVector>* momentum = nullptr;
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = (

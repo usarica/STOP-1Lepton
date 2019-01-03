@@ -90,6 +90,9 @@ typedef unsigned long long EventNumber_t;
 #define _muons_SegComp_ "mus_segmCompatibility"
 #define _muons_dxyPV_ "mus_dxyPV"
 #define _muons_dzPV_ "mus_dzPV"
+#define _muons_miniIso_ch_ "mus_miniIso_ch"
+#define _muons_miniIso_nh_ "mus_miniIso_nh"
+#define _muons_miniIso_em_ "mus_miniIso_em"
 // vCMSLorentzVector
 #define _muons_momentum_ "mus_p4"
 // End muon variables
