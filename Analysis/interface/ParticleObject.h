@@ -29,6 +29,7 @@ public:
   float y() const{ return momentum.Y(); }
   float z() const{ return momentum.Z(); }
   float t() const{ return momentum.T(); }
+  float energy() const{ return this->t(); }
   float p() const{ return momentum.P(); }
   float pt() const{ return momentum.Pt(); }
   float eta() const{ return momentum.Eta(); }

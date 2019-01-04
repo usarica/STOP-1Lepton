@@ -98,4 +98,23 @@ typedef unsigned long long EventNumber_t;
 // End muon variables
 
 
+// ak4 jet variables
+// float
+#define _ak4jets_rho_ "evt_fixgridfastjet_all_rho"
+// vint
+#define _ak4jets_npfcands_ "pfjets_npfcands"
+#define _ak4jets_chargedMultiplicity_ "pfjets_chargedMultiplicity"
+#define _ak4jets_neutralMultiplicity_ "pfjets_neutralMultiplicity"
+// vfloat
+#define _ak4jets_undoJEC_ "pfjets_undoJEC"
+#define _ak4jets_chargedHadronE_ "pfjets_chargedHadronE"
+#define _ak4jets_chargedEmE_ "pfjets_chargedEmE"
+#define _ak4jets_neutralHadronE_ "pfjets_neutralHadronE"
+#define _ak4jets_neutralEmE_ "pfjets_neutralEmE"
+#define _ak4jets_muonE_ "pfjets_muonE"
+// vCMSLorentzVector
+#define _ak4jets_momentum_ "pfjets_p4"
+// End ak4 jet variables
+
+
 #endif
