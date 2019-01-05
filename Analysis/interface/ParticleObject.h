@@ -43,6 +43,7 @@ public:
   float deltaR(const CMSLorentzVector& v) const{ TLorentzVector tmp(v.X(), v.Y(), v.Z(), v.T()); return deltaR(tmp); }
   float deltaR(const ParticleObject& part) const{ return deltaR(part.momentum); }
   float deltaR(const ParticleObject* part) const{ if (part!=0) return deltaR(*part); else return -1; }
+  float deltaPhi(float phi_) const;
   TVector3 vect() const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.Vect(); }
 
 };

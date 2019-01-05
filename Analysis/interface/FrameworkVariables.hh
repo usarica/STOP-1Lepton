@@ -117,4 +117,10 @@ typedef unsigned long long EventNumber_t;
 // End ak4 jet variables
 
 
+// MET variables
+// float
+#define _pfmet_ "evt_pfmet"
+#define _pfmetPhi_ "evt_pfmetPhi"
+
+
 #endif

@@ -9,15 +9,30 @@ public:
   float rho;
 
   int npfcands;
+  int chargedHadronMultiplicity;
+  int neutralHadronMultiplicity;
+  int photonMultiplicity;
+  int electronMultiplicity;
+  int muonMultiplicity;
   int chargedMultiplicity;
   int neutralMultiplicity;
+  int totalMultiplicity;
 
   float undoJEC;
   float chargedHadronE;
   float chargedEmE;
   float neutralHadronE;
   float neutralEmE;
+  float hfHadronE;
+  float hfEmE;
+  float photonE;
+  float electronE;
   float muonE;
+
+  float pfCombinedInclusiveSecondaryVertexV2BJetTag;
+  float ptDistribution;
+  float axis1;
+  float axis2;
 
   AK4JetVariables();
   AK4JetVariables(AK4JetVariables const& other);

@@ -16,14 +16,14 @@ bool AK4JetSelectionHelpers::isLooseAK4JetPOG(AK4JetObject const& part){
   AK4JetVariables const& extras = part.extras;
 
   float uncorrE = (extras.undoJEC*part.energy());
-  float nhf  = extras.neutralHadronE / uncorrE;
-  float nef  = extras.neutralEmE / uncorrE;
-  float chf  = extras.chargedHadronE / uncorrE;
-  float cef  = extras.chargedEmE / uncorrE;
-  float muf  = extras.muonE / uncorrE;
-  int const& cm  = extras.chargedMultiplicity;
-  int const& nm  = extras.neutralMultiplicity;
-  float eta  = fabs(part.eta());
+  float nhf = extras.neutralHadronE / uncorrE;
+  float nef = extras.neutralEmE / uncorrE;
+  float chf = extras.chargedHadronE / uncorrE;
+  float cef = extras.chargedEmE / uncorrE;
+  float muf = extras.muonE / uncorrE;
+  int const& cm = extras.chargedMultiplicity;
+  int const& nm = extras.neutralMultiplicity;
+  float eta = fabs(part.eta());
 
   if (cm + nm < 2) return false;
   if (nef >= 0.99) return false;
@@ -43,14 +43,14 @@ bool AK4JetSelectionHelpers::isTightAK4JetPOG(AK4JetObject const& part){
   AK4JetVariables const& extras = part.extras;
 
   float uncorrE = (extras.undoJEC*part.energy());
-  float nhf  = extras.neutralHadronE / uncorrE;
-  float nef  = extras.neutralEmE / uncorrE;
-  float chf  = extras.chargedHadronE / uncorrE;
-  float cef  = extras.chargedEmE / uncorrE;
-  int const& ncands  = extras.npfcands;
-  int const& cm  = extras.chargedMultiplicity;
-  int const& nm  = extras.neutralMultiplicity;
-  float eta  = fabs(part.eta());
+  float nhf = extras.neutralHadronE / uncorrE;
+  float nef = extras.neutralEmE / uncorrE;
+  float chf = extras.chargedHadronE / uncorrE;
+  float cef = extras.chargedEmE / uncorrE;
+  int const& ncands = extras.npfcands;
+  int const& cm = extras.chargedMultiplicity;
+  int const& nm = extras.neutralMultiplicity;
+  float eta = fabs(part.eta());
 
   if (SampleHelpers::theDataYear==2016){
     if (nef >= 0.90) return false;
@@ -101,6 +101,15 @@ bool AK4JetSelectionHelpers::testTightSelection(AK4JetObject const& part){
   // Id cut
   if (!testTightId(part)) return false;
   return true;
+}
+
+bool AK4JetSelectionHelpers::isBadMuonJet(AK4JetObject& part, METObject const& obj){
+  float dPhi = part.deltaPhi(obj.extras.phi);
+  float uncorrE = (part.extras.undoJEC*part.energy());
+  float muf = part.extras.muonE / uncorrE;
+  bool res = (part.pt()>200.f && dPhi>(TMath::Pi()-0.4f) && muf>0.5f);
+  if (!res) part.setSelectionBit(kNotBadMuonJet);
+  return res;
 }
 
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){

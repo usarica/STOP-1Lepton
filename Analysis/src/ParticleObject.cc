@@ -3,6 +3,7 @@
 #include "ParticleObject.h"
 #include "HelperFunctions.h"
 #include "PDGHelpers.h"
+#include "TMath.h"
 
 
 using namespace PDGHelpers;
@@ -40,4 +41,9 @@ float ParticleObject::charge()const{
   else if (isDownTypeQuark(id)) cpos = -1./3.;
   if (id<0) cpos *= -1.;
   return cpos;
+}
+float ParticleObject::deltaPhi(float phi_) const{
+  float dPhi = phi_-phi();
+  if (dPhi>TMath::Pi()) dPhi = 2.*TMath::Pi() - dPhi;
+  return dPhi;
 }

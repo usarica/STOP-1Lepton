@@ -3,6 +3,7 @@
 
 
 #include "AK4JetObject.h"
+#include "METObject.h"
 
 
 namespace AK4JetSelectionHelpers{
@@ -16,12 +17,15 @@ namespace AK4JetSelectionHelpers{
   enum SelectionBits{
     kLooseID,
     kTightID,
+    kNotBadMuonJet,
     kSkimPtEta,
     kPreselection
   };
 
   bool isLooseAK4JetPOG(AK4JetObject const& part);
   bool isTightAK4JetPOG(AK4JetObject const& part);
+
+  bool isBadMuonJet(AK4JetObject& part, METObject const& obj);
 
   bool testLooseId(AK4JetObject const& part);
   bool testLooseSelection(AK4JetObject const& part);
