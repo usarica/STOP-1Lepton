@@ -112,8 +112,32 @@ bool AK4JetSelectionHelpers::isBadMuonJet(AK4JetObject& part, METObject const& o
   return res;
 }
 
+bool AK4JetSelectionHelpers::testSkimPtEta(AK4JetObject const& part, int icorr){
+  CMSLorentzVector p4corr = part.getCorrectedMomentum(icorr);
+  float pt = p4corr.Pt();
+  float abs_eta = fabs(p4corr.Eta());
+  return (pt>=ptThr_skim_preselection && abs_eta<etaThr_skim_preselection);
+}
+bool AK4JetSelectionHelpers::testPreselection(AK4JetObject const& part, int icorr){
+  return (testSkimPtEta(part, icorr) && testTightSelection(part));
+}
+
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
   if (testLooseId(part)) part.setSelectionBit(kLooseID);
   if (testTightId(part)) part.setSelectionBit(kTightID);
-  //if (testLooseSelection(part)) part.setSelectionBit(kLooseIDReco);
+
+  if (testSkimPtEta(part, 0)) part.setSelectionBit(kSkimPtEta);
+  if (testPreselection(part, 0)) part.setSelectionBit(kPreselection);
+
+  if (testSkimPtEta(part, 1)) part.setSelectionBit(kSkimPtEta_JECUp);
+  if (testPreselection(part, 1)) part.setSelectionBit(kPreselection_JECUp);
+
+  if (testSkimPtEta(part, -1)) part.setSelectionBit(kSkimPtEta_JECDn);
+  if (testPreselection(part, -1)) part.setSelectionBit(kPreselection_JECDn);
+
+  if (testSkimPtEta(part, 2)) part.setSelectionBit(kSkimPtEta_JERUp);
+  if (testPreselection(part, 2)) part.setSelectionBit(kPreselection_JERUp);
+
+  if (testSkimPtEta(part, -2)) part.setSelectionBit(kSkimPtEta_JERDn);
+  if (testPreselection(part, -2)) part.setSelectionBit(kPreselection_JERDn);
 }

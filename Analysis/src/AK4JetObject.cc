@@ -17,6 +17,7 @@ AK4JetVariables::AK4JetVariables() :
   neutralMultiplicity(0),
   totalMultiplicity(0),
 
+  area(0),
   undoJEC(0),
   chargedHadronE(0),
   chargedEmE(0),
@@ -28,10 +29,20 @@ AK4JetVariables::AK4JetVariables() :
   electronE(0),
   muonE(0),
 
-  pfCombinedInclusiveSecondaryVertexV2BJetTag(0),
+  deepCSVb(-1),
+  deepCSVc(-1),
+  deepCSVl(-1),
+  deepCSVbb(-1),
+  deepCSVcc(-1),
+  pfCombinedInclusiveSecondaryVertexV2BJetTag(-1),
   ptDistribution(0),
   axis1(0),
-  axis2(0)
+  axis2(0),
+
+  JEC(1),
+  JECunc(0),
+  JER(1),
+  JERunc(0)
 {}
 AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   rho(other.rho),
@@ -46,6 +57,7 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   neutralMultiplicity(other.neutralMultiplicity),
   totalMultiplicity(other.totalMultiplicity),
 
+  area(other.area),
   undoJEC(other.undoJEC),
   chargedHadronE(other.chargedHadronE),
   chargedEmE(other.chargedEmE),
@@ -57,10 +69,20 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   electronE(other.electronE),
   muonE(other.muonE),
 
+  deepCSVb(other.deepCSVb),
+  deepCSVc(other.deepCSVc),
+  deepCSVl(other.deepCSVl),
+  deepCSVbb(other.deepCSVbb),
+  deepCSVcc(other.deepCSVcc),
   pfCombinedInclusiveSecondaryVertexV2BJetTag(other.pfCombinedInclusiveSecondaryVertexV2BJetTag),
   ptDistribution(other.ptDistribution),
   axis1(other.axis1),
-  axis2(other.axis2)
+  axis2(other.axis2),
+
+  JEC(other.JEC),
+  JECunc(other.JECunc),
+  JER(other.JER),
+  JERunc(other.JERunc)
 {}
 void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(rho, other.rho);
@@ -75,6 +97,7 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(neutralMultiplicity, other.neutralMultiplicity);
   std::swap(totalMultiplicity, other.totalMultiplicity);
 
+  std::swap(area, other.area);
   std::swap(undoJEC, other.undoJEC);
   std::swap(chargedHadronE, other.chargedHadronE);
   std::swap(chargedEmE, other.chargedEmE);
@@ -86,10 +109,20 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(electronE, other.electronE);
   std::swap(muonE, other.muonE);
 
+  std::swap(deepCSVb, other.deepCSVb);
+  std::swap(deepCSVc, other.deepCSVc);
+  std::swap(deepCSVl, other.deepCSVl);
+  std::swap(deepCSVbb, other.deepCSVbb);
+  std::swap(deepCSVcc, other.deepCSVcc);
   std::swap(pfCombinedInclusiveSecondaryVertexV2BJetTag, other.pfCombinedInclusiveSecondaryVertexV2BJetTag);
   std::swap(ptDistribution, other.ptDistribution);
   std::swap(axis1, other.axis1);
   std::swap(axis2, other.axis2);
+
+  std::swap(JEC, other.JEC);
+  std::swap(JECunc, other.JECunc);
+  std::swap(JER, other.JER);
+  std::swap(JERunc, other.JERunc);
 }
 AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
   AK4JetVariables tmp(other);
@@ -126,3 +159,18 @@ AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
   return *this;
 }
 AK4JetObject::~AK4JetObject(){}
+
+CMSLorentzVector AK4JetObject::getCorrectedMomentum(int icorr) const{
+  const float& JEC = extras.JEC;
+  const float& JER = extras.JER;
+  const float& JECunc = extras.JECunc;
+  const float& JERunc = extras.JERunc;
+  switch (std::abs(icorr)){
+  case 1:
+    return momentum*JEC*JER*(1. + float(icorr)*JECunc);
+  case 2:
+    return momentum*JEC*JER*(1. + float(icorr/2)*JERunc);
+  default:
+    return momentum*JEC*JER;
+  }
+}

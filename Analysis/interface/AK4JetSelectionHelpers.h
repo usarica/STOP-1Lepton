@@ -18,8 +18,21 @@ namespace AK4JetSelectionHelpers{
     kLooseID,
     kTightID,
     kNotBadMuonJet,
+
     kSkimPtEta,
-    kPreselection
+    kPreselection,
+
+    kSkimPtEta_JECUp,
+    kPreselection_JECUp,
+
+    kSkimPtEta_JECDn,
+    kPreselection_JECDn,
+
+    kSkimPtEta_JERUp,
+    kPreselection_JERUp,
+
+    kSkimPtEta_JERDn,
+    kPreselection_JERDn
   };
 
   bool isLooseAK4JetPOG(AK4JetObject const& part);
@@ -32,6 +45,9 @@ namespace AK4JetSelectionHelpers{
 
   bool testTightId(AK4JetObject const& part);
   bool testTightSelection(AK4JetObject const& part);
+
+  bool testSkimPtEta(AK4JetObject const& part, int icorr);
+  bool testPreselection(AK4JetObject const& part, int icorr);
 
   void setSelectionBits(AK4JetObject& part);
 

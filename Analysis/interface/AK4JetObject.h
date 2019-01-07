@@ -18,6 +18,7 @@ public:
   int neutralMultiplicity;
   int totalMultiplicity;
 
+  float area;
   float undoJEC;
   float chargedHadronE;
   float chargedEmE;
@@ -29,10 +30,20 @@ public:
   float electronE;
   float muonE;
 
-  float pfCombinedInclusiveSecondaryVertexV2BJetTag;
+  float deepCSVb;
+  float deepCSVc;
+  float deepCSVl;
+  float deepCSVbb;
+  float deepCSVcc;
+  float pfCombinedInclusiveSecondaryVertexV2BJetTag; // CSV b-tag
   float ptDistribution;
   float axis1;
   float axis2;
+
+  float JEC;
+  float JECunc;
+  float JER;
+  float JERunc;
 
   AK4JetVariables();
   AK4JetVariables(AK4JetVariables const& other);
@@ -54,6 +65,8 @@ public:
   ~AK4JetObject();
 
   void swap(AK4JetObject& other);
+
+  CMSLorentzVector getCorrectedMomentum(int icorr) const; // icorr = 0 for nominal, +-1 for JEC up/dn, +-1 for JER up/dn
 
 };
 

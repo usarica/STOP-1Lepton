@@ -47,6 +47,7 @@ std::vector<TFTopObject*> TFTopTaggerHelpers::getTopsFromResolvedJets(std::vecto
   std::vector<float> ak4pfjets_deepCSVc; ak4pfjets_deepCSVc.reserve(njets);
   std::vector<float> ak4pfjets_deepCSVl; ak4pfjets_deepCSVl.reserve(njets);
   std::vector<float> ak4pfjets_deepCSVbb; ak4pfjets_deepCSVbb.reserve(njets);
+  //std::vector<float> ak4pfjets_deepCSVcc; ak4pfjets_deepCSVcc.reserve(njets);
 
   for (auto const* jet:jets){
     AK4JetVariables const& extras = jet->extras;
@@ -75,6 +76,12 @@ std::vector<TFTopObject*> TFTopTaggerHelpers::getTopsFromResolvedJets(std::vecto
     ak4pfjets_pm.push_back(extras.photonMultiplicity);
     ak4pfjets_em.push_back(extras.electronMultiplicity);
     ak4pfjets_mm.push_back(extras.muonMultiplicity);
+
+    ak4pfjets_deepCSVb.emplace_back(extras.deepCSVb);
+    ak4pfjets_deepCSVc.emplace_back(extras.deepCSVc);
+    ak4pfjets_deepCSVl.emplace_back(extras.deepCSVl);
+    ak4pfjets_deepCSVbb.emplace_back(extras.deepCSVbb);
+    //ak4pfjets_deepCSVcc.emplace_back(extras.deepCSVcc);
   }
 
   ttUtility::ConstAK4Inputs<float> AK4Inputs(ak4jets_TLV, ak4pfjets_CSV);
@@ -103,6 +110,7 @@ std::vector<TFTopObject*> TFTopTaggerHelpers::getTopsFromResolvedJets(std::vecto
   AK4Inputs.addSupplamentalVector("DeepCSVbb", ak4pfjets_deepCSVbb);
   auto dummy_deepCSVcc = std::vector<float>(ak4jets_TLV.size(), 0); // dealing with the fact that deepCSVcc not present in 94X
   AK4Inputs.addSupplamentalVector("DeepCSVcc", dummy_deepCSVcc);
+  //AK4Inputs.addSupplamentalVector("DeepCSVcc", ak4pfjets_deepCSVcc);
 
   // Construct the constitutents and run the tagger
   std::vector<Constituent> constituents = ttUtility::packageConstituents(AK4Inputs);
