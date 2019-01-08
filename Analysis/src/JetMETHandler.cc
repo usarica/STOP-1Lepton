@@ -1,4 +1,5 @@
 #include <cassert>
+#include "ParticleObjectHelpers.h"
 #include "JetMETHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
@@ -227,6 +228,8 @@ bool JetMETHandler::constructAK4Jets(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(ak4jets);
 
   return true;
 }
@@ -315,6 +318,8 @@ bool JetMETHandler::constructAK8Jets(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(ak8jets);
 
   return true;
 }

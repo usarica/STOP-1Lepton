@@ -1,4 +1,5 @@
 #include <cassert>
+#include "ParticleObjectHelpers.h"
 #include "MuonHandler.h"
 #include "MuonSelectionHelpers.h"
 #include "FrameworkVariables.hh"
@@ -159,6 +160,8 @@ bool MuonHandler::constructMuons(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(productList);
 
   return true;
 }

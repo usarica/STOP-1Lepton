@@ -1,4 +1,5 @@
 #include <cassert>
+#include "ParticleObjectHelpers.h"
 #include "ElectronHandler.h"
 #include "ElectronSelectionHelpers.h"
 #include "FrameworkVariables.hh"
@@ -154,6 +155,8 @@ bool ElectronHandler::constructElectrons(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(productList);
 
   return true;
 }

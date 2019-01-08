@@ -50,6 +50,7 @@ public:
   void swap(AK8JetObject& other);
 
   CMSLorentzVector getCorrectedMomentum(int icorr) const; // icorr = 0 for nominal, +-1 for JEC up/dn, +-1 for JER up/dn
+  CMSLorentzVector getFinalMomentum() const{ return getCorrectedMomentum(0); }
 
 };
 

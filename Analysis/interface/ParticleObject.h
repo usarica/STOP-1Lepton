@@ -17,6 +17,8 @@ public:
   ParticleObject(const ParticleObject& other);
   virtual ~ParticleObject(){}
 
+  virtual CMSLorentzVector getFinalMomentum() const{ return momentum; } // To be overloaded in daughter classes
+
   // Swap and assignment operators are not virtual; they bring more complication than necessary, so they are implemented in the derived classes.
 
   void resetSelectionBits(){ selectionBits=0; }
