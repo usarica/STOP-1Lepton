@@ -2,6 +2,8 @@
 #include "Samples.h"
 #include "ParticleObjectHelpers.h"
 #include "JetMETHandler.h"
+#include "ElectronSelectionHelpers.h"
+#include "MuonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 #include "JECJERHelpers.h"
@@ -22,6 +24,9 @@ JetMETHandler::JetMETHandler() :
   IvyBase(),
   metobj(nullptr),
   registeredBtagSFHandler(nullptr),
+  registeredBtagSFHandler_FastSim(nullptr),
+  registeredJERSFHandler_ak4jets(nullptr),
+  registeredJERSFHandler_ak8jets(nullptr),
   registeredElectrons(nullptr),
   registeredMuons(nullptr)
 {
@@ -105,6 +110,7 @@ void JetMETHandler::clear(){
   for (auto& obj:tftops) delete obj;
   tftops.clear();
   delete metobj; metobj=nullptr;
+  // Do not clear registered objects here
 }
 
 
@@ -388,14 +394,46 @@ bool JetMETHandler::constructJetMET(){
 }
 
 bool JetMETHandler::applyJetCleaning(){
-  if (registeredMuons){
-
-    registeredMuons=nullptr; // De-register muons now
+  std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size());
+  for (auto* jet:ak4jets){
+    bool doSkip=false;
+    if (registeredMuons){
+      for (auto const* part:*(registeredMuons)){
+        if (!part->testSelection(MuonSelectionHelpers::kVetoIDReco) || !part->testSelection(MuonSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (registeredElectrons){
+      for (auto const* part:*(registeredElectrons)){
+        if (!part->testSelection(ElectronSelectionHelpers::kVetoIDReco) || !part->testSelection(ElectronSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) ak4jets_new.push_back(jet);
   }
-  if (registeredElectrons){
+  ak4jets = ak4jets_new;
 
-    registeredElectrons=nullptr; // De-register electrons now
+  std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size());
+  for (auto* jet:ak8jets){
+    bool doSkip=false;
+    if (registeredMuons){
+      for (auto const* part:*(registeredMuons)){
+        if (!part->testSelection(MuonSelectionHelpers::kVetoIDReco) || !part->testSelection(MuonSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (registeredElectrons){
+      for (auto const* part:*(registeredElectrons)){
+        if (!part->testSelection(ElectronSelectionHelpers::kVetoIDReco) || !part->testSelection(ElectronSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) ak8jets_new.push_back(jet);
   }
+  ak8jets = ak8jets_new;
+
+  registeredMuons=nullptr; // De-register muons now
+  registeredElectrons=nullptr; // De-register electrons now
   return true;
 }
 bool JetMETHandler::applyJEC(){
