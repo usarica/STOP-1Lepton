@@ -9,6 +9,7 @@
 #include "AK8JetObject.h"
 #include "TFTopObject.h"
 #include "METObject.h"
+#include "BtagScaleFactorHandler.h"
 
 
 class JetMETHandler : public IvyBase{
@@ -18,8 +19,19 @@ protected:
   std::vector<TFTopObject*> tftops;
   METObject* metobj;
 
+  BtagScaleFactorHandler* registeredBtagSFHandler;
+  BtagScaleFactorHandler* registeredBtagSFHandler_FastSim;
+
   std::vector<ElectronObject*> const* registeredElectrons;
   std::vector<MuonObject*> const* registeredMuons;
+
+  bool constructAK4Jets();
+  bool constructAK8Jets();
+  bool constructMET();
+  bool constructTFTops();
+  bool applyBtagSFs();
+  bool applyJetCleaning();
+  bool applySelections();
 
   void clear();
 
@@ -40,15 +52,9 @@ public:
   std::vector<TFTopObject*> const& getTFTops() const{ return tftops; }
   METObject* const& getMET() const{ return metobj; }
 
-  bool constructAK4Jets();
-  bool constructAK8Jets();
-  bool constructMET();
-  bool constructTFTops();
+  void registerLeptons(std::vector<ElectronObject*> const& electrons, std::vector<MuonObject*> const& muons){ registeredElectrons = &electrons; registeredMuons = &muons; }
+  void registerBtagSFHandlers(BtagScaleFactorHandler* handler, BtagScaleFactorHandler* handler_fastsim){ registeredBtagSFHandler = handler; registeredBtagSFHandler_FastSim = handler_fastsim; }
   bool constructJetMET();
-
-  void registerLeptons(std::vector<ElectronObject*> const& electrons, std::vector<MuonObject*> const& muons){ registeredElectrons=&electrons; registeredMuons=&muons; }
-  bool applyJetCleaning();
-  bool applySelections();
 
   static void bookBranches(BaseTree* tree);
   static TString getAK4JetDeepFlavorPrefix(std::vector<TString> const& bDiscriminatorNames);

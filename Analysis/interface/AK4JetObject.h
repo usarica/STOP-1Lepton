@@ -9,6 +9,8 @@ public:
   float rho;
 
   int npfcands;
+  int parton_flavor;
+  int hadron_flavor;
   int chargedHadronMultiplicity;
   int neutralHadronMultiplicity;
   int photonMultiplicity;
@@ -55,6 +57,7 @@ public:
 
 class AK4JetObject : public ParticleObject{
 public:
+  constexpr static float ConeRadiusConstant = 0.4;
   AK4JetVariables extras;
 
   AK4JetObject();

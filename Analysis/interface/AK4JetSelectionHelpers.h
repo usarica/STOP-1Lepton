@@ -4,6 +4,7 @@
 
 #include "AK4JetObject.h"
 #include "METObject.h"
+#include "BtagHelpers.h"
 
 
 namespace AK4JetSelectionHelpers{
@@ -12,6 +13,7 @@ namespace AK4JetSelectionHelpers{
   constexpr float ptThr_analysis = 30.;
   constexpr float ptThr_analysis_btagged = 30.;
   constexpr float etaThr_skim_preselection = 2.4;
+  constexpr BtagHelpers::BtagWPType AK4Jets_BTagWPType = BtagHelpers::kDeepCSV_Medium;
 
   // Veto, loose, medium, tight etc. selection bits
   enum SelectionBits{
@@ -32,7 +34,11 @@ namespace AK4JetSelectionHelpers{
     kPreselection_JERUp,
 
     kSkimPtEta_JERDn,
-    kPreselection_JERDn
+    kPreselection_JERDn,
+
+    kIsBTagged,
+    kIsBTagged_SFUp,
+    kIsBTagged_SFDn
   };
 
   bool isLooseAK4JetPOG(AK4JetObject const& part);
@@ -49,7 +55,7 @@ namespace AK4JetSelectionHelpers{
   bool testSkimPtEta(AK4JetObject const& part, int icorr);
   bool testPreselection(AK4JetObject const& part, int icorr);
 
-  void setSelectionBits(AK4JetObject& part);
+  void setSelectionBits(AK4JetObject& part); // Does not set the btagging bits!
 
 }
 

@@ -7,6 +7,7 @@
 #include "FrameworkVariables.hh"
 #include "FrameworkTree.h"
 #include "MELAStreamHelpers.hh"
+#include "TRandom3.h"
 
 
 using namespace std;
@@ -16,6 +17,7 @@ using namespace MELAStreamHelpers;
 JetMETHandler::JetMETHandler() :
   IvyBase(),
   metobj(nullptr),
+  registeredBtagSFHandler(nullptr),
   registeredElectrons(nullptr),
   registeredMuons(nullptr)
 {
@@ -97,6 +99,8 @@ bool JetMETHandler::constructAK4Jets(){
   float rho = 0;
 
   std::vector<int>* npfcands = nullptr;
+  std::vector<int>* parton_flavor = nullptr;
+  std::vector<int>* hadron_flavor = nullptr;
   std::vector<int>* chargedHadronMultiplicity = nullptr;
   std::vector<int>* neutralHadronMultiplicity = nullptr;
   std::vector<int>* photonMultiplicity = nullptr;
@@ -134,6 +138,8 @@ bool JetMETHandler::constructAK4Jets(){
     this->getConsumedValue(_ak4jets_rho_, rho)
 
     && this->getConsumedValue(_ak4jets_npfcands_, npfcands)
+    && this->getConsumedValue(_ak4jets_parton_flavor_, parton_flavor)
+    && this->getConsumedValue(_ak4jets_hadron_flavor_, hadron_flavor)
     && this->getConsumedValue(_ak4jets_chargedHadronMultiplicity_, chargedHadronMultiplicity)
     && this->getConsumedValue(_ak4jets_neutralHadronMultiplicity_, neutralHadronMultiplicity)
     && this->getConsumedValue(_ak4jets_photonMultiplicity_, photonMultiplicity)
@@ -191,6 +197,8 @@ bool JetMETHandler::constructAK4Jets(){
     obj->extras.rho = rho;
 
     obj->extras.npfcands = npfcands->at(ip);
+    obj->extras.parton_flavor = parton_flavor->at(ip);
+    obj->extras.hadron_flavor = hadron_flavor->at(ip);
     obj->extras.chargedHadronMultiplicity = chargedHadronMultiplicity->at(ip);
     obj->extras.neutralHadronMultiplicity = neutralHadronMultiplicity->at(ip);
     obj->extras.photonMultiplicity = photonMultiplicity->at(ip);
@@ -228,8 +236,6 @@ bool JetMETHandler::constructAK4Jets(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
-  // Sort particles
-  ParticleObjectHelpers::sortByGreaterPt(ak4jets);
 
   return true;
 }
@@ -318,8 +324,6 @@ bool JetMETHandler::constructAK8Jets(){
 
     if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
   }
-  // Sort particles
-  ParticleObjectHelpers::sortByGreaterPt(ak8jets);
 
   return true;
 }
@@ -358,7 +362,13 @@ bool JetMETHandler::constructTFTops(){
 bool JetMETHandler::constructJetMET(){
   clear();
   if (!currentTree) return false;
-  return (constructAK4Jets() && constructAK8Jets() && constructMET() && constructTFTops() && applyJetCleaning() && applySelections());
+  bool res = (constructAK4Jets() && constructAK8Jets() && constructMET() && constructTFTops() && applyJetCleaning());
+  // Sort particles after jet cleaning is done
+  ParticleObjectHelpers::sortByGreaterPt(ak4jets);
+  ParticleObjectHelpers::sortByGreaterPt(ak8jets);
+  // Apply selections after sorting
+  res &= applySelections();
+  return res;
 }
 bool JetMETHandler::applyJetCleaning(){
   if (registeredMuons){
@@ -376,6 +386,54 @@ bool JetMETHandler::applySelections(){
   for (auto* obj:ak8jets) AK8JetSelectionHelpers::setSelectionBits(*obj);
   return true;
 }
+bool JetMETHandler::applyBtagSFs(){
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
+  if (!fwktree) return false;
+
+  BtagScaleFactorHandler* theBTagSFHandler = nullptr;
+  if (fwktree->isMC() && fwktree->isFastSim()) theBTagSFHandler = registeredBtagSFHandler_FastSim;
+  else if (fwktree->isMC()) theBTagSFHandler = registeredBtagSFHandler;
+  float bTaggerThreshold;
+  if (theBTagSFHandler) bTaggerThreshold = theBTagSFHandler->WPval;
+  else bTaggerThreshold = BtagHelpers::getBtagWP(AK4JetSelectionHelpers::AK4Jets_BTagWPType);
+
+  for (auto*& jet:ak4jets){
+    AK4JetVariables const& extras = jet->extras;
+
+    float bTagger = extras.deepCSVb + extras.deepCSVbb;
+    bool isBtagged = (bTagger > bTaggerThreshold);
+
+    bool isBtaggedWithSF   = isBtagged;
+    bool isBtaggedWithSFUp = isBtagged;
+    bool isBtaggedWithSFDn = isBtagged;
+    if (!theBTagSFHandler){
+      int const& flav = extras.hadron_flavor;
+      CMSLorentzVector correctedMomentum = jet->getFinalMomentum();
+      float jpt = correctedMomentum.Pt();
+      float jphi = correctedMomentum.Phi();
+      float jeta = correctedMomentum.Eta();
+      TRandom3 rand;
+      rand.SetSeed(abs(static_cast<int>(sin(jphi)*100000)));
+      float R = rand.Uniform();
+      float SF   = theBTagSFHandler->getSF(0, flav, jpt, jeta);
+      float SFUp = theBTagSFHandler->getSF(1, flav, jpt, jeta);
+      float SFDn = theBTagSFHandler->getSF(-1, flav, jpt, jeta);
+      float bTagMCEff = theBTagSFHandler->getEff(flav, jpt, jeta);
+      if (SF  <=1 && isBtagged && R<1.-SF) isBtaggedWithSF   = false;
+      if (SFUp<=1 && isBtagged && R<1.-SFUp) isBtaggedWithSFUp = false;
+      if (SFDn<=1 && isBtagged && R<1.-SFDn) isBtaggedWithSFDn = false;
+      if (SF  >1 && !isBtagged && R<(1.-SF)/(1.-1./bTagMCEff)) isBtaggedWithSF   = true;
+      if (SFUp>1 && !isBtagged && R<(1.-SFUp)/(1.-1./bTagMCEff)) isBtaggedWithSFUp = true;
+      if (SFDn>1 && !isBtagged && R<(1.-SFDn)/(1.-1./bTagMCEff)) isBtaggedWithSFDn = true;
+    }
+    if (isBtaggedWithSF) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged);
+    if (isBtaggedWithSFUp) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_SFUp);
+    if (isBtaggedWithSFDn) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_SFDn);
+  }
+
+  return true;
+}
+
 
 TString JetMETHandler::getAK4JetDeepFlavorPrefix(std::vector<TString> const& bDiscriminatorNames){
   static TString deepCSV_prefix = "NULL";

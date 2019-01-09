@@ -8,6 +8,8 @@ AK4JetVariables::AK4JetVariables() :
   rho(0),
 
   npfcands(0),
+  parton_flavor(0),
+  hadron_flavor(0),
   chargedHadronMultiplicity(0),
   neutralHadronMultiplicity(0),
   photonMultiplicity(0),
@@ -48,6 +50,8 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   rho(other.rho),
 
   npfcands(other.npfcands),
+  parton_flavor(other.parton_flavor),
+  hadron_flavor(other.hadron_flavor),
   chargedHadronMultiplicity(other.chargedHadronMultiplicity),
   neutralHadronMultiplicity(other.neutralHadronMultiplicity),
   photonMultiplicity(other.photonMultiplicity),
@@ -88,6 +92,8 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(rho, other.rho);
 
   std::swap(npfcands, other.npfcands);
+  std::swap(parton_flavor, other.parton_flavor);
+  std::swap(hadron_flavor, other.hadron_flavor);
   std::swap(chargedHadronMultiplicity, other.chargedHadronMultiplicity);
   std::swap(neutralHadronMultiplicity, other.neutralHadronMultiplicity);
   std::swap(photonMultiplicity, other.photonMultiplicity);

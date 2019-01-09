@@ -1,6 +1,7 @@
 #ifndef BTAGHELPERS_H
 #define BTAGHELPERS_H
 
+#include <vector>
 #include "Samples.h"
 
 
@@ -18,6 +19,8 @@ namespace BtagHelpers{
   };
 
   TString getBtagSFFileName(BtagWPType type, bool isFastSim);
+  TString getBtagEffFileName(BtagWPType type, bool isFastSim);
+  std::vector<TString> getBtagEffHistogramNames(BtagWPType type, bool isFastSim);
   float getBtagWP(BtagWPType type);
 
 }

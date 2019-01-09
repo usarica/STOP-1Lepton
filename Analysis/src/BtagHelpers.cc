@@ -24,16 +24,16 @@ TString BtagHelpers::getBtagSFFileName(BtagWPType type, bool isFastSim){
     fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }
   else if (theDataYear == 2016 && theDataVersion == kCMSSW_9_4_X){
-    fn_btagSF_DeepCSV = "DeepCSV_Moriond17_B_H.csv";              // to be updated
-    fn_btagSF_FS_DeepCSV = "fastsim_deepcsv_ttbar_26_1_2017.csv"; // to be updated
-    fn_btagSF_CSVv2 = "CSVv2_Moriond17_B_H.csv";               // to be updated
-    fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";  // to be updated
+    fn_btagSF_DeepCSV = "DeepCSV_Moriond17_B_H.csv";
+    fn_btagSF_FS_DeepCSV = "fastsim_deepcsv_ttbar_26_1_2017.csv";
+    fn_btagSF_CSVv2 = "CSVv2_Moriond17_B_H.csv";
+    fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }
   else if (theDataYear == 2017){
     fn_btagSF_DeepCSV = "DeepCSV_94XSF_V3_B_F.csv";
-    fn_btagSF_FS_DeepCSV = "fastsim_deepcsv_ttbar_26_1_2017.csv"; // to be updated
+    fn_btagSF_FS_DeepCSV = "fastsim_deepcsv_ttbar_26_1_2017.csv";
     fn_btagSF_CSVv2 = "CSVv2_94XSF_V2_B_F.csv";
-    fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv"; // to be updated
+    fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }
   else if (theDataYear == 2018){
     fn_btagSF_DeepCSV = "DeepCSV_94XSF_V3_B_F.csv";
@@ -62,6 +62,55 @@ TString BtagHelpers::getBtagSFFileName(BtagWPType type, bool isFastSim){
     break;
   }
 
+  return res;
+}
+
+TString BtagHelpers::getBtagEffFileName(BtagWPType /*type*/, bool isFastSim){
+  TString res = BTAGSFPATH;
+  if (isFastSim) res += "run2_fastsim/";
+  else if (theDataYear >= 2016) res += "run2_25ns/";
+  else if (theDataYear == 2015) res += "run2_50ns/";
+
+  if (isFastSim){
+    res += "btageff__SMS-T1bbbb-T1qqqq_25ns_Moriond17.root";
+  }
+  else{
+    if (theDataYear == 2016) res += "btageff__ttbar_powheg_pythia8_25ns_Moriond17_deepCSV.root";
+    else if (theDataYear >= 2017) res += "btageff__ttbar_amc_94X_deepCSV.root";
+  }
+
+  return res;
+}
+
+std::vector<TString> BtagHelpers::getBtagEffHistogramNames(BtagWPType type, bool /*isFastSim*/){
+  const TString s_loose_btag_eff_b = "h2_BTaggingEff_csv_loose_Eff_b";
+  const TString s_loose_btag_eff_c = "h2_BTaggingEff_csv_loose_Eff_c";
+  const TString s_loose_btag_eff_udsg = "h2_BTaggingEff_csv_loose_Eff_udsg";
+  const TString s_medium_btag_eff_b = "h2_BTaggingEff_csv_med_Eff_b";
+  const TString s_medium_btag_eff_c = "h2_BTaggingEff_csv_med_Eff_c";
+  const TString s_medium_btag_eff_udsg = "h2_BTaggingEff_csv_med_Eff_udsg";
+  const TString s_tight_btag_eff_b = "h2_BTaggingEff_csv_tight_Eff_b";
+  const TString s_tight_btag_eff_c = "h2_BTaggingEff_csv_tight_Eff_c";
+  const TString s_tight_btag_eff_udsg = "h2_BTaggingEff_csv_tight_Eff_udsg";
+
+  std::vector<TString> res;
+  switch (type){
+  case kCSVv2_Loose:
+  case kDeepCSV_Loose:
+    res = std::vector<TString>{ s_loose_btag_eff_b, s_loose_btag_eff_c, s_loose_btag_eff_udsg };
+    break;
+  case kCSVv2_Medium:
+  case kDeepCSV_Medium:
+    res = std::vector<TString>{ s_medium_btag_eff_b, s_medium_btag_eff_c, s_medium_btag_eff_udsg };
+    break;
+  case kCSVv2_Tight:
+  case kDeepCSV_Tight:
+    res = std::vector<TString>{ s_tight_btag_eff_b, s_tight_btag_eff_c, s_tight_btag_eff_udsg };
+    break;
+  default:
+    MELAerr << "BtagHelpers::getBtagEffHistogramNames: No implementation for b tag histogram names for WP type " << type << ". Aborting..." << endl;
+    assert(0);
+  }
   return res;
 }
 

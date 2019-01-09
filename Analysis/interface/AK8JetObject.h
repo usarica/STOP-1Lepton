@@ -38,6 +38,7 @@ public:
 
 class AK8JetObject : public ParticleObject{
 public:
+  constexpr static float ConeRadiusConstant = 0.8;
   AK8JetVariables extras;
 
   AK8JetObject();

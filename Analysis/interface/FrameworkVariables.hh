@@ -103,6 +103,8 @@ typedef unsigned long long EventNumber_t;
 #define _ak4jets_rho_ "evt_fixgridfastjet_all_rho"
 // vint
 #define _ak4jets_npfcands_ "pfjets_npfcands"
+#define _ak4jets_parton_flavor_ "pfjets_partonFlavour"
+#define _ak4jets_hadron_flavor_ "pfjets_hadronFlavour"
 #define _ak4jets_chargedHadronMultiplicity_ "pfjets_chargedHadronMultiplicity"
 #define _ak4jets_neutralHadronMultiplicity_ "pfjets_neutralHadronMultiplicity"
 #define _ak4jets_photonMultiplicity_ "pfjets_photonMultiplicity"
