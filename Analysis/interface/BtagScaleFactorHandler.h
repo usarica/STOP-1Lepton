@@ -17,8 +17,10 @@
 
 
 class BtagScaleFactorHandler : public ScaleFactorHandlerBase{
+public:
+  BtagHelpers::BtagWPType const type;
+
 protected:
-  BtagHelpers::BtagWPType type;
   bool isFastSim;
   // related to scale factors
   BTagCalibration* m_calib;

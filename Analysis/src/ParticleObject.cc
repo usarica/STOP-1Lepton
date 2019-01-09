@@ -45,5 +45,6 @@ float ParticleObject::charge()const{
 float ParticleObject::deltaPhi(float phi_) const{
   float dPhi = phi_-phi();
   if (dPhi>TMath::Pi()) dPhi = 2.*TMath::Pi() - dPhi;
+  else if (dPhi<-TMath::Pi()) dPhi = 2.*TMath::Pi() + dPhi;
   return dPhi;
 }

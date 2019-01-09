@@ -42,9 +42,11 @@ AK4JetVariables::AK4JetVariables() :
   axis2(0),
 
   JEC(1),
-  JECunc(0),
+  JECup(0),
+  JECdn(0),
   JER(1),
-  JERunc(0)
+  JERup(0),
+  JERdn(0)
 {}
 AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   rho(other.rho),
@@ -84,9 +86,11 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   axis2(other.axis2),
 
   JEC(other.JEC),
-  JECunc(other.JECunc),
+  JECup(other.JECup),
+  JECdn(other.JECdn),
   JER(other.JER),
-  JERunc(other.JERunc)
+  JERup(other.JERup),
+  JERdn(other.JERdn)
 {}
 void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(rho, other.rho);
@@ -126,9 +130,11 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(axis2, other.axis2);
 
   std::swap(JEC, other.JEC);
-  std::swap(JECunc, other.JECunc);
+  std::swap(JECup, other.JECup);
+  std::swap(JECdn, other.JECdn);
   std::swap(JER, other.JER);
-  std::swap(JERunc, other.JERunc);
+  std::swap(JERup, other.JERup);
+  std::swap(JERdn, other.JERdn);
 }
 AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
   AK4JetVariables tmp(other);
@@ -169,13 +175,19 @@ AK4JetObject::~AK4JetObject(){}
 CMSLorentzVector AK4JetObject::getCorrectedMomentum(int icorr) const{
   const float& JEC = extras.JEC;
   const float& JER = extras.JER;
-  const float& JECunc = extras.JECunc;
-  const float& JERunc = extras.JERunc;
-  switch (std::abs(icorr)){
+  const float& JECup = extras.JECup;
+  const float& JERup = extras.JERup;
+  const float& JECdn = extras.JECdn;
+  const float& JERdn = extras.JERdn;
+  switch (icorr){
   case 1:
-    return momentum*JEC*JER*(1. + float(icorr)*JECunc);
+    return momentum*JECup*JER;
+  case -1:
+    return momentum*JECdn*JER;
   case 2:
-    return momentum*JEC*JER*(1. + float(icorr/2)*JERunc);
+    return momentum*JEC*JERup;
+  case -2:
+    return momentum*JEC*JERdn;
   default:
     return momentum*JEC*JER;
   }

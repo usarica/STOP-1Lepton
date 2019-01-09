@@ -162,6 +162,12 @@ typedef unsigned long long EventNumber_t;
 // End ak8 jet variables
 
 
+// Gen. jet variables
+// vCMSLorentzVector
+#define _genjets_momentum_ "genjets_p4NoMuNoNu"
+// End gen. jet variables
+
+
 // MET variables
 // float
 #define _pfmet_ "evt_pfmet"

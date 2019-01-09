@@ -1,5 +1,5 @@
-#ifndef MUONHANDLER_H
-#define MUONHANDLER_H
+#ifndef JETMETHANDLER_H
+#define JETMETHANDLER_H
 
 #include <vector>
 #include "IvyBase.h"
@@ -10,6 +10,7 @@
 #include "TFTopObject.h"
 #include "METObject.h"
 #include "BtagScaleFactorHandler.h"
+#include "JERScaleFactorHandler.h"
 
 
 class JetMETHandler : public IvyBase{
@@ -22,6 +23,9 @@ protected:
   BtagScaleFactorHandler* registeredBtagSFHandler;
   BtagScaleFactorHandler* registeredBtagSFHandler_FastSim;
 
+  JERScaleFactorHandler* registeredJERSFHandler_ak4jets;
+  JERScaleFactorHandler* registeredJERSFHandler_ak8jets;
+
   std::vector<ElectronObject*> const* registeredElectrons;
   std::vector<MuonObject*> const* registeredMuons;
 
@@ -31,6 +35,8 @@ protected:
   bool constructTFTops();
   bool applyBtagSFs();
   bool applyJetCleaning();
+  bool applyJEC();
+  bool applyJER();
   bool applySelections();
 
   void clear();
@@ -54,6 +60,7 @@ public:
 
   void registerLeptons(std::vector<ElectronObject*> const& electrons, std::vector<MuonObject*> const& muons){ registeredElectrons = &electrons; registeredMuons = &muons; }
   void registerBtagSFHandlers(BtagScaleFactorHandler* handler, BtagScaleFactorHandler* handler_fastsim){ registeredBtagSFHandler = handler; registeredBtagSFHandler_FastSim = handler_fastsim; }
+  void registerJERSFHandlers(JERScaleFactorHandler* ak4jer, JERScaleFactorHandler* ak8jer){ registeredJERSFHandler_ak4jets = ak4jer; registeredJERSFHandler_ak8jets = ak8jer; }
   bool constructJetMET();
 
   static void bookBranches(BaseTree* tree);

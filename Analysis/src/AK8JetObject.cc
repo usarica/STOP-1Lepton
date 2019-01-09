@@ -23,9 +23,11 @@ AK8JetVariables::AK8JetVariables() :
   deepdisc_h4q(0),
 
   JEC(1),
-  JECunc(0),
+  JECup(0),
+  JECdn(0),
   JER(1),
-  JERunc(0)
+  JERup(0),
+  JERdn(0)
 {}
 AK8JetVariables::AK8JetVariables(AK8JetVariables const& other) :
   rho(other.rho),
@@ -46,9 +48,11 @@ AK8JetVariables::AK8JetVariables(AK8JetVariables const& other) :
   deepdisc_h4q(other.deepdisc_h4q),
 
   JEC(other.JEC),
-  JECunc(other.JECunc),
+  JECup(other.JECup),
+  JECdn(other.JECdn),
   JER(other.JER),
-  JERunc(other.JERunc)
+  JERup(other.JERup),
+  JERdn(other.JERdn)
 {}
 void AK8JetVariables::swap(AK8JetVariables& other){
   std::swap(rho, other.rho);
@@ -69,9 +73,11 @@ void AK8JetVariables::swap(AK8JetVariables& other){
   std::swap(deepdisc_h4q, other.deepdisc_h4q);
 
   std::swap(JEC, other.JEC);
-  std::swap(JECunc, other.JECunc);
+  std::swap(JECup, other.JECup);
+  std::swap(JECdn, other.JECdn);
   std::swap(JER, other.JER);
-  std::swap(JERunc, other.JERunc);
+  std::swap(JERup, other.JERup);
+  std::swap(JERdn, other.JERdn);
 }
 AK8JetVariables& AK8JetVariables::operator=(const AK8JetVariables& other){
   AK8JetVariables tmp(other);
@@ -112,13 +118,19 @@ AK8JetObject::~AK8JetObject(){}
 CMSLorentzVector AK8JetObject::getCorrectedMomentum(int icorr) const{
   const float& JEC = extras.JEC;
   const float& JER = extras.JER;
-  const float& JECunc = extras.JECunc;
-  const float& JERunc = extras.JERunc;
-  switch (std::abs(icorr)){
+  const float& JECup = extras.JECup;
+  const float& JERup = extras.JERup;
+  const float& JECdn = extras.JECdn;
+  const float& JERdn = extras.JERdn;
+  switch (icorr){
   case 1:
-    return momentum*JEC*JER*(1. + float(icorr)*JECunc);
+    return momentum*JECup*JER;
+  case -1:
+    return momentum*JECdn*JER;
   case 2:
-    return momentum*JEC*JER*(1. + float(icorr/2)*JERunc);
+    return momentum*JEC*JERup;
+  case -2:
+    return momentum*JEC*JERdn;
   default:
     return momentum*JEC*JER;
   }

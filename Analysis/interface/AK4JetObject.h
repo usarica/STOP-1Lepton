@@ -43,9 +43,11 @@ public:
   float axis2;
 
   float JEC;
-  float JECunc;
+  float JECup;
+  float JECdn;
   float JER;
-  float JERunc;
+  float JERup;
+  float JERdn;
 
   AK4JetVariables();
   AK4JetVariables(AK4JetVariables const& other);

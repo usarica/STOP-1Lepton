@@ -3,6 +3,7 @@
 
 #include "TLorentzVector.h"
 #include "CMSLorentzVector.h"
+#include <DataFormats/Math/interface/deltaR.h>
 
 
 class ParticleObject{
@@ -42,7 +43,7 @@ public:
   float dot(const ParticleObject& part) const{ return dot(part.momentum); }
   float dot(const ParticleObject* part) const{ if (part!=0) return dot(*part); else return 0; }
   float deltaR(const TLorentzVector& v) const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.DeltaR(v); }
-  float deltaR(const CMSLorentzVector& v) const{ TLorentzVector tmp(v.X(), v.Y(), v.Z(), v.T()); return deltaR(tmp); }
+  float deltaR(const CMSLorentzVector& v) const{ return reco::deltaR(momentum, v); }
   float deltaR(const ParticleObject& part) const{ return deltaR(part.momentum); }
   float deltaR(const ParticleObject* part) const{ if (part!=0) return deltaR(*part); else return -1; }
   float deltaPhi(float phi_) const;

@@ -6,6 +6,9 @@
 
 <use name="FWCore/MessageLogger"/>
 <use name="FWCore/Utilities"/>
+<use name="DataFormats/Math"/>
+<use name="CondFormats/JetMETObjects"/>
+<use name="JetMETCorrections/Modules"/>
 <use name="root"/>
 <use name="rootmath"/>
 <use name="roofit"/>

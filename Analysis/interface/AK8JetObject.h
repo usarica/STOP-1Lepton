@@ -24,9 +24,11 @@ public:
   float deepdisc_h4q;
 
   float JEC;
-  float JECunc;
+  float JECup;
+  float JECdn;
   float JER;
-  float JERunc;
+  float JERup;
+  float JERdn;
 
   AK8JetVariables();
   AK8JetVariables(AK8JetVariables const& other);
