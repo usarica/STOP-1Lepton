@@ -368,8 +368,10 @@ bool JetMETHandler::constructJetMET(){
   ParticleObjectHelpers::sortByGreaterPt(ak8jets);
   // Apply selections after sorting
   res &= applySelections();
+  res &= applyBtagSFs(); // Also handles b-tagging itself
   return res;
 }
+
 bool JetMETHandler::applyJetCleaning(){
   if (registeredMuons){
 
