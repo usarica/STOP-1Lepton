@@ -107,7 +107,7 @@ bool AK4JetSelectionHelpers::isBadMuonJet(AK4JetObject& part, METObject const& o
   float dPhi = part.deltaPhi(obj.extras.phi);
   float uncorrE = (part.extras.undoJEC*part.energy());
   float muf = part.extras.muonE / uncorrE;
-  bool res = (part.pt()>200.f && dPhi>(TMath::Pi()-0.4f) && muf>0.5f);
+  bool res = (part.extras.undoJEC*part.pt()>200.f && dPhi>(TMath::Pi()-0.4f) && muf>0.5f);
   if (!res) part.setSelectionBit(kNotBadMuonJet);
   return res;
 }

@@ -381,21 +381,24 @@ bool JetMETHandler::constructTFTops(){
 bool JetMETHandler::constructJetMET(){
   clear();
   if (!currentTree) return false;
-  bool res = (constructAK4Jets() && constructAK8Jets() && constructMET() && constructTFTops() && applyJetCleaning());
+  bool res = (constructAK4Jets() && constructAK8Jets() && constructMET());
   // Sort particles after jet cleaning is done
   ParticleObjectHelpers::sortByGreaterPt(ak4jets);
   ParticleObjectHelpers::sortByGreaterPt(ak8jets);
   // Apply selections after sorting
-  res &= applySelections();
+  res &= applySelections(); // Apply first pass of selections
   res &= applyJEC(); // Re-apply JEC before calculating b-tag SFs
   res &= applyBtagSFs(); // Also handles b-tagging itself
   res &= applyJER(); // Apply JER AFTER calculating b-tag SFs
+  res &= applyJetCleaning();
+  res &= applySelections(); // Apply second pass of selections
+  res &= constructTFTops(); // Construct top candidates at the latest stage
   return res;
 }
 
 bool JetMETHandler::applyJetCleaning(){
   std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size());
-  for (auto* jet:ak4jets){
+  for (auto*& jet:ak4jets){
     bool doSkip=false;
     if (registeredMuons){
       for (auto const* part:*(registeredMuons)){
@@ -410,11 +413,12 @@ bool JetMETHandler::applyJetCleaning(){
       }
     }
     if (!doSkip) ak4jets_new.push_back(jet);
+    else delete jet;
   }
   ak4jets = ak4jets_new;
 
   std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size());
-  for (auto* jet:ak8jets){
+  for (auto*& jet:ak8jets){
     bool doSkip=false;
     if (registeredMuons){
       for (auto const* part:*(registeredMuons)){
@@ -429,6 +433,7 @@ bool JetMETHandler::applyJetCleaning(){
       }
     }
     if (!doSkip) ak8jets_new.push_back(jet);
+    else delete jet;
   }
   ak8jets = ak8jets_new;
 
@@ -530,8 +535,8 @@ bool JetMETHandler::applyJER(){
   return true;
 }
 bool JetMETHandler::applySelections(){
-  for (auto* obj:ak4jets) AK4JetSelectionHelpers::setSelectionBits(*obj);
-  for (auto* obj:ak8jets) AK8JetSelectionHelpers::setSelectionBits(*obj);
+  for (auto* obj:ak4jets){ obj->resetSelectionBits(); AK4JetSelectionHelpers::setSelectionBits(*obj); }
+  for (auto* obj:ak8jets){ obj->resetSelectionBits(); AK8JetSelectionHelpers::setSelectionBits(*obj); }
   return true;
 }
 bool JetMETHandler::applyBtagSFs(){
