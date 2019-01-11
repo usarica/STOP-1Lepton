@@ -174,4 +174,46 @@ typedef unsigned long long EventNumber_t;
 #define _pfmetPhi_ "evt_pfmetPhi"
 
 
+// Event filter variables
+// bool
+#define _filt_hcalLaser_ "filt_hcalLaser"
+#define _filt_ecalBoundaryEnergy_ "filt_ecalBoundaryEnergy"
+#define _filt_hcalStrip_ "filt_hcalStrip"
+#define _filt_cscBeamHaloTrkMuUnveto_ "filt_cscBeamHaloTrkMuUnveto"
+#define _filt_met_filter_ "filt_metfilter"
+#define _filt_badMuons_ "filt_badMuons"
+#define _filt_BadPFMuon_filter_ "filt_BadPFMuonFilter"
+#define _filt_BadChargedCandidate_filter_ "filt_BadChargedCandidateFilter"
+#define _filt_duplicateMuons_ "filt_duplicateMuons"
+#define _filt_noBadMuons_ "filt_noBadMuons"
+#define _filt_trkPOG_filters_ "filt_trkPOGFilters"
+#define _filt_chargedHadronTrackResolution_ "filt_chargedHadronTrackResolution"
+#define _filt_ecalLaser_ "filt_ecalLaser"
+#define _filt_goodVertices_ "filt_goodVertices"
+#define _filt_hbheNoiseIso_ "filt_hbheNoiseIso"
+#define _filt_hbheNoise_ "filt_hbheNoise"
+#define _filt_cscBeamHalo2015_ "filt_cscBeamHalo2015"
+#define _filt_ecalTP_ "filt_ecalTP"
+#define _filt_cscBeamHalo_ "filt_cscBeamHalo"
+#define _filt_globalSuperTightHalo2016_ "filt_globalSuperTightHalo2016"
+#define _filt_trackingFailure_ "filt_trackingFailure"
+#define _filt_trkPOG_manystripclus53X_ "filt_trkPOG_manystripclus53X"
+#define _filt_trkPOG_toomanystripclus53X_ "filt_trkPOG_toomanystripclus53X"
+#define _filt_eeBadSc_ "filt_eeBadSc"
+#define _filt_ecalBadCalib_filter_ "filt_ecalBadCalibFilter"
+#define _filt_ecalBadCalib_filterUpdate_ "filt_ecalBadCalibFilterUpdate"
+#define _filt_trkPOG_logErrorTooManyClusters_ "filt_trkPOG_logErrorTooManyClusters"
+#define _filt_muonBadTrack_ "filt_muonBadTrack"
+#define _filt_globalTightHalo2016_ "filt_globalTightHalo2016"
+// End event filter variables
+
+
+// HLT trigger variables
+// TBit
+#define _hlt_bits_ "hlt_bits"
+// vTString
+#define _hlt_trigNames_ "hlt_trigNames"
+// End HLT trigger variables
+
+
 #endif
