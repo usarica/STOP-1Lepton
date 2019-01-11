@@ -36,6 +36,8 @@ JetMETHandler::JetMETHandler() :
   this->addConsumed<float>(_ak4jets_rho_);
 
   this->addConsumed<std::vector<int>*>(_ak4jets_npfcands_);
+  this->addConsumed<std::vector<int>*>(_ak4jets_parton_flavor_);
+  this->addConsumed<std::vector<int>*>(_ak4jets_hadron_flavor_);
   this->addConsumed<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_);
   this->addConsumed<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_);
   this->addConsumed<std::vector<int>*>(_ak4jets_photonMultiplicity_);
@@ -205,7 +207,7 @@ bool JetMETHandler::constructAK4Jets(){
     return false;
   }
 
-  if (momentum->empty()) return true; // Construction is successful, it is just that no muons exist.
+  if (momentum->empty()) return true; // Construction is successful, it is just that no jets exist.
 
   unsigned int nProducts = momentum->size();
   ak4jets.reserve(nProducts);
@@ -314,7 +316,7 @@ bool JetMETHandler::constructAK8Jets(){
     return false;
   }
 
-  if (momentum->empty()) return true; // Construction is successful, it is just that no muons exist.
+  if (momentum->empty()) return true; // Construction is successful, it is just that no jets exist.
 
   unsigned int nProducts = momentum->size();
   ak8jets.reserve(nProducts);
@@ -376,7 +378,9 @@ bool JetMETHandler::constructMET(){
 }
 
 bool JetMETHandler::constructTFTops(){
+  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructTFTops: Attempting to construct tops from ak4jets!" << endl;
   tftops = TFTopTaggerHelpers::getTopsFromResolvedJets(ak4jets);
+  if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success! Constructed " << tftops.size() << " tops." << endl;
   return true;
 }
 
@@ -644,6 +648,8 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);
 
   fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_npfcands_, nullptr);
+  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_parton_flavor_, nullptr);
+  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_hadron_flavor_, nullptr);
   fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_, nullptr);
   fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_, nullptr);
   fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_photonMultiplicity_, nullptr);

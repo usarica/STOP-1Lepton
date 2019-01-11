@@ -23,6 +23,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   constexpr bool doWeights=true;
   constexpr bool doElectrons=true;
   constexpr bool doMuons=true;
+  constexpr bool doJetMET=true;
 
   bool validProducts = (tree!=nullptr);
   if (!validProducts) return validProducts;
@@ -31,10 +32,12 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   WeightsHandler* wgtHandler=nullptr;
   ElectronHandler* eleHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
+  JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
     if (doWeights){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
     if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
     if (doMuons){ MuonHandler* muon_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && muon_ivy){ muonHandler = muon_ivy; } }
+    if (doJetMET){ JetMETHandler* jet_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && jet_ivy){ jetHandler = jet_ivy; } }
   }
 
   // SF handlers
@@ -78,6 +81,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   /***********************/
   /**  ELECTRONS BLOCK  **/
   /***********************/
+  std::vector<ElectronObject*> electrons;
   validProducts &= (!doElectrons || eleHandler!=nullptr);
   if (!validProducts){
     MELAerr << "EventAnalyzer::runEvent: Electron handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -91,7 +95,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       exit(1);
       return validProducts;
     }
-    std::vector<ElectronObject*> const& electrons = eleHandler->getProducts();
+    electrons = eleHandler->getProducts();
 
     std::vector<int> id;
     std::vector<float> pt;
@@ -228,6 +232,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   /*******************/
   /**  MUONS BLOCK  **/
   /*******************/
+  std::vector<MuonObject*> muons;
   validProducts &= (!doMuons || muonHandler!=nullptr);
   if (!validProducts){
     MELAerr << "EventAnalyzer::runEvent: Muon handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -241,7 +246,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       exit(1);
       return validProducts;
     }
-    std::vector<MuonObject*> const& muons = muonHandler->getProducts();
+    muons = muonHandler->getProducts();
 
     std::vector<int> id;
     std::vector<float> pt;
@@ -387,6 +392,27 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   }
 
 
+  /********************/
+  /**  JetMET BLOCK  **/
+  /********************/
+  validProducts &= (!doJetMET || jetHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: JetMET handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (jetHandler){
+    jetHandler->registerLeptons(electrons, muons);
+    validProducts &= jetHandler->constructJetMET();
+    if (!validProducts){
+      MELAerr << "EventAnalyzer::runEvent: Jets or MET could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+
+
+  }
+
   return validProducts;
 }
 
@@ -437,9 +463,17 @@ void testWeights(){
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
+  analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
   // SF handlers
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
+  // Register JetMET SF handlers so that they can be updated
+  analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_noFS", &btagSFHandler_MC_noFS);
+  analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_FS", &btagSFHandler_MC_FS);
+  analyzer.addExternalScaleFactorHandler("JECSFHandler_ak4", &jecSFHandler_ak4);
+  analyzer.addExternalScaleFactorHandler("JECSFHandler_ak8", &jecSFHandler_ak8);
+  analyzer.addExternalScaleFactorHandler("JERSFHandler_ak4", &jerSFHandler_ak4);
+  analyzer.addExternalScaleFactorHandler("JERSFHandler_ak8", &jerSFHandler_ak8);
   // Output tree setup
   analyzer.setExternalProductTree(&outtree);
 
