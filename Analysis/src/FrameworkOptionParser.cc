@@ -76,17 +76,40 @@ void FrameworkOptionParser::analyze(){
     else hasInvalidOption |= true;
   }
   if (theDataPeriod==""){ MELAerr << "You have to specify the data set period." << endl; hasInvalidOption |= true; }
-  else if (theDataVersion==""){
-    MELAout << "You have to specify the data set version, but attempting to find out from the data period." << endl;
-    if (theDataPeriod.find("2018")!=std::string::npos) theDataVersion="10x";
-    else if (theDataPeriod.find("2017")!=std::string::npos) theDataVersion="94x";
-    else if (theDataPeriod.find("2016")!=std::string::npos){
-      if (sample.find("2018")!=std::string::npos || sample.find("2019")!=std::string::npos) theDataVersion="94x"; // 94X samples are made in 2018 and 2019
-      else theDataVersion="80x";
+  else{
+    if (this->isData()){
+      int try_year=-1;
+      bool has_exception = false;
+      try{ try_year = stoi(theDataPeriod.c_str()); }
+      catch (std::invalid_argument& e){ has_exception = true; }
+      if (!has_exception && try_year>0){
+        if (theDataPeriod == Form("%i", try_year)){ // Check if the data period string contains just the year
+          MELAout << "The data period " << theDataPeriod << " contains only the year of the data file. Searching the file name for the data period..." << endl;
+          const char test_chars[]="ABCDEFGHIJK";
+          const unsigned int n_test_chars = strlen(test_chars);
+          for (unsigned int ic=0; ic<n_test_chars; ic++){
+            string test_data_period = Form("%i%c", try_year, test_chars[ic]);
+            if (sample.find(test_data_period.c_str())!=string::npos){
+              MELAout << "\t- The data period " << test_data_period << " is found." << endl;
+              theDataPeriod = test_data_period;
+              break;
+            }
+          }
+        }
+      }
     }
-    else{
-      MELAerr << "\t- Could not determine the data set version." << endl;
-      hasInvalidOption |= true;
+    if (theDataVersion==""){
+      MELAout << "You have to specify the data set version, but attempting to find out from the data period." << endl;
+      if (theDataPeriod.find("2018")!=std::string::npos) theDataVersion="10x";
+      else if (theDataPeriod.find("2017")!=std::string::npos) theDataVersion="94x";
+      else if (theDataPeriod.find("2016")!=std::string::npos){
+        if (sample.find("2018")!=std::string::npos || sample.find("2019")!=std::string::npos || sample.find("94X")!=std::string::npos) theDataVersion="94x"; // 94X samples are made in 2018 and 2019
+        else theDataVersion="80x";
+      }
+      else{
+        MELAerr << "\t- Could not determine the data set version." << endl;
+        hasInvalidOption |= true;
+      }
     }
   }
 

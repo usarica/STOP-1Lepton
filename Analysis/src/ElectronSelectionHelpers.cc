@@ -14,9 +14,9 @@ namespace ElectronSelectionHelpers{
 
 int ElectronSelectionHelpers::setEleEffAreaVersion(){
   // From CORE/Config.cc
-  if (SampleHelpers::theDataPeriod == "2016") return 1;
-  else if (SampleHelpers::theDataPeriod == "2017") return 4;
-  else if (SampleHelpers::theDataPeriod == "2018") return 4; // FIXME: Needs new version
+  if (SampleHelpers::theDataYear == 2016) return 1;
+  else if (SampleHelpers::theDataYear == 2017) return 4;
+  else if (SampleHelpers::theDataYear == 2018) return 4; // FIXME: Needs new version
   else return -1;
 }
 float ElectronSelectionHelpers::electronEffArea(ElectronObject const& part){
@@ -112,7 +112,7 @@ bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
 
   // Id cuts
   if (extras.conv_vtx_flag) return false;
-  if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isVetoElectronPOGspring15noIso_v1
+  if (SampleHelpers::theDataYear == 2016){ // Same as CORE/ElectronSelections::isVetoElectronPOGspring15noIso_v1
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
       if (extras.sigmaIEtaIEta_full5x5 >= 0.0352) return false;
@@ -135,7 +135,7 @@ bool ElectronSelectionHelpers::testVetoCutBasedId(ElectronObject const& part){
       if (extras.expectedMissingInnerHits > 2) return false;
     }
   }
-  else if (SampleHelpers::theDataPeriod == "2017" || SampleHelpers::theDataPeriod == "2018"){ // Same as CORE/ElectronSelections::isVetoElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
+  else if (SampleHelpers::theDataYear == 2017 || SampleHelpers::theDataYear == 2018){ // Same as CORE/ElectronSelections::isVetoElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
     if (extras.conv_vtx_flag) return false;
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
@@ -171,7 +171,7 @@ bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
 
   if (extras.conv_vtx_flag) return false;
-  if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isLooseElectronPOGspring15noIso_v1
+  if (SampleHelpers::theDataYear == 2016){ // Same as CORE/ElectronSelections::isLooseElectronPOGspring15noIso_v1
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
       if (extras.sigmaIEtaIEta_full5x5 >= 0.0301) return false;
@@ -194,7 +194,7 @@ bool ElectronSelectionHelpers::testLooseCutBasedId(ElectronObject const& part){
       if (extras.expectedMissingInnerHits > 2) return false;
     }
   }
-  else if (SampleHelpers::theDataPeriod == "2017" || SampleHelpers::theDataPeriod == "2018"){ // Same as CORE/ElectronSelections::isLooseElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
+  else if (SampleHelpers::theDataYear == 2017 || SampleHelpers::theDataYear == 2018){ // Same as CORE/ElectronSelections::isLooseElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
     if (extras.conv_vtx_flag) return false;
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
@@ -231,7 +231,7 @@ bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
   ElectronVariables const& extras = part.extras;
 
   if (extras.conv_vtx_flag) return false;
-  if (SampleHelpers::theDataPeriod == "2016"){ // Same as CORE/ElectronSelections::isMediumElectronPOGspring15noIso_v1
+  if (SampleHelpers::theDataYear == 2016){ // Same as CORE/ElectronSelections::isMediumElectronPOGspring15noIso_v1
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts
       if (extras.sigmaIEtaIEta_full5x5 >= 0.0283) return false;
@@ -254,7 +254,7 @@ bool ElectronSelectionHelpers::testMediumCutBasedId(ElectronObject const& part){
       if (extras.expectedMissingInnerHits > 2) return false;
     }
   }
-  else if (SampleHelpers::theDataPeriod == "2017" || SampleHelpers::theDataPeriod == "2018"){ // Same as CORE/ElectronSelections::isMediumElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
+  else if (SampleHelpers::theDataYear == 2017 || SampleHelpers::theDataYear == 2018){ // Same as CORE/ElectronSelections::isMediumElectronPOGfall17noIso_v2. FIXME: 2018 will be updated!
     if (extras.conv_vtx_flag) return false;
     if (fabs(extras.etaSC)>2.5) return false;
     else if (fabs(extras.etaSC) > 1.479){ // Endcap cuts

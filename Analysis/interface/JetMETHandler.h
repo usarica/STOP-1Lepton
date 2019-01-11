@@ -10,6 +10,7 @@
 #include "TFTopObject.h"
 #include "METObject.h"
 #include "BtagScaleFactorHandler.h"
+#include "JECScaleFactorHandler.h"
 #include "JERScaleFactorHandler.h"
 
 
@@ -22,6 +23,9 @@ protected:
 
   BtagScaleFactorHandler* registeredBtagSFHandler;
   BtagScaleFactorHandler* registeredBtagSFHandler_FastSim;
+
+  JECScaleFactorHandler* registeredJECSFHandler_ak4jets;
+  JECScaleFactorHandler* registeredJECSFHandler_ak8jets;
 
   JERScaleFactorHandler* registeredJERSFHandler_ak4jets;
   JERScaleFactorHandler* registeredJERSFHandler_ak8jets;
@@ -60,6 +64,7 @@ public:
 
   void registerLeptons(std::vector<ElectronObject*> const& electrons, std::vector<MuonObject*> const& muons){ registeredElectrons = &electrons; registeredMuons = &muons; }
   void registerBtagSFHandlers(BtagScaleFactorHandler* handler, BtagScaleFactorHandler* handler_fastsim){ registeredBtagSFHandler = handler; registeredBtagSFHandler_FastSim = handler_fastsim; }
+  void registerJECSFHandlers(JECScaleFactorHandler* ak4jer, JECScaleFactorHandler* ak8jer){ registeredJECSFHandler_ak4jets = ak4jer; registeredJECSFHandler_ak8jets = ak8jer; }
   void registerJERSFHandlers(JERScaleFactorHandler* ak4jer, JERScaleFactorHandler* ak8jer){ registeredJERSFHandler_ak4jets = ak4jer; registeredJERSFHandler_ak8jets = ak8jer; }
   bool constructJetMET();
 

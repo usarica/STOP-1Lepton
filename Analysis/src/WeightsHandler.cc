@@ -59,7 +59,7 @@ bool WeightsHandler::constructWeights(){
     float const* LHEweight_PDFVariation_Dn_2016 = nullptr;
     float const* LHEweight_AsMZ_Up_2016 = nullptr;
     float const* LHEweight_AsMZ_Dn_2016 = nullptr;
-    if (SampleHelpers::theDataPeriod!="2016"){
+    if (SampleHelpers::theDataYear > 2016){
       if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Linking also 2016-like weights" << endl;
 
       genHEPMCweight_2016 = valfloats[_genHEPMCweight_2016_];
@@ -237,7 +237,7 @@ void WeightsHandler::bookBranches(BaseTree* tree){
     this->defineConsumedSloppy(_LHEweight_AsMZ_Up_);
     this->defineConsumedSloppy(_LHEweight_AsMZ_Dn_);
 
-    if (SampleHelpers::theDataPeriod!="2016"){ // Not needed for 2016
+    if (SampleHelpers::theDataYear > 2016){ // Not needed for 2016
       fwktree->bookEDMBranch<float>(_genHEPMCweight_2016_, 0);
       fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Up_2016_, 0);
       fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Dn_2016_, 0);

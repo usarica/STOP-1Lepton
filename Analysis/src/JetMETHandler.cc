@@ -25,6 +25,8 @@ JetMETHandler::JetMETHandler() :
   metobj(nullptr),
   registeredBtagSFHandler(nullptr),
   registeredBtagSFHandler_FastSim(nullptr),
+  registeredJECSFHandler_ak4jets(nullptr),
+  registeredJECSFHandler_ak8jets(nullptr),
   registeredJERSFHandler_ak4jets(nullptr),
   registeredJERSFHandler_ak8jets(nullptr),
   registeredElectrons(nullptr),
@@ -386,7 +388,6 @@ bool JetMETHandler::constructJetMET(){
   ParticleObjectHelpers::sortByGreaterPt(ak4jets);
   ParticleObjectHelpers::sortByGreaterPt(ak8jets);
   // Apply selections after sorting
-  res &= applySelections(); // Apply first pass of selections
   res &= applyJEC(); // Re-apply JEC before calculating b-tag SFs
   res &= applyBtagSFs(); // Also handles b-tagging itself
   res &= applyJER(); // Apply JER AFTER calculating b-tag SFs
@@ -442,7 +443,19 @@ bool JetMETHandler::applyJetCleaning(){
   return true;
 }
 bool JetMETHandler::applyJEC(){
-  // LEFT HERE: Implement JEC
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
+  if (!fwktree) return false;
+
+  bool const doCorrectAK4Jets = true;
+  if (registeredJECSFHandler_ak4jets && doCorrectAK4Jets){
+    for (AK4JetObject* jet:ak4jets) registeredJECSFHandler_ak4jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
+  }
+
+  bool const doCorrectAK8Jets = (SampleHelpers::theDataYear == 2016); // FIXME: Need the prescription for 2018 as well
+  if (registeredJECSFHandler_ak8jets && doCorrectAK8Jets){
+    for (AK8JetObject* jet:ak8jets) registeredJECSFHandler_ak8jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
+  }
+
   return true;
 }
 bool JetMETHandler::applyJER(){
@@ -535,8 +548,8 @@ bool JetMETHandler::applyJER(){
   return true;
 }
 bool JetMETHandler::applySelections(){
-  for (auto* obj:ak4jets){ obj->resetSelectionBits(); AK4JetSelectionHelpers::setSelectionBits(*obj); }
-  for (auto* obj:ak8jets){ obj->resetSelectionBits(); AK8JetSelectionHelpers::setSelectionBits(*obj); }
+  for (auto* obj:ak4jets){ /*obj->resetSelectionBits();*/ AK4JetSelectionHelpers::setSelectionBits(*obj); }
+  for (auto* obj:ak8jets){ /*obj->resetSelectionBits();*/ AK8JetSelectionHelpers::setSelectionBits(*obj); }
   return true;
 }
 bool JetMETHandler::applyBtagSFs(){
@@ -566,18 +579,18 @@ bool JetMETHandler::applyBtagSFs(){
       float jphi = correctedMomentum.Phi();
       float jeta = correctedMomentum.Eta();
       TRandom3 rand;
-      rand.SetSeed(abs(static_cast<int>(sin(jphi)*100000)));
+      rand.SetSeed(std::abs(static_cast<int>(sin(jphi)*100000)));
       float R = rand.Uniform();
       float SF   = theBTagSFHandler->getSF(0, flav, jpt, jeta);
       float SFUp = theBTagSFHandler->getSF(1, flav, jpt, jeta);
       float SFDn = theBTagSFHandler->getSF(-1, flav, jpt, jeta);
       float bTagMCEff = theBTagSFHandler->getEff(flav, jpt, jeta);
-      if (SF  <=1 && isBtagged && R<1.-SF) isBtaggedWithSF   = false;
-      if (SFUp<=1 && isBtagged && R<1.-SFUp) isBtaggedWithSFUp = false;
-      if (SFDn<=1 && isBtagged && R<1.-SFDn) isBtaggedWithSFDn = false;
-      if (SF  >1 && !isBtagged && R<(1.-SF)/(1.-1./bTagMCEff)) isBtaggedWithSF   = true;
-      if (SFUp>1 && !isBtagged && R<(1.-SFUp)/(1.-1./bTagMCEff)) isBtaggedWithSFUp = true;
-      if (SFDn>1 && !isBtagged && R<(1.-SFDn)/(1.-1./bTagMCEff)) isBtaggedWithSFDn = true;
+      if (SF  <=1.f && isBtagged && R<1.f-SF) isBtaggedWithSF   = false;
+      if (SFUp<=1.f && isBtagged && R<1.f-SFUp) isBtaggedWithSFUp = false;
+      if (SFDn<=1.f && isBtagged && R<1.f-SFDn) isBtaggedWithSFDn = false;
+      if (SF  >1.f && !isBtagged && R<(1.f-SF)/(1.f-1.f/bTagMCEff)) isBtaggedWithSF   = true;
+      if (SFUp>1.f && !isBtagged && R<(1.f-SFUp)/(1.f-1.f/bTagMCEff)) isBtaggedWithSFUp = true;
+      if (SFDn>1.f && !isBtagged && R<(1.f-SFDn)/(1.f-1.f/bTagMCEff)) isBtaggedWithSFDn = true;
     }
     if (isBtaggedWithSF) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged);
     if (isBtaggedWithSFUp) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_SFUp);

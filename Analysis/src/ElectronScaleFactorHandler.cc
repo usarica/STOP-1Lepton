@@ -96,7 +96,7 @@ bool ElectronScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_iso, finput_SF_FastSim_veto_iso, "histo2D")
       );
   }
-  //else if (theDataPeriod == "2018"){
+  //else if (theDataYear == 2018){
   // FIXME: To be implemented
   //}
 
@@ -166,23 +166,23 @@ void ElectronScaleFactorHandler::getIdIsoSFAndError(float& theSF, float& theSFRe
 
   if (!useFastSim){
     if (passSel){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_id, (theDataPeriod=="2016"), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_iso, (theDataPeriod=="2016"), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_id, (theDataYear == 2016), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_iso, (theDataYear == 2016), false);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_id, (theDataPeriod=="2016"), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_iso, (theDataPeriod=="2016"), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_id, (theDataYear == 2016), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_iso, (theDataYear == 2016), false);
     }
   }
   else{
     // FIXME: Need to check axis inversion after 2017 hists are obtained
     if (passSel){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_id, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_iso, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_id, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_iso, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_id, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_iso, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
     }
   }
 
@@ -208,7 +208,7 @@ void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelE
   if (!obj->testSelection(kGenPtEta)) return;
 
   // FIXME: Histogram for 2017 might not use abs(eta) or be swapped.
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
 
   if (theSF<1.){
     const float theSFtmp = theSF;

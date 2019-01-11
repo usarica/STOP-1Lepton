@@ -127,7 +127,7 @@ bool MuonScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_ip, finput_SF_FastSim_veto_ip, "histo2D")
       );
   }
-  //else if (theDataPeriod == "2018"){
+  //else if (theDataYear == 2018){
   // FIXME: To be implemented
   //}
 
@@ -249,7 +249,7 @@ void MuonScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelErr, 
   if (!obj->testSelection(kGenPtEta)) return;
 
   // FIXME: Histogram for 2017 might not use abs(eta) or be swapped.
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataPeriod=="2016")*/, true/*(theDataPeriod=="2016")*/);
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
 
   if (theSF<1.){
     const float theSFtmp = theSF;

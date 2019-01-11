@@ -18,9 +18,9 @@ bool MuonSelectionHelpers::checkPOGSelectorBit(MuonObject const& part, POGSelect
 
 int MuonSelectionHelpers::setMuonEffAreaVersion(){
   // From CORE/Config.cc
-  if (SampleHelpers::theDataPeriod == "2016") return 1;
-  else if (SampleHelpers::theDataPeriod == "2017") return 4;
-  else if (SampleHelpers::theDataPeriod == "2018") return 4; // FIXME: Needs new version
+  if (SampleHelpers::theDataYear == 2016) return 1;
+  else if (SampleHelpers::theDataYear == 2017) return 4;
+  else if (SampleHelpers::theDataYear == 2018) return 4; // FIXME: Needs new version
   else return -1;
 }
 float MuonSelectionHelpers::muonEffArea(MuonObject const& part){
