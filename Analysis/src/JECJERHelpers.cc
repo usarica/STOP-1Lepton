@@ -53,16 +53,20 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
   else{
     unordered_map<TString, TString>::const_iterator it = eraMap.find(theDataPeriod);
     if (it==eraMap.cend()){
-      MELAerr << "JECJERHelpers::getJECFilePath: Era map does not contain the data period " << theDataPeriod << " for year " << theDataYear << " and data version " << theDataVersion << ". Aborting..." << endl;
-      assert(0);
+      if (SampleHelpers::testDataPeriodIsLikeData()){
+        MELAerr << "JECJERHelpers::getJECFilePath: Era map does not contain the data period " << theDataPeriod << " for year " << theDataYear << " and data version " << theDataVersion << ". Aborting..." << endl;
+        assert(0);
+      }
+      return "";
     }
-    return it->second;
+    else return it->second;
   }
 }
 std::vector<TString> JECJERHelpers::getJECFileNames(JECJERType type, bool isMC, bool isFastSim){
   std::vector<TString> res;
   if (type == kAK8 && theDataYear >= 2017) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
+  if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);
 
   TString sprep = JECDATADIR;
@@ -79,6 +83,7 @@ TString JECJERHelpers::getJECUncertaintyFileName(JECJERType type, bool isMC, boo
   TString res;
   if (type == kAK8 && theDataYear >= 2017) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
+  if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);
 
   TString sprep = JECDATADIR;
@@ -92,10 +97,10 @@ TString JECJERHelpers::getJECUncertaintyFileName(JECJERType type, bool isMC, boo
 TString JECJERHelpers::getJERFilePath(JECJERType /*type*/, bool /*isFastSim*/){
   switch (theDataYear){
   case 2016:
-    return "Summer16_25nsV1";
+    return "Summer16_25nsV1_MC";
   case 2017:
   case 2018: // FIXME: Update for the 2018 recipe needed
-    return "Fall17_V3";
+    return "Fall17_V3_MC";
   default:
     MELAerr << "JECJERHelpers::getJERFilePath: Year " << theDataYear << " is unknown." << endl;
     assert(0);
@@ -106,20 +111,29 @@ TString JECJERHelpers::getJERPtFileName(JECJERType type, bool isFastSim){
   TString res = JERDATADIR;
   TString fext = getJERFilePath(type, isFastSim);
   res += fext + "/" + fext + "_PtResolution_" + getJECJERTypeName(type) + ".txt";
-  assert(HostHelpers::FileExists(res.Data()));
+  if (!HostHelpers::FileExists(res.Data())){
+    MELAerr << "JECJERHelpers::getJERPtFileName: File " << res << " does not exist! Aborting..." << endl;
+    assert(0);
+  }
   return res;
 }
 TString JECJERHelpers::getJERPhiFileName(JECJERType type, bool isFastSim){
   TString res = JERDATADIR;
   TString fext = getJERFilePath(type, isFastSim);
   res += fext + "/" + fext + "_PhiResolution_" + getJECJERTypeName(type) + ".txt";
-  assert(HostHelpers::FileExists(res.Data()));
+  if (!HostHelpers::FileExists(res.Data())){
+    MELAerr << "JECJERHelpers::getJERPhiFileName: File " << res << " does not exist! Aborting..." << endl;
+    assert(0);
+  }
   return res;
 }
 TString JECJERHelpers::getJERSFFileName(JECJERType type, bool isFastSim){
   TString res = JERDATADIR;
   TString fext = getJERFilePath(type, isFastSim);
   res += fext + "/" + fext + "_SF_" + getJECJERTypeName(type) + ".txt";
-  assert(HostHelpers::FileExists(res.Data()));
+  if (!HostHelpers::FileExists(res.Data())){
+    MELAerr << "JECJERHelpers::getJERSFFileName: File " << res << " does not exist! Aborting..." << endl;
+    assert(0);
+  }
   return res;
 }

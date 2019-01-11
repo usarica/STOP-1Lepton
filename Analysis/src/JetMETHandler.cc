@@ -12,8 +12,8 @@
 #include "FrameworkTree.h"
 #include "MELAStreamHelpers.hh"
 #include "TRandom3.h"
-#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
-#include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
+#include <cmstas/CORE/Tools/jetcorr/JetCorrectionUncertainty.h>
+#include <cmstas/CORE/Tools/jetcorr/JetCorrectorParameters.h>
 
 
 using namespace std;

@@ -2,7 +2,7 @@
 #include <cstdio>
 #include "JECScaleFactorHandler.h"
 #include "MELAStreamHelpers.hh"
-#include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
+#include <cmstas/CORE/Tools/jetcorr/JetCorrectorParameters.h>
 
 
 using namespace std;
@@ -28,7 +28,7 @@ JECScaleFactorHandler::~JECScaleFactorHandler(){ this->reset(); }
 FactorizedJetCorrector* JECScaleFactorHandler::makeCorrector(std::vector<TString> const& fnames){
   if (fnames.empty()) return nullptr;
 
-  for (auto const& fname:fnames){
+  for (TString const& fname:fnames){
     if (!HostHelpers::FileExists(fname)){
       MELAerr << "JECScaleFactorHandler::makeCorrector: File " << fname << " does not exists! Aborting..." << endl;
       assert(0);
@@ -36,22 +36,7 @@ FactorizedJetCorrector* JECScaleFactorHandler::makeCorrector(std::vector<TString
   }
 
   std::vector<JetCorrectorParameters> vParam; vParam.reserve(fnames.size());
-  for (auto const& fname:fnames){
-    const TString cmd = "echo ";
-    FILE* f = popen((cmd + fname).Data(), "r");
-    if (!f){
-      MELAerr << "JECScaleFactorHandler::makeCorrector: Error opening pipe to execute " << cmd << fname << endl;
-      return nullptr;
-    }
-    char corr_name[1024];
-    int s = fscanf(f, " %1024s\n", corr_name);
-    if (s != 1){
-      MELAerr << "JECScaleFactorHandler::makeCorrector: Error reading file " << fname << endl;
-      assert(0);
-    }
-    vParam.emplace_back(corr_name);
-    pclose(f);
-  }
+  for (TString const& fname:fnames) vParam.emplace_back(fname.Data());
 
   return new FactorizedJetCorrector(vParam);
 }
@@ -65,19 +50,19 @@ bool JECScaleFactorHandler::setup(){
   TDirectory* curdir = gDirectory;
 
   std::vector<TString> correctornames_data = getJECFileNames(type, false, false);
-  corrector_data = makeCorrector(correctornames_data);
+  if (!correctornames_data.empty()) corrector_data = makeCorrector(correctornames_data);
 
   std::vector<TString> correctornames_MC_noFS = getJECFileNames(type, true, false);
-  corrector_MC_noFS = makeCorrector(correctornames_MC_noFS);
+  if (!correctornames_MC_noFS.empty()) corrector_MC_noFS = makeCorrector(correctornames_MC_noFS);
 
   std::vector<TString> correctornames_MC_FS = getJECFileNames(type, true, true);
-  corrector_MC_FS = makeCorrector(correctornames_MC_FS);
+  if (!correctornames_MC_FS.empty()) corrector_MC_FS = makeCorrector(correctornames_MC_FS);
 
   TString uncname_MC_noFS = getJECUncertaintyFileName(type, true, false);
-  uncertaintyEstimator_MC_noFS = makeUncertaintyEstimator(uncname_MC_noFS);
+  if (uncname_MC_noFS!="") uncertaintyEstimator_MC_noFS = makeUncertaintyEstimator(uncname_MC_noFS);
 
   TString uncname_MC_FS = getJECUncertaintyFileName(type, true, true);
-  uncertaintyEstimator_MC_FS = makeUncertaintyEstimator(uncname_MC_FS);
+  if (uncname_MC_FS!="") uncertaintyEstimator_MC_FS = makeUncertaintyEstimator(uncname_MC_FS);
 
   curdir->cd();
 

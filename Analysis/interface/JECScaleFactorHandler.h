@@ -13,8 +13,10 @@
 #include "JECJERHelpers.h"
 #include "AK4JetObject.h"
 #include "AK8JetObject.h"
-#include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
-#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
+#include <cmstas/CORE/Tools/jetcorr/FactorizedJetCorrector.h>
+#include <cmstas/CORE/Tools/jetcorr/JetCorrectionUncertainty.h>
+//#include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
+//#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
 
 
 class JECScaleFactorHandler : public ScaleFactorHandlerBase{

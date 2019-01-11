@@ -404,18 +404,31 @@ void testWeights(){
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
 
   WeightsHandler wgtHandler;
-  wgtHandler.setVerbosity(TVar::DEBUG);
+  //wgtHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
   ElectronScaleFactorHandler electronSFHandler;
   ElectronHandler electronHandler;
-  electronHandler.setVerbosity(TVar::DEBUG);
+  //electronHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) electronHandler.bookBranches(tree);
 
   MuonScaleFactorHandler muonSFHandler;
   MuonHandler muonHandler;
-  muonHandler.setVerbosity(TVar::DEBUG);
+  //muonHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree);
+
+  JetMETHandler jetHandler;
+  jetHandler.setVerbosity(TVar::DEBUG);
+  BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
+  BtagScaleFactorHandler btagSFHandler_MC_FS(BtagHelpers::kDeepCSV_Medium, true);
+  jetHandler.registerBtagSFHandlers(&btagSFHandler_MC_noFS, &btagSFHandler_MC_FS);
+  JECScaleFactorHandler jecSFHandler_ak4(JECJERHelpers::kAK4);
+  JECScaleFactorHandler jecSFHandler_ak8(JECJERHelpers::kAK8);
+  jetHandler.registerJECSFHandlers(&jecSFHandler_ak4, &jecSFHandler_ak8);
+  JERScaleFactorHandler jerSFHandler_ak4(JECJERHelpers::kAK4);
+  JERScaleFactorHandler jerSFHandler_ak8(JECJERHelpers::kAK8);
+  jetHandler.registerJERSFHandlers(&jerSFHandler_ak4, &jerSFHandler_ak8);
+  for (auto* tree:theSet.getFrameworkTreeList()) jetHandler.bookBranches(tree);
 
   EventAnalyzer analyzer(&theSet);
   // Set maximum events to process

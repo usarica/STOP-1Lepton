@@ -46,6 +46,8 @@ namespace SampleHelpers{
   void setDataVersion(TString s);
   void setInputDirectory(TString s);
 
+  bool testDataPeriodIsLikeData();
+
 }
 
 #endif

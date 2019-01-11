@@ -39,12 +39,12 @@ bool BtagScaleFactorHandler::setup(){
   case kCSVv2_Loose:
   case kCSVv2_Medium:
   case kCSVv2_Tight:
-    calibname = (isFastSim ? "deepcsv" : "DeepCSV");
+    calibname = "CSVv2";
     break;
   case kDeepCSV_Loose:
   case kDeepCSV_Medium:
   case kDeepCSV_Tight:
-    calibname = "CSVv2";
+    calibname = "DeepCSV";
     break;
   default:
     MELAerr << "BtagScaleFactorHandler::setup: No implementation for b tag WP " << type << ". Aborting..." << endl;
@@ -69,15 +69,24 @@ bool BtagScaleFactorHandler::setup(){
     assert(0);
     break;
   }
+  //MELAout << "BtagScaleFactorHandler::setup: Constructing BTagCalibration for calibration name " << calibname << " from SF file " << sf_fname << endl;
   m_calib = new BTagCalibration(calibname.Data(), sf_fname.Data());
+  //MELAout << "BtagScaleFactorHandler::setup: Constructing BTagCalibrationReaders for the operating point " << opPoint << endl;
   BTagCalibrationReader* m_reader = new BTagCalibrationReader(opPoint, "central");
   BTagCalibrationReader* m_reader_up = new BTagCalibrationReader(opPoint, "up");
   BTagCalibrationReader* m_reader_down = new BTagCalibrationReader(opPoint, "down");
   m_readers = std::vector<BTagCalibrationReader*>{ m_reader, m_reader_up, m_reader_down };
   for (BTagCalibrationReader*& mr:m_readers){
-    mr->load(*m_calib, BTagEntry::FLAV_B, "comb");
-    mr->load(*m_calib, BTagEntry::FLAV_C, "comb");
-    mr->load(*m_calib, BTagEntry::FLAV_UDSG, "incl");
+    if (!isFastSim){
+      mr->load(*m_calib, BTagEntry::FLAV_B, "comb");
+      mr->load(*m_calib, BTagEntry::FLAV_C, "comb");
+      mr->load(*m_calib, BTagEntry::FLAV_UDSG, "incl");
+    }
+    else{
+      mr->load(*m_calib, BTagEntry::FLAV_B, "fastsim");
+      mr->load(*m_calib, BTagEntry::FLAV_C, "fastsim");
+      mr->load(*m_calib, BTagEntry::FLAV_UDSG, "fastsim");
+    }
   }
 
   std::vector<TString> hnames = BtagHelpers::getBtagEffHistogramNames(type, isFastSim);
