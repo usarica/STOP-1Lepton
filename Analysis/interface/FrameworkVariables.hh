@@ -174,6 +174,16 @@ typedef unsigned long long EventNumber_t;
 #define _pfmetPhi_ "evt_pfmetPhi"
 
 
+// Vertex variables
+// vint
+#define _vertex_isFake_ "vtxs_isFake"
+// vfloat
+#define _vertex_Ndof_ "vtxs_ndof"
+// vCMSLorentzVector
+#define _vertex_positions_ "vtxs_position"
+// End vertex variables
+
+
 // Event filter variables
 // bool
 #define _filt_hcalLaser_ "filt_hcalLaser"
@@ -211,6 +221,9 @@ typedef unsigned long long EventNumber_t;
 // HLT trigger variables
 // TBit
 #define _hlt_bits_ "hlt_bits"
+// vuint
+#define _hlt_prescales_ "hlt_prescales"
+#define _hlt_l1prescales_ "hlt_l1prescales"
 // vTString
 #define _hlt_trigNames_ "hlt_trigNames"
 // End HLT trigger variables

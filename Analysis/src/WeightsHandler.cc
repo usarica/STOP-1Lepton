@@ -204,6 +204,7 @@ void WeightsHandler::bookBranches(BaseTree* tree){
   if (!tree || !tree->isValid()) return;
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
   if (!fwktree) return;
+  SampleHelpers::setupUsingOptions(fwktree->getOptions());
 
   bool hasNewWeights = (SampleHelpers::branchExists(fwktree->getSelectedTree(), _genHEPMCweight_) || SampleHelpers::aliasExists(fwktree->getSelectedTree(), _genHEPMCweight_));
   if (hasNewWeights){

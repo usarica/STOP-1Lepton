@@ -9,9 +9,15 @@ using namespace MELAStreamHelpers;
 using namespace HelperFunctions;
 
 
-
 namespace SampleHelpers{
   const DatasetInfoExtractor datasetInfoExtractor=setupDatasetInfoExtractor();
+  FrameworkOptionParser const* prevOpts = nullptr;
+  FrameworkOptionParser const* currentOpts = nullptr;
+
+  // These functions are hidden from the user!
+  void setDataPeriod(TString s);
+  void setDataVersion(TString s);
+  void setInputDirectory(TString s);
 }
 
 DatasetInfoExtractor SampleHelpers::setupDatasetInfoExtractor(){
@@ -42,8 +48,35 @@ TString SampleHelpers::getDatasetDirectoryName(FrameworkOptionParser const& opts
   return Form("%s/%s", theInputDirectory.Data(), sname_tag.Data());
 }
 
-void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts){
-  setDataPeriod(opts.dataPeriod().c_str());
-  setDataVersion(opts.dataVersion().c_str());
-  setInputDirectory(opts.inputDir().c_str());
+void SampleHelpers::setDataPeriod(TString s){
+  theDataPeriod = s;
+  theDataYear = -1;
+  if (theDataPeriod.Contains("2016")) theDataYear = 2016;
+  else if (theDataPeriod.Contains("2017")) theDataYear = 2017;
+  else if (theDataPeriod.Contains("2018")) theDataYear = 2018;
+  else assert(0);
+}
+void SampleHelpers::setDataVersion(TString s){
+  s.ToLower();
+  if (s.Contains("80x")) theDataVersion = kCMSSW_8_0_X;
+  else if (s.Contains("94x")) theDataVersion = kCMSSW_9_4_X;
+  else if (s.Contains("10x")) theDataVersion = kCMSSW_10_X;
+  else assert(0);
+}
+void SampleHelpers::setInputDirectory(TString s){ theInputDirectory=s; }
+void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts, bool doForce){
+  if (currentOpts != &opts || doForce){
+    // Call functions from Samples
+    setDataPeriod(opts.dataPeriod().c_str());
+    setDataVersion(opts.dataVersion().c_str());
+    setInputDirectory(opts.inputDir().c_str());
+
+    // Refresh pointers to the previous and current options
+    prevOpts = currentOpts;
+    currentOpts = &opts;
+  }
+}
+void SampleHelpers::revertToPreviousOptions(){
+  if (!prevOpts) return;
+  setupUsingOptions(*prevOpts);
 }

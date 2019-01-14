@@ -643,6 +643,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
   if (!fwktree) return;
+  SampleHelpers::setupUsingOptions(fwktree->getOptions());
 
   // ak4 jet variables
   fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);

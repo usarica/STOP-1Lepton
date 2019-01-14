@@ -21,6 +21,7 @@ EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) : FrameworkTreeLoope
 
 bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product){
   constexpr bool doWeights=true;
+  constexpr bool doEventFilter=true;
   constexpr bool doElectrons=true;
   constexpr bool doMuons=true;
   constexpr bool doJetMET=true;
@@ -30,11 +31,13 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
   // Ivy handlers
   WeightsHandler* wgtHandler=nullptr;
+  EventFilterHandler* eventFilter = nullptr;
   ElectronHandler* eleHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
     if (doWeights){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
+    if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
     if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
     if (doMuons){ MuonHandler* muon_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && muon_ivy){ muonHandler = muon_ivy; } }
     if (doJetMET){ JetMETHandler* jet_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && jet_ivy){ jetHandler = jet_ivy; } }
@@ -76,6 +79,29 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     validProducts=false;
   }
   if (!validProducts) return validProducts;
+
+
+  /********************/
+  /**  EVENT FILTER  **/
+  /********************/
+  validProducts &= (!doEventFilter || eventFilter!=nullptr);
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: Event filter handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  bool passEventFilters=true;
+  if (eventFilter){
+    eventFilter->constructFilter();
+    passEventFilters = eventFilter->passEventFilters();
+    std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
+    if (!passingHLTPaths){
+      validProducts=false;
+      MELAerr << "EventAnalyzer::runEvent: Event filter HLT paths are empty. (Tree: " << tree->sampleIdentifier << ")." << endl;
+      return validProducts;
+    }
+    for (auto const& pair:(*passingHLTPaths)) product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second);
+  }
+  product.setNamedVal<bool>("passEventFilters", passEventFilters);
 
 
   /***********************/
@@ -420,11 +446,11 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 void testWeights(){
   TDirectory* curdir = gDirectory;
 
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=-1 ismc=true";
   FrameworkOptionParser opts(stropts);
 
-  BaseTree outtree("test"); // The tree to record into the ROOT file
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
+  BaseTree* outtree = new BaseTree("test"); // The tree to record into the ROOT file
   curdir->cd();
 
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
@@ -432,6 +458,10 @@ void testWeights(){
   WeightsHandler wgtHandler;
   //wgtHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
+
+  EventFilterHandler eventFilter;
+  //eventFilter.setVerbosity(TVar::DEBUG_VERBOSE);
+  for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
 
   ElectronScaleFactorHandler electronSFHandler;
   ElectronHandler electronHandler;
@@ -444,7 +474,7 @@ void testWeights(){
   for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree);
 
   JetMETHandler jetHandler;
-  jetHandler.setVerbosity(TVar::DEBUG);
+  //jetHandler.setVerbosity(TVar::DEBUG);
   BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
   BtagScaleFactorHandler btagSFHandler_MC_FS(BtagHelpers::kDeepCSV_Medium, true);
   jetHandler.registerBtagSFHandlers(&btagSFHandler_MC_noFS, &btagSFHandler_MC_FS);
@@ -461,6 +491,7 @@ void testWeights(){
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
+  analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
   analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
@@ -475,11 +506,12 @@ void testWeights(){
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak4", &jerSFHandler_ak4);
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak8", &jerSFHandler_ak8);
   // Output tree setup
-  analyzer.setExternalProductTree(&outtree);
+  analyzer.setExternalProductTree(outtree);
 
   analyzer.loop(true, false, true);
-  MELAout << "There are " << outtree.getNEvents() << " products" << endl;
-  outtree.writeToFile(foutput);
+  MELAout << "There are " << outtree->getNEvents() << " products" << endl;
+  outtree->writeToFile(foutput);
+  delete outtree;
 
   foutput->Close();
 }

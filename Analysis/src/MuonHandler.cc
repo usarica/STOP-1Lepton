@@ -170,6 +170,7 @@ void MuonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
   if (!fwktree) return;
+  SampleHelpers::setupUsingOptions(fwktree->getOptions());
 
   fwktree->bookEDMBranch<float>(_muons_rho_, 0);
 

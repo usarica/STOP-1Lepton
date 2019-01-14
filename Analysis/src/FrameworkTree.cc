@@ -22,11 +22,6 @@ TString FrameworkTree::constructSampleIdentifier(){
 }
 
 void FrameworkTree::autoBookBranches(){
-  if (!this->isMC()){
-    this->bookBranch<RunNumber_t>(_event_RunNumber_, 0); this->getValRef(_event_RunNumber_, RunNumberRef);
-    this->bookBranch<Lumisection_t>(_event_Lumisection_, 0); this->getValRef(_event_Lumisection_, LumisectionRef);
-    this->bookBranch<EventNumber_t>(_event_EventNumber_, 0); this->getValRef(_event_EventNumber_, EventNumberRef);
-  }
   // Calculation of xsec * BR is done outside in this framework
 }
 

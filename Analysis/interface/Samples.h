@@ -42,10 +42,6 @@ namespace SampleHelpers{
   extern TString theDataPeriod;
   extern TString theInputDirectory;
 
-  void setDataPeriod(TString s);
-  void setDataVersion(TString s);
-  void setInputDirectory(TString s);
-
   bool testDataPeriodIsLikeData();
 
 }

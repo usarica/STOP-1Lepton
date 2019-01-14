@@ -20,6 +20,7 @@
 #include "JetMETHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
+#include "EventFilterHandler.h"
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"
 #include "TDirectory.h"

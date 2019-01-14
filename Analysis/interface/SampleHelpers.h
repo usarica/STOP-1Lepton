@@ -16,7 +16,8 @@ namespace SampleHelpers{
   TString getDatasetDirectoryName(std::string sname, std::string stag);
   TString getDatasetDirectoryName(TString sname, TString stag);
   TString getDatasetDirectoryName(FrameworkOptionParser const& opts);
-  void setupUsingOptions(FrameworkOptionParser const& opts);
+  void setupUsingOptions(FrameworkOptionParser const& opts, bool doForce=false);
+  void revertToPreviousOptions();
 
 }
 
