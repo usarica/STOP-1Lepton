@@ -75,6 +75,9 @@ void GenInfoHandler::clear(){
 
 
 bool GenInfoHandler::constructGenInfo(){
+  clear();
+  if (!currentTree) return false;
+
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
   if (!fwktree->isMC()) return true;
@@ -139,7 +142,7 @@ bool GenInfoHandler::constructGenInfo(){
     geninfo->processID = geninfo_processID;
     geninfo->qscale = geninfo_qscale;
     geninfo->alphaS = geninfo_alphaS;
-    geninfo->xsec = SampleHelpers::datasetInfoExtractor.getXsecFromFile(fwktree->sampleIdentifier.Data(), fwktree->getTag().getRawTag());
+    geninfo->xsec = SampleHelpers::datasetInfoExtractor.getXsecFromFile(fwktree->getOptions().sampleName(), fwktree->getTag().getRawTag());
   }
 
   // Construct gen. particles

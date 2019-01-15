@@ -4,6 +4,7 @@
 class EventAnalyzer : public FrameworkTreeLooperBase{
 protected:
   bool doWeights;
+  bool doGenInfo;
   bool doEventFilter;
   bool doElectrons;
   bool doMuons;
@@ -18,6 +19,7 @@ public:
   EventAnalyzer(FrameworkSet const* inTreeSet);
 
   void setWeightsFlag(bool flag){ doWeights = flag; }
+  void setGenInfoFlag(bool flag){ doGenInfo = flag; }
   void setEventFilterFlag(bool flag){ doEventFilter = flag; }
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
@@ -28,6 +30,7 @@ public:
 EventAnalyzer::EventAnalyzer() :
   FrameworkTreeLooperBase(),
   doWeights(true),
+  doGenInfo(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -36,6 +39,7 @@ EventAnalyzer::EventAnalyzer() :
 EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   FrameworkTreeLooperBase(inTree),
   doWeights(true),
+  doGenInfo(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -44,6 +48,7 @@ EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
 EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   FrameworkTreeLooperBase(inTreeList),
   doWeights(true),
+  doGenInfo(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -52,6 +57,7 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
 EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   FrameworkTreeLooperBase(inTreeSet),
   doWeights(true),
+  doGenInfo(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -64,12 +70,14 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
   // Ivy handlers
   WeightsHandler* wgtHandler=nullptr;
+  GenInfoHandler* genInfoHandler = nullptr;
   EventFilterHandler* eventFilter = nullptr;
   ElectronHandler* eleHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
-    if (doWeights){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
+    if (doWeights && !tree->isData()){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
+    if (doGenInfo && !tree->isData()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
     if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
     if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
     if (doMuons){ MuonHandler* muon_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && muon_ivy){ muonHandler = muon_ivy; } }
@@ -112,6 +120,106 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     validProducts=false;
   }
   if (!validProducts) return validProducts;
+
+
+  /*********************/
+  /**  GENINFO BLOCK  **/
+  /*********************/
+  validProducts &= (!doGenInfo || genInfoHandler!=nullptr || tree->isData());
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: Weight handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (genInfoHandler){
+    validProducts &= genInfoHandler->constructGenInfo();
+    if (!validProducts){
+      MELAerr << "EventAnalyzer::runEvent: Weight product could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      return validProducts;
+    }
+
+    GenEventInfo const* genInfo = genInfoHandler->getGenInfo();
+    if (genInfo){
+      product.setNamedVal("pid", genInfo->processID);
+      product.setNamedVal("qScale", genInfo->qscale);
+      product.setNamedVal("alphaS", genInfo->alphaS);
+      product.setNamedVal("xsec", genInfo->xsec);
+    }
+
+
+    if (genInfoHandler->getParticleInfoFlag()){
+      auto const& genparts = genInfoHandler->getGenParticles();
+
+      std::vector<bool> genparticles_isPromptFinalState;
+      std::vector<bool> genparticles_isPromptDecayed;
+      std::vector<bool> genparticles_isDirectPromptTauDecayProductFinalState;
+      std::vector<bool> genparticles_isHardProcess;
+      std::vector<bool> genparticles_fromHardProcessFinalState;
+      std::vector<bool> genparticles_fromHardProcessDecayed;
+      std::vector<bool> genparticles_isDirectHardProcessTauDecayProductFinalState;
+      std::vector<bool> genparticles_fromHardProcessBeforeFSR;
+      std::vector<bool> genparticles_isLastCopy;
+      std::vector<bool> genparticles_isLastCopyBeforeFSR;
+
+      std::vector<int> genparticles_id;
+      std::vector<int> genparticles_status;
+
+      std::vector<float> genparticles_px;
+      std::vector<float> genparticles_py;
+      std::vector<float> genparticles_pz;
+      std::vector<float> genparticles_mass;
+
+      for (auto const& part:genparts){
+        auto const& extras = part->extras;
+
+        if (
+          !(
+            extras.isHardProcess // Anything that has status 21 (incoming), 22 (intermediate), 23 (outgoing) or 1 (outgoing without treatment except momentum balance)
+              // Note that momentum balance among isHardProcess particles might not be exact since status==1 particles have adjustment
+            ||
+            extras.status==1
+            )
+          ) continue;
+
+        genparticles_isPromptFinalState.push_back(extras.isPromptFinalState);
+        genparticles_isPromptDecayed.push_back(extras.isPromptDecayed);
+        genparticles_isDirectPromptTauDecayProductFinalState.push_back(extras.isDirectPromptTauDecayProductFinalState);
+        genparticles_isHardProcess.push_back(extras.isHardProcess);
+        genparticles_fromHardProcessFinalState.push_back(extras.fromHardProcessFinalState);
+        genparticles_fromHardProcessDecayed.push_back(extras.fromHardProcessDecayed);
+        genparticles_isDirectHardProcessTauDecayProductFinalState.push_back(extras.isDirectHardProcessTauDecayProductFinalState);
+        genparticles_fromHardProcessBeforeFSR.push_back(extras.fromHardProcessBeforeFSR);
+        genparticles_isLastCopy.push_back(extras.isLastCopy);
+        genparticles_isLastCopyBeforeFSR.push_back(extras.isLastCopyBeforeFSR);
+
+        genparticles_status.push_back(extras.status);
+
+        genparticles_id.push_back(part->id);
+        genparticles_px.push_back(part->x());
+        genparticles_py.push_back(part->y());
+        genparticles_pz.push_back(part->z());
+        genparticles_mass.push_back(part->m());
+      }
+
+      product.setNamedVal("genparticles_isPromptFinalState", genparticles_isPromptFinalState);
+      product.setNamedVal("genparticles_isPromptDecayed", genparticles_isPromptDecayed);
+      product.setNamedVal("genparticles_isDirectPromptTauDecayProductFinalState", genparticles_isDirectPromptTauDecayProductFinalState);
+      product.setNamedVal("genparticles_isHardProcess", genparticles_isHardProcess);
+      product.setNamedVal("genparticles_fromHardProcessFinalState", genparticles_fromHardProcessFinalState);
+      product.setNamedVal("genparticles_fromHardProcessDecayed", genparticles_fromHardProcessDecayed);
+      product.setNamedVal("genparticles_isDirectHardProcessTauDecayProductFinalState", genparticles_isDirectHardProcessTauDecayProductFinalState);
+      product.setNamedVal("genparticles_fromHardProcessBeforeFSR", genparticles_fromHardProcessBeforeFSR);
+      product.setNamedVal("genparticles_isLastCopy", genparticles_isLastCopy);
+      product.setNamedVal("genparticles_isLastCopyBeforeFSR", genparticles_isLastCopyBeforeFSR);
+
+      product.setNamedVal("genparticles_id", genparticles_id);
+      product.setNamedVal("genparticles_status", genparticles_status);
+
+      product.setNamedVal("genparticles_px", genparticles_px);
+      product.setNamedVal("genparticles_py", genparticles_py);
+      product.setNamedVal("genparticles_pz", genparticles_pz);
+      product.setNamedVal("genparticles_mass", genparticles_mass);
+    }
+  }
 
 
   /********************/
@@ -799,6 +907,10 @@ void testWeights(){
   //wgtHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
+  GenInfoHandler genInfoHandler;
+  genInfoHandler.setVerbosity(TVar::DEBUG);
+  for (auto* tree:theSet.getFrameworkTreeList()) genInfoHandler.bookBranches(tree);
+
   EventFilterHandler eventFilter;
   //eventFilter.setVerbosity(TVar::DEBUG_VERBOSE);
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
@@ -831,6 +943,7 @@ void testWeights(){
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
+  analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
   analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);

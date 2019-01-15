@@ -10,6 +10,7 @@ class GenInfoHandler : public IvyBase{
 protected:
   bool doEventInfo;
   bool doParticleInfo;
+
   std::vector<GenParticleObject*> genparticles;
   GenEventInfo* geninfo;
 
@@ -32,6 +33,9 @@ public:
 
   void setEventInfoFlag(bool flag){ doEventInfo = flag; }
   void setParticleInfoFlag(bool flag){ doParticleInfo = flag; }
+
+  bool getEventInfoFlag() const{ return doEventInfo; }
+  bool getParticleInfoFlag() const{ return doParticleInfo; }
 
   void bookBranches(BaseTree* tree);
 
