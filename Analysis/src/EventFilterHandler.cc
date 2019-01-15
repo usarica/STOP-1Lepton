@@ -31,16 +31,16 @@ void EventFilterHandler::clear(){
   product_HLTpaths.clear();
 }
 
-void EventFilterHandler::constructFilter(){
+bool EventFilterHandler::constructFilter(){
   clear();
   if (!currentTree){
     if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructFilter: Current tree is null!" << endl;
-    return;
+    return false;
   }
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree){
     if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructFilter: Current tree is not derived from a FrameworkTree class!" << endl;
-    return;
+    return false;
   }
   bool allVariablesPresent = true;
 
@@ -106,7 +106,7 @@ void EventFilterHandler::constructFilter(){
   }
   passEventFilterFlag &= passAtLeastOneTrigger;
   if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Event flag is " << passEventFilterFlag << " after HLT path filter." << endl;
-  if (!passEventFilterFlag) return; // No need to proceed further
+  if (!passEventFilterFlag) return true; // No need to proceed further
 
   // PV filter
   if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "EventFilterHandler::constructFilter: Checking valid PV..." << endl;
@@ -141,7 +141,7 @@ void EventFilterHandler::constructFilter(){
     }
     passEventFilterFlag &= hasGoodVertex;
     if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Event flag is " << passEventFilterFlag << " after PV filter." << endl;
-    if (!passEventFilterFlag) return; // No need to proceed further
+    if (!passEventFilterFlag) return true; // No need to proceed further
   }
 
   // MET filters
@@ -164,7 +164,7 @@ void EventFilterHandler::constructFilter(){
   }
   for (bool const& flag:metfiltervals) passEventFilterFlag &= flag;
   if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Event flag is " << passEventFilterFlag << " after MET filters." << endl;
-  if (!passEventFilterFlag) return; // No need to proceed further
+  if (!passEventFilterFlag) return true; // No need to proceed further
 
   // Test GoodEventFilter for the JSON file
   if (fwktree->isData()){
@@ -183,9 +183,10 @@ void EventFilterHandler::constructFilter(){
     }
     passEventFilterFlag &= GoodEventFilter::testEvent(run, ls);
     if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Event flag is " << passEventFilterFlag << " after the JSON filter." << endl;
-    if (!passEventFilterFlag) return; // No need to proceed further
+    if (!passEventFilterFlag) return true; // No need to proceed further
   }
 
+  return true;
 }
 
 void EventFilterHandler::bookBranches(BaseTree* tree){

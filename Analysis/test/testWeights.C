@@ -3,6 +3,11 @@
 
 class EventAnalyzer : public FrameworkTreeLooperBase{
 protected:
+  bool doWeights;
+  bool doEventFilter;
+  bool doElectrons;
+  bool doMuons;
+  bool doJetMET;
 
   bool runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product);
 
@@ -12,20 +17,48 @@ public:
   EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList);
   EventAnalyzer(FrameworkSet const* inTreeSet);
 
+  void setWeightsFlag(bool flag){ doWeights = flag; }
+  void setEventFilterFlag(bool flag){ doEventFilter = flag; }
+  void setElectronsFlag(bool flag){ doElectrons = flag; }
+  void setMuonsFlag(bool flag){ doMuons = flag; }
+  void setJetMETFlag(bool flag){ doJetMET = flag; }
+
 };
 
-EventAnalyzer::EventAnalyzer() : FrameworkTreeLooperBase() {}
-EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) : FrameworkTreeLooperBase(inTree) {}
-EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) : FrameworkTreeLooperBase(inTreeList) {}
-EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) : FrameworkTreeLooperBase(inTreeSet) {}
+EventAnalyzer::EventAnalyzer() :
+  FrameworkTreeLooperBase(),
+  doWeights(true),
+  doEventFilter(true),
+  doElectrons(true),
+  doMuons(true),
+  doJetMET(true)
+{}
+EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
+  FrameworkTreeLooperBase(inTree),
+  doWeights(true),
+  doEventFilter(true),
+  doElectrons(true),
+  doMuons(true),
+  doJetMET(true)
+{}
+EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
+  FrameworkTreeLooperBase(inTreeList),
+  doWeights(true),
+  doEventFilter(true),
+  doElectrons(true),
+  doMuons(true),
+  doJetMET(true)
+{}
+EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
+  FrameworkTreeLooperBase(inTreeSet),
+  doWeights(true),
+  doEventFilter(true),
+  doElectrons(true),
+  doMuons(true),
+  doJetMET(true)
+{}
 
 bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product){
-  constexpr bool doWeights=true;
-  constexpr bool doEventFilter=true;
-  constexpr bool doElectrons=true;
-  constexpr bool doMuons=true;
-  constexpr bool doJetMET=true;
-
   bool validProducts = (tree!=nullptr);
   if (!validProducts) return validProducts;
 
@@ -91,14 +124,13 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   }
   bool passEventFilters=true;
   if (eventFilter){
-    eventFilter->constructFilter();
-    passEventFilters = eventFilter->passEventFilters();
-    std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
-    if (!passingHLTPaths){
-      validProducts=false;
+    validProducts &= eventFilter->constructFilter();
+    if (!validProducts){
       MELAerr << "EventAnalyzer::runEvent: Event filter HLT paths are empty. (Tree: " << tree->sampleIdentifier << ")." << endl;
       return validProducts;
     }
+    passEventFilters = eventFilter->passEventFilters();
+    std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
     for (auto const& pair:(*passingHLTPaths)) product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second);
   }
   product.setNamedVal<bool>("passEventFilters", passEventFilters);
@@ -301,8 +333,6 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<float> miniIso_nh;
     std::vector<float> miniIso_em;
 
-    std::vector<CMSLorentzVector> momentum;
-
     std::vector<long long> selectionBits;
 
     float SF_IdIso=1;
@@ -427,16 +457,326 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     return validProducts;
   }
   if (jetHandler){
-    jetHandler->registerLeptons(electrons, muons);
+    jetHandler->registerLeptons(&electrons, &muons);
     validProducts &= jetHandler->constructJetMET();
     if (!validProducts){
       MELAerr << "EventAnalyzer::runEvent: Jets or MET could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
-      tree->print();
-      exit(1);
       return validProducts;
     }
 
+    std::vector<GenJetObject*> const& genjets = jetHandler->getGenJets();
+    std::vector<AK4JetObject*> const& ak4jets = jetHandler->getAK4Jets();
+    std::vector<AK8JetObject*> const& ak8jets = jetHandler->getAK8Jets();
+    std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
+    METObject const& metobject = *(jetHandler->getMET());
 
+
+    // GenJets
+    std::vector<float> genjets_pt;
+    std::vector<float> genjets_eta;
+    std::vector<float> genjets_phi;
+    std::vector<float> genjets_mass;
+    for (GenJetObject const* jet:genjets){
+      if (!jet) continue;
+      CMSLorentzVector const& momentum = jet->momentum;
+      genjets_pt.push_back(momentum.Pt());
+      genjets_eta.push_back(momentum.Eta());
+      genjets_phi.push_back(momentum.Phi());
+      genjets_mass.push_back(momentum.M());
+    }
+    product.setNamedVal("genjets_pt", genjets_pt);
+    product.setNamedVal("genjets_eta", genjets_eta);
+    product.setNamedVal("genjets_phi", genjets_phi);
+    product.setNamedVal("genjets_mass", genjets_mass);
+
+
+    // AK4Jets
+    std::vector<float> ak4jets_pt;
+    std::vector<float> ak4jets_eta;
+    std::vector<float> ak4jets_phi;
+    std::vector<float> ak4jets_mass;
+
+    std::vector<int> ak4jets_npfcands;
+    std::vector<int> ak4jets_parton_flavor;
+    std::vector<int> ak4jets_hadron_flavor;
+    std::vector<int> ak4jets_chargedHadronMultiplicity;
+    std::vector<int> ak4jets_neutralHadronMultiplicity;
+    std::vector<int> ak4jets_photonMultiplicity;
+    std::vector<int> ak4jets_electronMultiplicity;
+    std::vector<int> ak4jets_muonMultiplicity;
+    std::vector<int> ak4jets_chargedMultiplicity;
+    std::vector<int> ak4jets_neutralMultiplicity;
+    std::vector<int> ak4jets_totalMultiplicity;
+
+    std::vector<float> ak4jets_area;
+    std::vector<float> ak4jets_undoJEC;
+    std::vector<float> ak4jets_chargedHadronE;
+    std::vector<float> ak4jets_chargedEmE;
+    std::vector<float> ak4jets_neutralHadronE;
+    std::vector<float> ak4jets_neutralEmE;
+    std::vector<float> ak4jets_hfHadronE;
+    std::vector<float> ak4jets_hfEmE;
+    std::vector<float> ak4jets_photonE;
+    std::vector<float> ak4jets_electronE;
+    std::vector<float> ak4jets_muonE;
+
+    std::vector<float> ak4jets_deepCSVb;
+    std::vector<float> ak4jets_deepCSVc;
+    std::vector<float> ak4jets_deepCSVl;
+    std::vector<float> ak4jets_deepCSVbb;
+    std::vector<float> ak4jets_deepCSVcc;
+    std::vector<float> ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag;
+    std::vector<float> ak4jets_ptDistribution;
+    std::vector<float> ak4jets_axis1;
+    std::vector<float> ak4jets_axis2;
+
+    std::vector<float> ak4jets_JEC;
+    std::vector<float> ak4jets_JECup;
+    std::vector<float> ak4jets_JECdn;
+    std::vector<float> ak4jets_JER;
+    std::vector<float> ak4jets_JERup;
+    std::vector<float> ak4jets_JERdn;
+
+    std::vector<long long> ak4jets_selectionBits;
+
+    std::vector<int> ak4jets_genjetIndex;
+    std::vector<float> ak4jets_genjetDeltaR;
+
+    for (AK4JetObject const* jet:ak4jets){
+      if (!jet) continue;
+      auto const& extras = jet->extras;
+
+      ak4jets_selectionBits.push_back(jet->selectionBits);
+
+      CMSLorentzVector finalMomentum = jet->getFinalMomentum();
+      ak4jets_pt.push_back(finalMomentum.Pt());
+      ak4jets_eta.push_back(finalMomentum.Eta());
+      ak4jets_phi.push_back(finalMomentum.Phi());
+      ak4jets_mass.push_back(finalMomentum.M());
+
+      ak4jets_npfcands.push_back(extras.npfcands);
+      ak4jets_parton_flavor.push_back(extras.parton_flavor);
+      ak4jets_hadron_flavor.push_back(extras.hadron_flavor);
+      ak4jets_chargedHadronMultiplicity.push_back(extras.chargedHadronMultiplicity);
+      ak4jets_neutralHadronMultiplicity.push_back(extras.neutralHadronMultiplicity);
+      ak4jets_photonMultiplicity.push_back(extras.photonMultiplicity);
+      ak4jets_electronMultiplicity.push_back(extras.electronMultiplicity);
+      ak4jets_muonMultiplicity.push_back(extras.muonMultiplicity);
+      ak4jets_chargedMultiplicity.push_back(extras.chargedMultiplicity);
+      ak4jets_neutralMultiplicity.push_back(extras.neutralMultiplicity);
+      ak4jets_totalMultiplicity.push_back(extras.totalMultiplicity);
+
+      ak4jets_area.push_back(extras.area);
+      ak4jets_undoJEC.push_back(extras.undoJEC);
+      ak4jets_chargedHadronE.push_back(extras.chargedHadronE);
+      ak4jets_chargedEmE.push_back(extras.chargedEmE);
+      ak4jets_neutralHadronE.push_back(extras.neutralHadronE);
+      ak4jets_neutralEmE.push_back(extras.neutralEmE);
+      ak4jets_hfHadronE.push_back(extras.hfHadronE);
+      ak4jets_hfEmE.push_back(extras.hfEmE);
+      ak4jets_photonE.push_back(extras.photonE);
+      ak4jets_electronE.push_back(extras.electronE);
+      ak4jets_muonE.push_back(extras.muonE);
+
+      ak4jets_deepCSVb.push_back(extras.deepCSVb);
+      ak4jets_deepCSVc.push_back(extras.deepCSVc);
+      ak4jets_deepCSVl.push_back(extras.deepCSVl);
+      ak4jets_deepCSVbb.push_back(extras.deepCSVbb);
+      ak4jets_deepCSVcc.push_back(extras.deepCSVcc);
+      ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag.push_back(extras.pfCombinedInclusiveSecondaryVertexV2BJetTag);
+      ak4jets_ptDistribution.push_back(extras.ptDistribution);
+      ak4jets_axis1.push_back(extras.axis1);
+      ak4jets_axis2.push_back(extras.axis2);
+
+      ak4jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+      ak4jets_JER.push_back(extras.JER);
+      ak4jets_JECup.push_back(extras.JECup/extras.JEC);
+      ak4jets_JECdn.push_back(extras.JECdn/extras.JEC);
+      ak4jets_JERup.push_back(extras.JERup/extras.JER);
+      ak4jets_JERdn.push_back(extras.JERdn/extras.JER);
+
+      int genjetIndex=-1;
+      float genjetDeltaR=-1;
+      {
+        unsigned int igenjet=0;
+        for (GenJetObject const* tmp:genjets){
+          if (tmp==jet->associatedGenJet){
+            genjetIndex = igenjet;
+            genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
+            break;
+          }
+          igenjet++;
+        }
+      }
+      ak4jets_genjetIndex.push_back(genjetIndex);
+      ak4jets_genjetDeltaR.push_back(genjetDeltaR);
+    }
+    product.setNamedVal("ak4jets_pt", ak4jets_pt);
+    product.setNamedVal("ak4jets_eta", ak4jets_eta);
+    product.setNamedVal("ak4jets_phi", ak4jets_phi);
+    product.setNamedVal("ak4jets_mass", ak4jets_mass);
+
+    product.setNamedVal("ak4jets_npfcands", ak4jets_npfcands);
+    product.setNamedVal("ak4jets_parton_flavor", ak4jets_parton_flavor);
+    product.setNamedVal("ak4jets_hadron_flavor", ak4jets_hadron_flavor);
+    product.setNamedVal("ak4jets_chargedHadronMultiplicity", ak4jets_chargedHadronMultiplicity);
+    product.setNamedVal("ak4jets_neutralHadronMultiplicity", ak4jets_neutralHadronMultiplicity);
+    product.setNamedVal("ak4jets_photonMultiplicity", ak4jets_photonMultiplicity);
+    product.setNamedVal("ak4jets_electronMultiplicity", ak4jets_electronMultiplicity);
+    product.setNamedVal("ak4jets_muonMultiplicity", ak4jets_muonMultiplicity);
+    product.setNamedVal("ak4jets_chargedMultiplicity", ak4jets_chargedMultiplicity);
+    product.setNamedVal("ak4jets_neutralMultiplicity", ak4jets_neutralMultiplicity);
+    product.setNamedVal("ak4jets_totalMultiplicity", ak4jets_totalMultiplicity);
+
+    product.setNamedVal("ak4jets_area", ak4jets_area);
+    product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
+    product.setNamedVal("ak4jets_chargedHadronE", ak4jets_chargedHadronE);
+    product.setNamedVal("ak4jets_chargedEmE", ak4jets_chargedEmE);
+    product.setNamedVal("ak4jets_neutralHadronE", ak4jets_neutralHadronE);
+    product.setNamedVal("ak4jets_neutralEmE", ak4jets_neutralEmE);
+    product.setNamedVal("ak4jets_hfHadronE", ak4jets_hfHadronE);
+    product.setNamedVal("ak4jets_hfEmE", ak4jets_hfEmE);
+    product.setNamedVal("ak4jets_photonE", ak4jets_photonE);
+    product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
+    product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
+
+    product.setNamedVal("ak4jets_deepCSVb", ak4jets_deepCSVb);
+    product.setNamedVal("ak4jets_deepCSVc", ak4jets_deepCSVc);
+    product.setNamedVal("ak4jets_deepCSVl", ak4jets_deepCSVl);
+    product.setNamedVal("ak4jets_deepCSVbb", ak4jets_deepCSVbb);
+    product.setNamedVal("ak4jets_deepCSVcc", ak4jets_deepCSVcc);
+    product.setNamedVal("ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag", ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag);
+    product.setNamedVal("ak4jets_ptDistribution", ak4jets_ptDistribution);
+    product.setNamedVal("ak4jets_axis1", ak4jets_axis1);
+    product.setNamedVal("ak4jets_axis2", ak4jets_axis2);
+
+    product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
+    product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
+    product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
+    product.setNamedVal("ak4jets_JER", ak4jets_JER);
+    product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
+    product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
+
+    product.setNamedVal("ak4jets_selectionBits", ak4jets_selectionBits);
+
+    product.setNamedVal("ak4jets_genjetIndex", ak4jets_genjetIndex);
+    product.setNamedVal("ak4jets_genjetDeltaR", ak4jets_genjetDeltaR);
+
+
+    // AK8Jets
+    std::vector<float> ak8jets_pt;
+    std::vector<float> ak8jets_eta;
+    std::vector<float> ak8jets_phi;
+    std::vector<float> ak8jets_mass;
+
+    std::vector<int> ak8jets_parton_flavor;
+
+    std::vector<float> ak8jets_area;
+    std::vector<float> ak8jets_undoJEC;
+    std::vector<float> ak8jets_tau1;
+    std::vector<float> ak8jets_tau2;
+    std::vector<float> ak8jets_tau3;
+    std::vector<float> ak8jets_deepdisc_qcd;
+    std::vector<float> ak8jets_deepdisc_top;
+    std::vector<float> ak8jets_deepdisc_w;
+    std::vector<float> ak8jets_deepdisc_z;
+    std::vector<float> ak8jets_deepdisc_zbb;
+    std::vector<float> ak8jets_deepdisc_hbb;
+    std::vector<float> ak8jets_deepdisc_h4q;
+
+    std::vector<float> ak8jets_JEC;
+    std::vector<float> ak8jets_JECup;
+    std::vector<float> ak8jets_JECdn;
+    std::vector<float> ak8jets_JER;
+    std::vector<float> ak8jets_JERup;
+    std::vector<float> ak8jets_JERdn;
+
+    std::vector<long long> ak8jets_selectionBits;
+
+    std::vector<int> ak8jets_genjetIndex;
+    std::vector<float> ak8jets_genjetDeltaR;
+
+    for (AK8JetObject const* jet:ak8jets){
+      if (!jet) continue;
+      auto const& extras = jet->extras;
+
+      ak8jets_selectionBits.push_back(jet->selectionBits);
+
+      CMSLorentzVector finalMomentum = jet->getFinalMomentum();
+      ak8jets_pt.push_back(finalMomentum.Pt());
+      ak8jets_eta.push_back(finalMomentum.Eta());
+      ak8jets_phi.push_back(finalMomentum.Phi());
+      ak8jets_mass.push_back(finalMomentum.M());
+
+      ak8jets_parton_flavor.push_back(extras.parton_flavor);
+
+      ak8jets_area.push_back(extras.area);
+      ak8jets_undoJEC.push_back(extras.undoJEC);
+      ak8jets_tau1.push_back(extras.tau1);
+      ak8jets_tau2.push_back(extras.tau2);
+      ak8jets_tau3.push_back(extras.tau3);
+      ak8jets_deepdisc_qcd.push_back(extras.deepdisc_qcd);
+      ak8jets_deepdisc_top.push_back(extras.deepdisc_top);
+      ak8jets_deepdisc_w.push_back(extras.deepdisc_w);
+      ak8jets_deepdisc_z.push_back(extras.deepdisc_z);
+      ak8jets_deepdisc_zbb.push_back(extras.deepdisc_zbb);
+      ak8jets_deepdisc_hbb.push_back(extras.deepdisc_hbb);
+      ak8jets_deepdisc_h4q.push_back(extras.deepdisc_h4q);
+
+      ak8jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+      ak8jets_JER.push_back(extras.JER);
+      ak8jets_JECup.push_back(extras.JECup/extras.JEC);
+      ak8jets_JECdn.push_back(extras.JECdn/extras.JEC);
+      ak8jets_JERup.push_back(extras.JERup/extras.JER);
+      ak8jets_JERdn.push_back(extras.JERdn/extras.JER);
+
+      int genjetIndex=-1;
+      float genjetDeltaR=-1;
+      {
+        unsigned int igenjet=0;
+        for (GenJetObject const* tmp:genjets){
+          if (tmp==jet->associatedGenJet){
+            genjetIndex = igenjet;
+            genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
+            break;
+          }
+          igenjet++;
+        }
+      }
+      ak8jets_genjetIndex.push_back(genjetIndex);
+      ak8jets_genjetDeltaR.push_back(genjetDeltaR);
+    }
+    product.setNamedVal("ak8jets_pt", ak8jets_pt);
+    product.setNamedVal("ak8jets_eta", ak8jets_eta);
+    product.setNamedVal("ak8jets_phi", ak8jets_phi);
+    product.setNamedVal("ak8jets_mass", ak8jets_mass);
+
+    product.setNamedVal("ak8jets_parton_flavor", ak8jets_parton_flavor);
+
+    product.setNamedVal("ak8jets_area", ak8jets_area);
+    product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
+    product.setNamedVal("ak8jets_tau1", ak8jets_tau1);
+    product.setNamedVal("ak8jets_tau2", ak8jets_tau2);
+    product.setNamedVal("ak8jets_tau3", ak8jets_tau3);
+    product.setNamedVal("ak8jets_deepdisc_qcd", ak8jets_deepdisc_qcd);
+    product.setNamedVal("ak8jets_deepdisc_top", ak8jets_deepdisc_top);
+    product.setNamedVal("ak8jets_deepdisc_w", ak8jets_deepdisc_w);
+    product.setNamedVal("ak8jets_deepdisc_z", ak8jets_deepdisc_z);
+    product.setNamedVal("ak8jets_deepdisc_zbb", ak8jets_deepdisc_zbb);
+    product.setNamedVal("ak8jets_deepdisc_hbb", ak8jets_deepdisc_hbb);
+    product.setNamedVal("ak8jets_deepdisc_h4q", ak8jets_deepdisc_h4q);
+
+    product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
+    product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
+    product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
+    product.setNamedVal("ak8jets_JER", ak8jets_JER);
+    product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
+    product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
+
+    product.setNamedVal("ak8jets_selectionBits", ak8jets_selectionBits);
+
+    product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
+    product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
   }
 
   return validProducts;
@@ -446,7 +786,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 void testWeights(){
   TDirectory* curdir = gDirectory;
 
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=-1 ismc=true";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
   FrameworkOptionParser opts(stropts);
 
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");

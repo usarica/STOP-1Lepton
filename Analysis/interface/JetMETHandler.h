@@ -16,6 +16,7 @@
 
 class JetMETHandler : public IvyBase{
 protected:
+  std::vector<GenJetObject*> genjets;
   std::vector<AK4JetObject*> ak4jets;
   std::vector<AK8JetObject*> ak8jets;
   std::vector<TFTopObject*> tftops;
@@ -33,10 +34,12 @@ protected:
   std::vector<ElectronObject*> const* registeredElectrons;
   std::vector<MuonObject*> const* registeredMuons;
 
+  bool constructGenJets();
   bool constructAK4Jets();
   bool constructAK8Jets();
   bool constructMET();
   bool constructTFTops();
+  bool matchGenJets();
   bool applyBtagSFs();
   bool applyJetCleaning();
   bool applyJEC();
@@ -52,17 +55,19 @@ public:
   // Destructors
   ~JetMETHandler(){ clear(); }
 
+  std::vector<GenJetObject*>& getGenJets(){ return genjets; }
   std::vector<AK4JetObject*>& getAK4Jets(){ return ak4jets; }
   std::vector<AK8JetObject*>& getAK8Jets(){ return ak8jets; }
   std::vector<TFTopObject*>& getTFTops(){ return tftops; }
   METObject*& getMET(){ return metobj; }
 
+  std::vector<GenJetObject*> const& getGenJets() const{ return genjets; }
   std::vector<AK4JetObject*> const& getAK4Jets() const{ return ak4jets; }
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
   std::vector<TFTopObject*> const& getTFTops() const{ return tftops; }
   METObject* const& getMET() const{ return metobj; }
 
-  void registerLeptons(std::vector<ElectronObject*> const& electrons, std::vector<MuonObject*> const& muons){ registeredElectrons = &electrons; registeredMuons = &muons; }
+  void registerLeptons(std::vector<ElectronObject*> const* electrons, std::vector<MuonObject*> const* muons){ registeredElectrons = electrons; registeredMuons = muons; }
   void registerBtagSFHandlers(BtagScaleFactorHandler* handler, BtagScaleFactorHandler* handler_fastsim){ registeredBtagSFHandler = handler; registeredBtagSFHandler_FastSim = handler_fastsim; }
   void registerJECSFHandlers(JECScaleFactorHandler* ak4jer, JECScaleFactorHandler* ak8jer){ registeredJECSFHandler_ak4jets = ak4jer; registeredJECSFHandler_ak8jets = ak8jer; }
   void registerJERSFHandlers(JERScaleFactorHandler* ak4jer, JERScaleFactorHandler* ak8jer){ registeredJERSFHandler_ak4jets = ak4jer; registeredJERSFHandler_ak8jets = ak8jer; }

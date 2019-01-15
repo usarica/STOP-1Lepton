@@ -168,6 +168,35 @@ typedef unsigned long long EventNumber_t;
 // End gen. jet variables
 
 
+// Gen. particle variables
+// vbool
+#define _genparticles_isPromptFinalState_ "genps_isPromptFinalState"
+#define _genparticles_isPromptDecayed_ "genps_isPromptDecayed"
+#define _genparticles_isDirectPromptTauDecayProductFinalState_ "genps_isDirectPromptTauDecayProductFinalState"
+#define _genparticles_isHardProcess_ "genps_isHardProcess"
+#define _genparticles_fromHardProcessFinalState_ "genps_fromHardProcessFinalState"
+#define _genparticles_fromHardProcessDecayed_ "genps_fromHardProcessDecayed"
+#define _genparticles_isDirectHardProcessTauDecayProductFinalState_ "genps_isDirectHardProcessTauDecayProductFinalState"
+#define _genparticles_fromHardProcessBeforeFSR_ "genps_fromHardProcessBeforeFSR"
+#define _genparticles_isLastCopy_ "genps_isLastCopy"
+#define _genparticles_isLastCopyBeforeFSR_ "genps_isLastCopyBeforeFSR"
+// vint
+#define _genparticles_status_ "genps_status"
+#define _genparticles_id_ "genps_id"
+// vCMSLorentzVector
+#define _genparticles_p4_ "genps_p4"
+// End gen. particle variables
+
+
+// Gen. info variables
+// uint
+#define _geninfo_processID_ "genps_signalProcessID"
+// float
+#define _geninfo_qscale_ "genps_qScale"
+#define _geninfo_alphaS_ "genps_alphaQCD"
+// End gen. info variables
+
+
 // MET variables
 // float
 #define _pfmet_ "evt_pfmet"

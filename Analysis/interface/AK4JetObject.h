@@ -2,6 +2,7 @@
 #define AK4JETOBJECT_H
 
 #include "ParticleObject.h"
+#include "GenJetObject.h"
 
 
 class AK4JetVariables{
@@ -61,6 +62,7 @@ class AK4JetObject : public ParticleObject{
 public:
   constexpr static float ConeRadiusConstant = 0.4;
   AK4JetVariables extras;
+  GenJetObject* associatedGenJet;
 
   AK4JetObject();
   AK4JetObject(int id_);

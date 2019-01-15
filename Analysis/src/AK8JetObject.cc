@@ -23,11 +23,11 @@ AK8JetVariables::AK8JetVariables() :
   deepdisc_h4q(0),
 
   JEC(1),
-  JECup(0),
-  JECdn(0),
+  JECup(1),
+  JECdn(1),
   JER(1),
-  JERup(0),
-  JERdn(0)
+  JERup(1),
+  JERdn(1)
 {}
 AK8JetVariables::AK8JetVariables(AK8JetVariables const& other) :
   rho(other.rho),
@@ -88,24 +88,29 @@ AK8JetVariables& AK8JetVariables::operator=(const AK8JetVariables& other){
 
 AK8JetObject::AK8JetObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK8JetObject::AK8JetObject(int id_) :
   ParticleObject(id_),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK8JetObject::AK8JetObject(int id_, CMSLorentzVector momentum_) :
   ParticleObject(id_, momentum_),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK8JetObject::AK8JetObject(const AK8JetObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  associatedGenJet(other.associatedGenJet)
 {}
 void AK8JetObject::swap(AK8JetObject& other){
   std::swap(id, other.id);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
+  std::swap(associatedGenJet, other.associatedGenJet);
   extras.swap(other.extras);
 }
 AK8JetObject& AK8JetObject::operator=(const AK8JetObject& other){

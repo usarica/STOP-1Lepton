@@ -31,8 +31,8 @@ public:
   bool setup();
   void reset();
 
-  void smear(std::vector<std::pair<AK4JetObject*, CMSLorentzVector*>>& jet_genjet_pairs, float rho);
-  void smear(std::vector<std::pair<AK8JetObject*, CMSLorentzVector*>>& jet_genjet_pairs, float rho);
+  void smear(std::vector<AK4JetObject*>& jets, float rho);
+  void smear(std::vector<AK8JetObject*>& jets, float rho);
 
 };
 

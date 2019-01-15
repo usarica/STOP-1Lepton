@@ -42,11 +42,11 @@ AK4JetVariables::AK4JetVariables() :
   axis2(0),
 
   JEC(1),
-  JECup(0),
-  JECdn(0),
+  JECup(1),
+  JECdn(1),
   JER(1),
-  JERup(0),
-  JERdn(0)
+  JERup(1),
+  JERdn(1)
 {}
 AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   rho(other.rho),
@@ -145,24 +145,29 @@ AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
 
 AK4JetObject::AK4JetObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK4JetObject::AK4JetObject(int id_) :
   ParticleObject(id_),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK4JetObject::AK4JetObject(int id_, CMSLorentzVector momentum_) :
   ParticleObject(id_, momentum_),
-  extras()
+  extras(),
+  associatedGenJet(nullptr)
 {}
 AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  associatedGenJet(other.associatedGenJet)
 {}
 void AK4JetObject::swap(AK4JetObject& other){
   std::swap(id, other.id);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
+  std::swap(associatedGenJet, other.associatedGenJet);
   extras.swap(other.extras);
 }
 AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){

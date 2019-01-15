@@ -107,16 +107,39 @@ JetMETHandler::JetMETHandler() :
 }
 
 void JetMETHandler::clear(){
-  for (auto& obj:ak4jets) delete obj;
-  ak4jets.clear();
-  for (auto& obj:ak8jets) delete obj;
-  ak8jets.clear();
+  // Clear everything in reverse order of creation
+  delete metobj; metobj=nullptr;
+
   for (auto& obj:tftops) delete obj;
   tftops.clear();
-  delete metobj; metobj=nullptr;
+
+  for (auto& obj:ak8jets) delete obj;
+  ak8jets.clear();
+
+  for (auto& obj:ak4jets) delete obj;
+  ak4jets.clear();
+
+  for (auto& obj:genjets) delete obj;
+  genjets.clear();
+
   // Do not clear registered objects here
 }
 
+
+bool JetMETHandler::constructGenJets(){
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
+  if (!fwktree) return false;
+  if (!(fwktree->isMC() && fwktree->branchExists(_genjets_momentum_))) return true;
+
+  std::vector<CMSLorentzVector>* genjets_momentum = nullptr;
+  if (!this->getConsumedValue(_genjets_momentum_, genjets_momentum)) return false;
+  if (!genjets_momentum) return false;
+
+  // Yes, this is the only thing to do...
+  for (auto const& mom:(*genjets_momentum)) genjets.push_back(new GenJetObject(mom));
+
+  return true;
+}
 
 bool JetMETHandler::constructAK4Jets(){
   float rho = 0;
@@ -387,17 +410,26 @@ bool JetMETHandler::constructTFTops(){
 bool JetMETHandler::constructJetMET(){
   clear();
   if (!currentTree) return false;
-  bool res = (constructAK4Jets() && constructAK8Jets() && constructMET());
-  // Sort particles after jet cleaning is done
-  ParticleObjectHelpers::sortByGreaterPt(ak4jets);
-  ParticleObjectHelpers::sortByGreaterPt(ak8jets);
+  bool res = (constructGenJets() && constructAK4Jets() && constructAK8Jets() && constructMET());
+
   // Apply selections after sorting
   res &= applyJEC(); // Re-apply JEC before calculating b-tag SFs
   res &= applyBtagSFs(); // Also handles b-tagging itself
+  res &= matchGenJets(); // Match before JER
   res &= applyJER(); // Apply JER AFTER calculating b-tag SFs
   res &= applyJetCleaning();
-  res &= applySelections(); // Apply second pass of selections
+
+  // Sort particles after jet cleaning is done
+  ParticleObjectHelpers::sortByGreaterPt(genjets);
+  ParticleObjectHelpers::sortByGreaterPt(ak4jets);
+  ParticleObjectHelpers::sortByGreaterPt(ak8jets);
+
+  res &= applySelections(); // Apply selections
   res &= constructTFTops(); // Construct top candidates at the latest stage
+
+  // Sort the tops as well
+  ParticleObjectHelpers::sortByGreaterPt(tftops);
+
   return res;
 }
 
@@ -462,6 +494,70 @@ bool JetMETHandler::applyJEC(){
 
   return true;
 }
+bool JetMETHandler::matchGenJets(){
+  if (genjets.empty()) return true;
+  // Determine the pairing absolutely
+
+  // AK4 jets
+  if (!ak4jets.empty()){
+    std::vector<unsigned int> remaining_recojets; if (ak4jets.size()>0) remaining_recojets.reserve(ak4jets.size());
+    for (unsigned int ijet=0; ijet<ak4jets.size(); ijet++) remaining_recojets.push_back(ijet);
+    std::vector<unsigned int> remaining_genjets; remaining_genjets.reserve(genjets.size());
+    for (unsigned int ijet=0; ijet<genjets.size(); ijet++) remaining_genjets.push_back(ijet);
+    while (!remaining_recojets.empty() && !remaining_genjets.empty()){
+      int chosenRecoJet=-1;
+      int chosenGenJet=-1;
+      float minDeltaR=-1;
+      for (unsigned int const& rjet:remaining_recojets){
+        CMSLorentzVector pReco = ak4jets.at(rjet)->getFinalMomentum();
+        for (unsigned int const& gjet:remaining_genjets){
+          CMSLorentzVector const& pGen = genjets.at(gjet)->momentum;
+          float deltaR = reco::deltaR(pGen, pReco);
+          if (minDeltaR==-1. || deltaR<minDeltaR){
+            minDeltaR=deltaR;
+            chosenRecoJet=rjet;
+            chosenGenJet=gjet;
+          }
+        }
+      }
+
+      if (chosenRecoJet>=0 && chosenGenJet>=0) ak4jets.at(chosenRecoJet)->associatedGenJet = genjets.at(chosenGenJet);
+      for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if ((int) *it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
+      for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if ((int) *it == chosenGenJet){ remaining_genjets.erase(it); break; } }
+    }
+  }
+
+  // AK8 jets
+  if (!ak8jets.empty()){
+    std::vector<unsigned int> remaining_recojets; if (ak8jets.size()>0) remaining_recojets.reserve(ak8jets.size());
+    for (unsigned int ijet=0; ijet<ak8jets.size(); ijet++) remaining_recojets.push_back(ijet);
+    std::vector<unsigned int> remaining_genjets; remaining_genjets.reserve(genjets.size());
+    for (unsigned int ijet=0; ijet<genjets.size(); ijet++) remaining_genjets.push_back(ijet);
+    while (!remaining_recojets.empty() && !remaining_genjets.empty()){
+      int chosenRecoJet=-1;
+      int chosenGenJet=-1;
+      float minDeltaR=-1;
+      for (unsigned int const& rjet:remaining_recojets){
+        CMSLorentzVector pReco = ak8jets.at(rjet)->getFinalMomentum();
+        for (unsigned int const& gjet:remaining_genjets){
+          CMSLorentzVector const& pGen = genjets.at(gjet)->momentum;
+          float deltaR = reco::deltaR(pGen, pReco);
+          if (minDeltaR==-1. || deltaR<minDeltaR){
+            minDeltaR=deltaR;
+            chosenRecoJet=rjet;
+            chosenGenJet=gjet;
+          }
+        }
+      }
+
+      if (chosenRecoJet>=0 && chosenGenJet>=0) ak8jets.at(chosenRecoJet)->associatedGenJet = genjets.at(chosenGenJet);
+      for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if ((int) *it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
+      for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if ((int) *it == chosenGenJet){ remaining_genjets.erase(it); break; } }
+    }
+  }
+
+  return true;
+}
 bool JetMETHandler::applyJER(){
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
@@ -472,81 +568,21 @@ bool JetMETHandler::applyJER(){
 
   if (registeredJERSFHandler_ak4jets && !ak4jets.empty()){
     float rho=0;
-    std::vector<std::pair<AK4JetObject*, CMSLorentzVector*>> jet_genjet_pairs;
-    // Determine the pairing absolutely
-    {
-      std::vector<unsigned int> remaining_recojets; if (ak4jets.size()>0) remaining_recojets.reserve(ak4jets.size());
-      for (unsigned int ijet=0; ijet<ak4jets.size(); ijet++) remaining_recojets.push_back(ijet);
-      std::vector<unsigned int> remaining_genjets; if (genjets_momentum->size()>0) remaining_genjets.reserve(genjets_momentum->size());
-      for (unsigned int ijet=0; ijet<genjets_momentum->size(); ijet++) remaining_genjets.push_back(ijet);
-      jet_genjet_pairs.reserve(std::max(remaining_recojets.size(), remaining_genjets.size()));
-      while (!remaining_recojets.empty() && !remaining_genjets.empty()){
-        int chosenRecoJet=-1;
-        int chosenGenJet=-1;
-        float minDeltaR=-1;
-        for (unsigned int const& rjet:remaining_recojets){
-          CMSLorentzVector pReco = ak4jets.at(rjet)->getFinalMomentum();
-          for (unsigned int const& gjet:remaining_genjets){
-            CMSLorentzVector const& pGen = genjets_momentum->at(gjet);
-            float deltaR = reco::deltaR(pGen, pReco);
-            if (minDeltaR==-1. || deltaR<minDeltaR){
-              minDeltaR=deltaR;
-              chosenRecoJet=rjet;
-              chosenGenJet=gjet;
-            }
-          }
-        }
-
-        if (chosenRecoJet>=0 && chosenGenJet>=0) jet_genjet_pairs.emplace_back(ak4jets.at(chosenRecoJet), &(genjets_momentum->at(chosenGenJet)));
-        for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if ((int) *it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
-        for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if ((int) *it == chosenGenJet){ remaining_genjets.erase(it); break; } }
-      }
-    }
     for (auto*& jet:ak4jets){
       AK4JetVariables const& extras = jet->extras;
       rho = extras.rho;
       break;
     }
-    registeredJERSFHandler_ak4jets->smear(jet_genjet_pairs, rho);
+    registeredJERSFHandler_ak4jets->smear(ak4jets, rho);
   }
   if (registeredJERSFHandler_ak8jets && !ak8jets.empty()){
     float rho = 0;
-    std::vector<std::pair<AK8JetObject*, CMSLorentzVector*>> jet_genjet_pairs;
-    // Determine the pairing absolutely
-    {
-      std::vector<unsigned int> remaining_recojets; if (ak8jets.size()>0) remaining_recojets.reserve(ak8jets.size());
-      for (unsigned int ijet=0; ijet<ak8jets.size(); ijet++) remaining_recojets.push_back(ijet);
-      std::vector<unsigned int> remaining_genjets; if (genjets_momentum->size()>0) remaining_genjets.reserve(genjets_momentum->size());
-      for (unsigned int ijet=0; ijet<genjets_momentum->size(); ijet++) remaining_genjets.push_back(ijet);
-      jet_genjet_pairs.reserve(std::max(remaining_recojets.size(), remaining_genjets.size()));
-      while (!remaining_recojets.empty() && !remaining_genjets.empty()){
-        int chosenRecoJet=-1;
-        int chosenGenJet=-1;
-        float minDeltaR=-1;
-        for (unsigned int const& rjet:remaining_recojets){
-          CMSLorentzVector pReco = ak8jets.at(rjet)->getFinalMomentum();
-          for (unsigned int const& gjet:remaining_genjets){
-            CMSLorentzVector const& pGen = genjets_momentum->at(gjet);
-            float deltaR = reco::deltaR(pGen, pReco);
-            if (minDeltaR==-1. || deltaR<minDeltaR){
-              minDeltaR=deltaR;
-              chosenRecoJet=rjet;
-              chosenGenJet=gjet;
-            }
-          }
-        }
-
-        if (chosenRecoJet>=0 && chosenGenJet>=0) jet_genjet_pairs.emplace_back(ak8jets.at(chosenRecoJet), &(genjets_momentum->at(chosenGenJet)));
-        for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if ((int) *it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
-        for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if ((int) *it == chosenGenJet){ remaining_genjets.erase(it); break; } }
-      }
-    }
     for (auto*& jet:ak8jets){
       AK8JetVariables const& extras = jet->extras;
       rho = extras.rho;
       break;
     }
-    registeredJERSFHandler_ak8jets->smear(jet_genjet_pairs, rho);
+    registeredJERSFHandler_ak8jets->smear(ak8jets, rho);
   }
 
   return true;

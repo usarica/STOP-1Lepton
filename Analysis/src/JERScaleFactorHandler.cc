@@ -40,7 +40,7 @@ void JERScaleFactorHandler::reset(){
   resolution_sf = JME::JetResolutionScaleFactor();
 }
 
-void JERScaleFactorHandler::smear(std::vector<std::pair<AK4JetObject*, CMSLorentzVector*>>& jet_genjet_pairs, float rho){
+void JERScaleFactorHandler::smear(std::vector<AK4JetObject*>& jets, float rho){
   if (type!=JECJERHelpers::kAK4){
     MELAerr << "JERScaleFactorHandler::smear: The JECJERType is not AK4, but smearing for AK4 jets is called!" << endl;
     return;
@@ -49,9 +49,8 @@ void JERScaleFactorHandler::smear(std::vector<std::pair<AK4JetObject*, CMSLorent
   /****************************************************************************/
   /* From CJLST/ZZAnalysis/blob/miniAOD_80X/AnalysisStep/plugins/JetFiller.cc */
   /****************************************************************************/
-  for (auto& jet_genjet_pair:jet_genjet_pairs){
-    auto* jet = jet_genjet_pair.first;
-    auto* genjet_momentum = jet_genjet_pair.second;
+  for (auto& jet:jets){
+    auto* genjet = jet->associatedGenJet;
 
     CMSLorentzVector jetMomentum_onlyjec = jet->getFinalMomentum();
     float jpt = jetMomentum_onlyjec.Pt();
@@ -67,12 +66,12 @@ void JERScaleFactorHandler::smear(std::vector<std::pair<AK4JetObject*, CMSLorent
     float sf_up = resolution_sf.getScaleFactor(sf_parameters, Variation::UP);
     float sf_dn = resolution_sf.getScaleFactor(sf_parameters, Variation::DOWN);
 
-    bool hasMatched = (genjet_momentum!=nullptr);
+    bool hasMatched = (genjet!=nullptr);
     bool isMatched = hasMatched;
     float gen_pt=0;
     if (hasMatched){
-      float deltaR = reco::deltaR(*genjet_momentum, jetMomentum_onlyjec);
-      gen_pt = genjet_momentum->Pt();
+      float deltaR = reco::deltaR(genjet->momentum, jetMomentum_onlyjec);
+      gen_pt = genjet->pt();
       float diff_pt = fabs(jpt - gen_pt);
       isMatched = (deltaR < 0.2 && diff_pt < 3*res_pt*jpt);
     }
@@ -100,7 +99,7 @@ void JERScaleFactorHandler::smear(std::vector<std::pair<AK4JetObject*, CMSLorent
     jet->extras.JERdn = (pt_jerdn/jpt);
   }
 }
-void JERScaleFactorHandler::smear(std::vector<std::pair<AK8JetObject*, CMSLorentzVector*>>& jet_genjet_pairs, float rho){
+void JERScaleFactorHandler::smear(std::vector<AK8JetObject*>& jets, float rho){
   if (type!=JECJERHelpers::kAK8){
     MELAerr << "JERScaleFactorHandler::smear: The JECJERType is not AK8, but smearing for AK8 jets is called!" << endl;
     return;
@@ -109,9 +108,8 @@ void JERScaleFactorHandler::smear(std::vector<std::pair<AK8JetObject*, CMSLorent
   /****************************************************************************/
   /* From CJLST/ZZAnalysis/blob/miniAOD_80X/AnalysisStep/plugins/JetFiller.cc */
   /****************************************************************************/
-  for (auto& jet_genjet_pair:jet_genjet_pairs){
-    auto* jet = jet_genjet_pair.first;
-    auto* genjet_momentum = jet_genjet_pair.second;
+  for (auto& jet:jets){
+    auto* genjet = jet->associatedGenJet;
 
     CMSLorentzVector jetMomentum_onlyjec = jet->getFinalMomentum();
     float jpt = jetMomentum_onlyjec.Pt();
@@ -127,12 +125,12 @@ void JERScaleFactorHandler::smear(std::vector<std::pair<AK8JetObject*, CMSLorent
     float sf_up = resolution_sf.getScaleFactor(sf_parameters, Variation::UP);
     float sf_dn = resolution_sf.getScaleFactor(sf_parameters, Variation::DOWN);
 
-    bool hasMatched = (genjet_momentum!=nullptr);
+    bool hasMatched = (genjet!=nullptr);
     bool isMatched = hasMatched;
     float gen_pt=0;
     if (hasMatched){
-      float deltaR = reco::deltaR(*genjet_momentum, jetMomentum_onlyjec);
-      gen_pt = genjet_momentum->Pt();
+      float deltaR = reco::deltaR(genjet->momentum, jetMomentum_onlyjec);
+      gen_pt = genjet->pt();
       float diff_pt = fabs(jpt - gen_pt);
       isMatched = (deltaR < 0.2 && diff_pt < 3*res_pt*jpt);
     }

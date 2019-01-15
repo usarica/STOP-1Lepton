@@ -20,7 +20,7 @@ public:
   // Destructors
   ~EventFilterHandler(){ clear(); }
 
-  void constructFilter();
+  bool constructFilter();
   std::unordered_map<TString, bool> const& getHLTProduct() const{ return product_HLTpaths; }
   bool passEventFilters() const{ return passEventFilterFlag; }
 
