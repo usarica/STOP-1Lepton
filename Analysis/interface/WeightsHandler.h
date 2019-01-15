@@ -13,6 +13,7 @@ public:
   typedef WeightsObject ProductType_t;
 
 protected:
+  bool use2016Scheme;
   ProductType_t* product;
   LHEWeightHandler* weightHandler_DefaultPDF;
   LHEWeightHandler* weightHandler_2016;
@@ -28,6 +29,8 @@ public:
 
   bool constructWeights();
   ProductType_t const* getProduct() const{ return product; }
+
+  void set2016SchemeFlag(bool flag){ use2016Scheme=flag; }
 
   void bookBranches(BaseTree* tree);
 

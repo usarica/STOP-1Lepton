@@ -142,6 +142,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("pid", genInfo->processID);
       product.setNamedVal("qScale", genInfo->qscale);
       product.setNamedVal("alphaS", genInfo->alphaS);
+      product.setNamedVal("genMET", genInfo->genMET);
+      product.setNamedVal("genMETPhi", genInfo->genMETPhi);
       product.setNamedVal("xsec", genInfo->xsec);
     }
     if (genInfoHandler->getParticleInfoFlag()){
@@ -228,8 +230,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     MELAerr << "EventAnalyzer::runEvent: Event filter handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
     return validProducts;
   }
-  bool passEventFilters=true;
   if (eventFilter){
+    bool passEventFilters=true;
     validProducts &= eventFilter->constructFilter();
     if (!validProducts){
       MELAerr << "EventAnalyzer::runEvent: Event filter HLT paths are empty. (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -238,8 +240,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     passEventFilters = eventFilter->passEventFilters();
     std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
     for (auto const& pair:(*passingHLTPaths)) product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second);
+    product.setNamedVal<bool>("passEventFilters", passEventFilters);
   }
-  product.setNamedVal<bool>("passEventFilters", passEventFilters);
 
 
   /***********************/
@@ -574,8 +576,11 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<AK4JetObject*> const& ak4jets = jetHandler->getAK4Jets();
     std::vector<AK8JetObject*> const& ak8jets = jetHandler->getAK8Jets();
     std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
-    METObject const& metobject = *(jetHandler->getMET());
-
+    METObject const* metobject = jetHandler->getMET();
+    if (jetHandler->getMETFlag()){
+      product.setNamedVal("pfmet", metobject->extras.met);
+      product.setNamedVal("pfmetPhi", metobject->extras.phi);
+    }
 
     // GenJets
     std::vector<float> genjets_pt;
@@ -590,11 +595,12 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       genjets_phi.push_back(momentum.Phi());
       genjets_mass.push_back(momentum.M());
     }
-    product.setNamedVal("genjets_pt", genjets_pt);
-    product.setNamedVal("genjets_eta", genjets_eta);
-    product.setNamedVal("genjets_phi", genjets_phi);
-    product.setNamedVal("genjets_mass", genjets_mass);
-
+    if (jetHandler->getGenJetsFlag()){
+      product.setNamedVal("genjets_pt", genjets_pt);
+      product.setNamedVal("genjets_eta", genjets_eta);
+      product.setNamedVal("genjets_phi", genjets_phi);
+      product.setNamedVal("genjets_mass", genjets_mass);
+    }
 
     // AK4Jets
     std::vector<float> ak4jets_pt;
@@ -717,57 +723,58 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       ak4jets_genjetIndex.push_back(genjetIndex);
       ak4jets_genjetDeltaR.push_back(genjetDeltaR);
     }
-    product.setNamedVal("ak4jets_pt", ak4jets_pt);
-    product.setNamedVal("ak4jets_eta", ak4jets_eta);
-    product.setNamedVal("ak4jets_phi", ak4jets_phi);
-    product.setNamedVal("ak4jets_mass", ak4jets_mass);
+    if (jetHandler->getAK4JetsFlag()){
+      product.setNamedVal("ak4jets_pt", ak4jets_pt);
+      product.setNamedVal("ak4jets_eta", ak4jets_eta);
+      product.setNamedVal("ak4jets_phi", ak4jets_phi);
+      product.setNamedVal("ak4jets_mass", ak4jets_mass);
 
-    product.setNamedVal("ak4jets_npfcands", ak4jets_npfcands);
-    product.setNamedVal("ak4jets_parton_flavor", ak4jets_parton_flavor);
-    product.setNamedVal("ak4jets_hadron_flavor", ak4jets_hadron_flavor);
-    product.setNamedVal("ak4jets_chargedHadronMultiplicity", ak4jets_chargedHadronMultiplicity);
-    product.setNamedVal("ak4jets_neutralHadronMultiplicity", ak4jets_neutralHadronMultiplicity);
-    product.setNamedVal("ak4jets_photonMultiplicity", ak4jets_photonMultiplicity);
-    product.setNamedVal("ak4jets_electronMultiplicity", ak4jets_electronMultiplicity);
-    product.setNamedVal("ak4jets_muonMultiplicity", ak4jets_muonMultiplicity);
-    product.setNamedVal("ak4jets_chargedMultiplicity", ak4jets_chargedMultiplicity);
-    product.setNamedVal("ak4jets_neutralMultiplicity", ak4jets_neutralMultiplicity);
-    product.setNamedVal("ak4jets_totalMultiplicity", ak4jets_totalMultiplicity);
+      product.setNamedVal("ak4jets_npfcands", ak4jets_npfcands);
+      product.setNamedVal("ak4jets_parton_flavor", ak4jets_parton_flavor);
+      product.setNamedVal("ak4jets_hadron_flavor", ak4jets_hadron_flavor);
+      product.setNamedVal("ak4jets_chargedHadronMultiplicity", ak4jets_chargedHadronMultiplicity);
+      product.setNamedVal("ak4jets_neutralHadronMultiplicity", ak4jets_neutralHadronMultiplicity);
+      product.setNamedVal("ak4jets_photonMultiplicity", ak4jets_photonMultiplicity);
+      product.setNamedVal("ak4jets_electronMultiplicity", ak4jets_electronMultiplicity);
+      product.setNamedVal("ak4jets_muonMultiplicity", ak4jets_muonMultiplicity);
+      product.setNamedVal("ak4jets_chargedMultiplicity", ak4jets_chargedMultiplicity);
+      product.setNamedVal("ak4jets_neutralMultiplicity", ak4jets_neutralMultiplicity);
+      product.setNamedVal("ak4jets_totalMultiplicity", ak4jets_totalMultiplicity);
 
-    product.setNamedVal("ak4jets_area", ak4jets_area);
-    product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
-    product.setNamedVal("ak4jets_chargedHadronE", ak4jets_chargedHadronE);
-    product.setNamedVal("ak4jets_chargedEmE", ak4jets_chargedEmE);
-    product.setNamedVal("ak4jets_neutralHadronE", ak4jets_neutralHadronE);
-    product.setNamedVal("ak4jets_neutralEmE", ak4jets_neutralEmE);
-    product.setNamedVal("ak4jets_hfHadronE", ak4jets_hfHadronE);
-    product.setNamedVal("ak4jets_hfEmE", ak4jets_hfEmE);
-    product.setNamedVal("ak4jets_photonE", ak4jets_photonE);
-    product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
-    product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
+      product.setNamedVal("ak4jets_area", ak4jets_area);
+      product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
+      product.setNamedVal("ak4jets_chargedHadronE", ak4jets_chargedHadronE);
+      product.setNamedVal("ak4jets_chargedEmE", ak4jets_chargedEmE);
+      product.setNamedVal("ak4jets_neutralHadronE", ak4jets_neutralHadronE);
+      product.setNamedVal("ak4jets_neutralEmE", ak4jets_neutralEmE);
+      product.setNamedVal("ak4jets_hfHadronE", ak4jets_hfHadronE);
+      product.setNamedVal("ak4jets_hfEmE", ak4jets_hfEmE);
+      product.setNamedVal("ak4jets_photonE", ak4jets_photonE);
+      product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
+      product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
 
-    product.setNamedVal("ak4jets_deepCSVb", ak4jets_deepCSVb);
-    product.setNamedVal("ak4jets_deepCSVc", ak4jets_deepCSVc);
-    product.setNamedVal("ak4jets_deepCSVl", ak4jets_deepCSVl);
-    product.setNamedVal("ak4jets_deepCSVbb", ak4jets_deepCSVbb);
-    product.setNamedVal("ak4jets_deepCSVcc", ak4jets_deepCSVcc);
-    product.setNamedVal("ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag", ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag);
-    product.setNamedVal("ak4jets_ptDistribution", ak4jets_ptDistribution);
-    product.setNamedVal("ak4jets_axis1", ak4jets_axis1);
-    product.setNamedVal("ak4jets_axis2", ak4jets_axis2);
+      product.setNamedVal("ak4jets_deepCSVb", ak4jets_deepCSVb);
+      product.setNamedVal("ak4jets_deepCSVc", ak4jets_deepCSVc);
+      product.setNamedVal("ak4jets_deepCSVl", ak4jets_deepCSVl);
+      product.setNamedVal("ak4jets_deepCSVbb", ak4jets_deepCSVbb);
+      product.setNamedVal("ak4jets_deepCSVcc", ak4jets_deepCSVcc);
+      product.setNamedVal("ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag", ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag);
+      product.setNamedVal("ak4jets_ptDistribution", ak4jets_ptDistribution);
+      product.setNamedVal("ak4jets_axis1", ak4jets_axis1);
+      product.setNamedVal("ak4jets_axis2", ak4jets_axis2);
 
-    product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
-    product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
-    product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
-    product.setNamedVal("ak4jets_JER", ak4jets_JER);
-    product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
-    product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
+      product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
+      product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
+      product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
+      product.setNamedVal("ak4jets_JER", ak4jets_JER);
+      product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
+      product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
 
-    product.setNamedVal("ak4jets_selectionBits", ak4jets_selectionBits);
+      product.setNamedVal("ak4jets_selectionBits", ak4jets_selectionBits);
 
-    product.setNamedVal("ak4jets_genjetIndex", ak4jets_genjetIndex);
-    product.setNamedVal("ak4jets_genjetDeltaR", ak4jets_genjetDeltaR);
-
+      product.setNamedVal("ak4jets_genjetIndex", ak4jets_genjetIndex);
+      product.setNamedVal("ak4jets_genjetDeltaR", ak4jets_genjetDeltaR);
+    }
 
     // AK8Jets
     std::vector<float> ak8jets_pt;
@@ -852,37 +859,39 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       ak8jets_genjetIndex.push_back(genjetIndex);
       ak8jets_genjetDeltaR.push_back(genjetDeltaR);
     }
-    product.setNamedVal("ak8jets_pt", ak8jets_pt);
-    product.setNamedVal("ak8jets_eta", ak8jets_eta);
-    product.setNamedVal("ak8jets_phi", ak8jets_phi);
-    product.setNamedVal("ak8jets_mass", ak8jets_mass);
+    if (jetHandler->getAK8JetsFlag()){
+      product.setNamedVal("ak8jets_pt", ak8jets_pt);
+      product.setNamedVal("ak8jets_eta", ak8jets_eta);
+      product.setNamedVal("ak8jets_phi", ak8jets_phi);
+      product.setNamedVal("ak8jets_mass", ak8jets_mass);
 
-    product.setNamedVal("ak8jets_parton_flavor", ak8jets_parton_flavor);
+      product.setNamedVal("ak8jets_parton_flavor", ak8jets_parton_flavor);
 
-    product.setNamedVal("ak8jets_area", ak8jets_area);
-    product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
-    product.setNamedVal("ak8jets_tau1", ak8jets_tau1);
-    product.setNamedVal("ak8jets_tau2", ak8jets_tau2);
-    product.setNamedVal("ak8jets_tau3", ak8jets_tau3);
-    product.setNamedVal("ak8jets_deepdisc_qcd", ak8jets_deepdisc_qcd);
-    product.setNamedVal("ak8jets_deepdisc_top", ak8jets_deepdisc_top);
-    product.setNamedVal("ak8jets_deepdisc_w", ak8jets_deepdisc_w);
-    product.setNamedVal("ak8jets_deepdisc_z", ak8jets_deepdisc_z);
-    product.setNamedVal("ak8jets_deepdisc_zbb", ak8jets_deepdisc_zbb);
-    product.setNamedVal("ak8jets_deepdisc_hbb", ak8jets_deepdisc_hbb);
-    product.setNamedVal("ak8jets_deepdisc_h4q", ak8jets_deepdisc_h4q);
+      product.setNamedVal("ak8jets_area", ak8jets_area);
+      product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
+      product.setNamedVal("ak8jets_tau1", ak8jets_tau1);
+      product.setNamedVal("ak8jets_tau2", ak8jets_tau2);
+      product.setNamedVal("ak8jets_tau3", ak8jets_tau3);
+      product.setNamedVal("ak8jets_deepdisc_qcd", ak8jets_deepdisc_qcd);
+      product.setNamedVal("ak8jets_deepdisc_top", ak8jets_deepdisc_top);
+      product.setNamedVal("ak8jets_deepdisc_w", ak8jets_deepdisc_w);
+      product.setNamedVal("ak8jets_deepdisc_z", ak8jets_deepdisc_z);
+      product.setNamedVal("ak8jets_deepdisc_zbb", ak8jets_deepdisc_zbb);
+      product.setNamedVal("ak8jets_deepdisc_hbb", ak8jets_deepdisc_hbb);
+      product.setNamedVal("ak8jets_deepdisc_h4q", ak8jets_deepdisc_h4q);
 
-    product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
-    product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
-    product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
-    product.setNamedVal("ak8jets_JER", ak8jets_JER);
-    product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
-    product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
+      product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
+      product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
+      product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
+      product.setNamedVal("ak8jets_JER", ak8jets_JER);
+      product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
+      product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
 
-    product.setNamedVal("ak8jets_selectionBits", ak8jets_selectionBits);
+      product.setNamedVal("ak8jets_selectionBits", ak8jets_selectionBits);
 
-    product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
-    product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
+      product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
+      product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
+    }
   }
 
   return validProducts;

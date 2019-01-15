@@ -9,6 +9,8 @@ struct GenEventInfo{
   float qscale;
   float alphaS;
   float xsec;
+  float genMET;
+  float genMETPhi;
 };
 
 class GenParticleVariables{

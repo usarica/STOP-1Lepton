@@ -22,6 +22,13 @@ using namespace MELAStreamHelpers;
 
 JetMETHandler::JetMETHandler() :
   IvyBase(),
+
+  doGenJets(true),
+  doAK4Jets(true),
+  doAK8Jets(true),
+  doMET(true),
+  doTops(true),
+
   metobj(nullptr),
   registeredBtagSFHandler(nullptr),
   registeredBtagSFHandler_FastSim(nullptr),
@@ -31,80 +38,7 @@ JetMETHandler::JetMETHandler() :
   registeredJERSFHandler_ak8jets(nullptr),
   registeredElectrons(nullptr),
   registeredMuons(nullptr)
-{
-  // ak4 jet variables
-  this->addConsumed<float>(_ak4jets_rho_);
-
-  this->addConsumed<std::vector<int>*>(_ak4jets_npfcands_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_parton_flavor_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_hadron_flavor_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_photonMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_electronMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_muonMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_chargedMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_neutralMultiplicity_);
-  this->addConsumed<std::vector<int>*>(_ak4jets_totalMultiplicity_);
-
-  this->addConsumed<std::vector<float>*>(_ak4jets_area_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_undoJEC_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_chargedHadronE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_chargedEmE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_neutralHadronE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_neutralEmE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_hfHadronE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_hfEmE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_photonE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_electronE_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_muonE_);
-
-  this->addConsumed<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_ptDistribution_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_axis1_);
-  this->addConsumed<std::vector<float>*>(_ak4jets_axis2_);
-
-  this->addConsumed<std::vector<TString>*>(_ak4jets_bDiscriminatorNames);
-
-  this->addConsumed<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators);
-
-  this->addConsumed<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_);
-
-
-  // ak8 jet variables
-  this->addConsumed<float>(_ak8jets_rho_);
-
-  this->addConsumed<std::vector<int>*>(_ak8jets_parton_flavor_);
-
-  this->addConsumed<std::vector<float>*>(_ak8jets_area_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_undoJEC_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_tau1_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_tau2_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_tau3_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_qcd_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_top_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_w_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_z_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_zbb_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_hbb_);
-  this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_h4q_);
-
-  this->addConsumed<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_);
-
-
-  // Gen. jet variables
-  this->addConsumed<std::vector<CMSLorentzVector>*>(_genjets_momentum_);
-  this->defineConsumedSloppy(_genjets_momentum_); // Define this sloppy for data might not have it
-
-
-  // MET variables
-  this->addConsumed<float>(_pfmet_);
-  this->addConsumed<float>(_pfmetPhi_);
-
-
-  // Setup JER
-  TString ak4jerfile, ak8jerfile;
-}
+{}
 
 void JetMETHandler::clear(){
   // Clear everything in reverse order of creation
@@ -142,6 +76,8 @@ bool JetMETHandler::constructGenJets(){
 }
 
 bool JetMETHandler::constructAK4Jets(){
+  if (!doAK4Jets) return true;
+
   float rho = 0;
 
   std::vector<int>* npfcands = nullptr;
@@ -287,6 +223,8 @@ bool JetMETHandler::constructAK4Jets(){
 }
 
 bool JetMETHandler::constructAK8Jets(){
+  if (!doAK8Jets) return true;
+
   float rho = 0;
 
   std::vector<int>* parton_flavor = nullptr;
@@ -375,6 +313,8 @@ bool JetMETHandler::constructAK8Jets(){
 }
 
 bool JetMETHandler::constructMET(){
+  if (!doMET) return true;
+
   float met = 0;
   float metPhi = 0;
 
@@ -401,6 +341,8 @@ bool JetMETHandler::constructMET(){
 }
 
 bool JetMETHandler::constructTFTops(){
+  if (!doTops) return true;
+
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructTFTops: Attempting to construct tops from ak4jets!" << endl;
   tftops = TFTopTaggerHelpers::getTopsFromResolvedJets(ak4jets);
   if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success! Constructed " << tftops.size() << " tops." << endl;
@@ -682,73 +624,138 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   SampleHelpers::setupUsingOptions(fwktree->getOptions());
 
   // ak4 jet variables
-  fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);
+  if (doAK4Jets){
+    this->addConsumed<float>(_ak4jets_rho_);
 
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_npfcands_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_parton_flavor_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_hadron_flavor_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_photonMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_electronMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_muonMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralMultiplicity_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_totalMultiplicity_, nullptr);
+    this->addConsumed<std::vector<int>*>(_ak4jets_npfcands_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_parton_flavor_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_hadron_flavor_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_photonMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_electronMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_muonMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_chargedMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_neutralMultiplicity_);
+    this->addConsumed<std::vector<int>*>(_ak4jets_totalMultiplicity_);
 
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_area_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_undoJEC_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedHadronE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedEmE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralHadronE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralEmE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfHadronE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfEmE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_photonE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_electronE_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_muonE_, nullptr);
+    this->addConsumed<std::vector<float>*>(_ak4jets_area_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_undoJEC_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_chargedHadronE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_chargedEmE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_neutralHadronE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_neutralEmE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_hfHadronE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_hfEmE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_photonE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_electronE_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_muonE_);
 
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_ptDistribution_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis1_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis2_, nullptr);
+    this->addConsumed<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_ptDistribution_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_axis1_);
+    this->addConsumed<std::vector<float>*>(_ak4jets_axis2_);
 
-  fwktree->bookEDMBranch<std::vector<TString>*>(_ak4jets_bDiscriminatorNames, nullptr);
+    this->addConsumed<std::vector<TString>*>(_ak4jets_bDiscriminatorNames);
 
-  fwktree->bookEDMBranch<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators, nullptr);
+    this->addConsumed<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators);
 
-  fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_, nullptr);
+    this->addConsumed<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_);
 
+    fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);
 
-  // ak8 jet variables
-  if (std::string(_ak4jets_rho_)!=std::string(_ak8jets_rho_)) fwktree->bookEDMBranch<float>(_ak8jets_rho_, 0);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_npfcands_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_parton_flavor_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_hadron_flavor_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_photonMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_electronMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_muonMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralMultiplicity_, nullptr);
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_totalMultiplicity_, nullptr);
 
-  fwktree->bookEDMBranch<std::vector<int>*>(_ak8jets_parton_flavor_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_area_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_undoJEC_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedHadronE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedEmE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralHadronE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralEmE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfHadronE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfEmE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_photonE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_electronE_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_muonE_, nullptr);
 
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_area_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_undoJEC_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau1_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau2_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau3_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_qcd_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_top_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_w_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_z_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_zbb_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_hbb_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_h4q_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_ptDistribution_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis1_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis2_, nullptr);
 
-  fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_, nullptr);
+    fwktree->bookEDMBranch<std::vector<TString>*>(_ak4jets_bDiscriminatorNames, nullptr);
 
+    fwktree->bookEDMBranch<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators, nullptr);
 
-  // Gen. jet variables
-  if (fwktree->isMC()){
-    bool hasGenJets = (SampleHelpers::branchExists(fwktree->getSelectedTree(), _genjets_momentum_) || SampleHelpers::aliasExists(fwktree->getSelectedTree(), _genjets_momentum_));
-    if (hasGenJets) fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_genjets_momentum_, nullptr);
+    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_, nullptr);
   }
 
+  // ak8 jet variables
+  if (doAK8Jets){
+    this->addConsumed<float>(_ak8jets_rho_);
+
+    this->addConsumed<std::vector<int>*>(_ak8jets_parton_flavor_);
+
+    this->addConsumed<std::vector<float>*>(_ak8jets_area_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_undoJEC_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_tau1_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_tau2_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_tau3_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_qcd_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_top_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_w_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_z_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_zbb_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_hbb_);
+    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_h4q_);
+
+    this->addConsumed<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_);
+
+    if (std::string(_ak4jets_rho_)!=std::string(_ak8jets_rho_)) fwktree->bookEDMBranch<float>(_ak8jets_rho_, 0);
+
+    fwktree->bookEDMBranch<std::vector<int>*>(_ak8jets_parton_flavor_, nullptr);
+
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_area_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_undoJEC_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau1_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau2_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau3_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_qcd_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_top_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_w_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_z_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_zbb_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_hbb_, nullptr);
+    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_h4q_, nullptr);
+
+    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_, nullptr);
+  }
+
+  // Gen. jet variables
+  if (doGenJets){
+    this->addConsumed<std::vector<CMSLorentzVector>*>(_genjets_momentum_);
+    this->defineConsumedSloppy(_genjets_momentum_); // Define this sloppy for data might not have it
+    if (fwktree->isMC()){
+      bool hasGenJets = (SampleHelpers::branchExists(fwktree->getSelectedTree(), _genjets_momentum_) || SampleHelpers::aliasExists(fwktree->getSelectedTree(), _genjets_momentum_));
+      if (hasGenJets) fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_genjets_momentum_, nullptr);
+    }
+  }
 
   // MET variables
-  fwktree->bookEDMBranch<float>(_pfmet_, 0);
-  fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
+  if (doMET){
+    this->addConsumed<float>(_pfmet_);
+    this->addConsumed<float>(_pfmetPhi_);
+    fwktree->bookEDMBranch<float>(_pfmet_, 0);
+    fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
+  }
 }

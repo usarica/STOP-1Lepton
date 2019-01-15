@@ -194,6 +194,8 @@ typedef unsigned long long EventNumber_t;
 // float
 #define _geninfo_qscale_ "genps_qScale"
 #define _geninfo_alphaS_ "genps_alphaQCD"
+#define _gen_met_ "gen_met"
+#define _gen_metPhi_ "gen_metPhi"
 // End gen. info variables
 
 

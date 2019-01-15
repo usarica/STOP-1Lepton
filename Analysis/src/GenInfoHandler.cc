@@ -23,10 +23,14 @@ GenInfoHandler::GenInfoHandler() :
     this->addConsumed<unsigned int>(_geninfo_processID_);
     this->addConsumed<float>(_geninfo_qscale_);
     this->addConsumed<float>(_geninfo_alphaS_);
+    this->addConsumed<float>(_gen_met_);
+    this->addConsumed<float>(_gen_metPhi_);
     // Define as sloppy
     this->defineConsumedSloppy(_geninfo_processID_);
     this->defineConsumedSloppy(_geninfo_qscale_);
     this->defineConsumedSloppy(_geninfo_alphaS_);
+    this->defineConsumedSloppy(_gen_met_);
+    this->defineConsumedSloppy(_gen_metPhi_);
   }
 
   // Add consumed for gen. particles
@@ -85,6 +89,8 @@ bool GenInfoHandler::constructGenInfo(){
   unsigned int geninfo_processID = 0;
   float geninfo_qscale = 0;
   float geninfo_alphaS = 0;
+  float gen_met = 0;
+  float gen_metPhi = 0;
 
   std::vector<bool>* genparticles_isPromptFinalState = nullptr;
   std::vector<bool>* genparticles_isPromptDecayed = nullptr;
@@ -108,6 +114,8 @@ bool GenInfoHandler::constructGenInfo(){
         this->getConsumedValue(_geninfo_processID_, geninfo_processID)
         && this->getConsumedValue(_geninfo_qscale_, geninfo_qscale)
         && this->getConsumedValue(_geninfo_alphaS_, geninfo_alphaS)
+        && this->getConsumedValue(_gen_met_, gen_met)
+        && this->getConsumedValue(_gen_metPhi_, gen_metPhi)
         )
       )
     &&
@@ -142,6 +150,8 @@ bool GenInfoHandler::constructGenInfo(){
     geninfo->processID = geninfo_processID;
     geninfo->qscale = geninfo_qscale;
     geninfo->alphaS = geninfo_alphaS;
+    geninfo->genMET = gen_met;
+    geninfo->genMETPhi = gen_metPhi;
     geninfo->xsec = SampleHelpers::datasetInfoExtractor.getXsecFromFile(fwktree->getOptions().sampleName(), fwktree->getTag().getRawTag());
   }
 
@@ -182,6 +192,8 @@ void GenInfoHandler::bookBranches(BaseTree* tree){
     fwktree->bookEDMBranch<unsigned int>(_geninfo_processID_, 0);
     fwktree->bookEDMBranch<float>(_geninfo_qscale_, 0);
     fwktree->bookEDMBranch<float>(_geninfo_alphaS_, 0);
+    fwktree->bookEDMBranch<float>(_gen_met_, 0);
+    fwktree->bookEDMBranch<float>(_gen_metPhi_, 0);
   }
   //
   if (doParticleInfo){

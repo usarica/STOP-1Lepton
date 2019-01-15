@@ -15,6 +15,7 @@ using namespace MELAStreamHelpers;
 
 WeightsHandler::WeightsHandler() :
   IvyBase(),
+  use2016Scheme(true),
   product(nullptr),
   weightHandler_DefaultPDF(nullptr),
   weightHandler_2016(nullptr)
@@ -59,7 +60,7 @@ bool WeightsHandler::constructWeights(){
     float const* LHEweight_PDFVariation_Dn_2016 = nullptr;
     float const* LHEweight_AsMZ_Up_2016 = nullptr;
     float const* LHEweight_AsMZ_Dn_2016 = nullptr;
-    if (SampleHelpers::theDataYear > 2016){
+    if (SampleHelpers::theDataYear > 2016 && use2016Scheme){
       if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Linking also 2016-like weights" << endl;
 
       genHEPMCweight_2016 = valfloats[_genHEPMCweight_2016_];
@@ -99,7 +100,7 @@ bool WeightsHandler::constructWeights(){
 
     int const& year = SampleHelpers::theDataYear;
     if (!weightHandler_DefaultPDF) weightHandler_DefaultPDF = new LHEWeightHandler(year, LHEWeightHandler::keepDefaultPDF, LHEWeightHandler::keepDefaultQCDOrder);
-    if (year!=2016 && !weightHandler_2016) weightHandler_2016 = new LHEWeightHandler(year, LHEWeightHandler::tryNNPDF30, LHEWeightHandler::tryNLO);
+    if (year!=2016 && use2016Scheme && !weightHandler_2016) weightHandler_2016 = new LHEWeightHandler(year, LHEWeightHandler::tryNNPDF30, LHEWeightHandler::tryNLO);
 
     float const* genHEPMCweight_old = valfloats[_genHEPMCweight_old_];
 
@@ -238,7 +239,7 @@ void WeightsHandler::bookBranches(BaseTree* tree){
     this->defineConsumedSloppy(_LHEweight_AsMZ_Up_);
     this->defineConsumedSloppy(_LHEweight_AsMZ_Dn_);
 
-    if (SampleHelpers::theDataYear > 2016){ // Not needed for 2016
+    if (SampleHelpers::theDataYear > 2016 && use2016Scheme){ // Not needed for 2016
       fwktree->bookEDMBranch<float>(_genHEPMCweight_2016_, 0);
       fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Up_2016_, 0);
       fwktree->bookEDMBranch<float>(_LHEweight_PDFVariation_Dn_2016_, 0);
@@ -260,7 +261,6 @@ void WeightsHandler::bookBranches(BaseTree* tree){
   }
   else{
     fwktree->bookEDMBranch<float>(_genHEPMCweight_old_, 0);
-
     this->addConsumed<float>(_genHEPMCweight_old_);
   }
   // These weights are also used for Pythia variations, so keep them as common

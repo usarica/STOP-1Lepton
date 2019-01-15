@@ -16,6 +16,12 @@
 
 class JetMETHandler : public IvyBase{
 protected:
+  bool doGenJets;
+  bool doAK4Jets;
+  bool doAK8Jets;
+  bool doMET;
+  bool doTops;
+
   std::vector<GenJetObject*> genjets;
   std::vector<AK4JetObject*> ak4jets;
   std::vector<AK8JetObject*> ak8jets;
@@ -73,7 +79,19 @@ public:
   void registerJERSFHandlers(JERScaleFactorHandler* ak4jer, JERScaleFactorHandler* ak8jer){ registeredJERSFHandler_ak4jets = ak4jer; registeredJERSFHandler_ak8jets = ak8jer; }
   bool constructJetMET();
 
-  static void bookBranches(BaseTree* tree);
+  void setGenJetsFlag(bool flag){ doGenJets=flag; }
+  void setAK4JetsFlag(bool flag){ doAK4Jets=flag; }
+  void setAK8JetsFlag(bool flag){ doAK8Jets=flag; }
+  void setMETFlag(bool flag){ doMET=flag; }
+  void setTopsFlag(bool flag){ doTops=flag; }
+
+  bool getGenJetsFlag() const{ return doGenJets; }
+  bool getAK4JetsFlag() const{ return doAK4Jets; }
+  bool getAK8JetsFlag() const{ return doAK8Jets; }
+  bool getMETFlag() const{ return doMET; }
+  bool getTopsFlag() const{ return doTops; }
+
+  void bookBranches(BaseTree* tree);
   static TString getAK4JetDeepFlavorPrefix(std::vector<TString> const& bDiscriminatorNames);
   static float getBtagValueFromLists(std::vector<TString> const& bDiscriminatorNames, std::vector<std::vector<float>> const& btagvals, size_t ijet, TString btagname);
 
