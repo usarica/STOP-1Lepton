@@ -109,6 +109,9 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     assert(!doAbort);
   }
   for (FrameworkTree*& tree:treeList){
+    // Skip if maximum events are already reached
+    if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
+
     // Skip the tree if it cannot be linked
     if (!(this->wrapTree(tree))) continue;
 

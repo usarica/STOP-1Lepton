@@ -1,13 +1,14 @@
 #include "EventAnalyzer.h"
 
 
-void produceGenLevelInfo(){
+void produceGenLevelInfo(bool useOriginalWeights=true){
   TDirectory* curdir = gDirectory;
-
+  std::string strOriginalWeights = (useOriginalWeights ? "_OriginalWeights" : "_2016Weights");
   std::vector<std::string> optlist={
-    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=-1 ismc=true",
-    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8.root sample=/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM year=2018 maxevents=-1 ismc=true",
-    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=ZZTo4L_TuneCP5_13TeV_powheg_pythia8.root sample=/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM year=2018 maxevents=-1 ismc=true"
+    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8"+strOriginalWeights+".root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=250000 ismc=true",
+    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8"+strOriginalWeights+".root sample=/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM year=2018 maxevents=250000 ismc=true",
+    "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8"+strOriginalWeights+".root sample=/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM year=2018 maxevents=250000 ismc=true"
+    //"indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./output/test_GenWeights/2018/ outfile=ZZTo4L_TuneCP5_13TeV_powheg_pythia8"+strOriginalWeights+".root sample=/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM year=2018 maxevents=1000000 ismc=true"
   };
   for (std::string const& stropts:optlist){
     FrameworkOptionParser opts(stropts);
@@ -19,7 +20,7 @@ void produceGenLevelInfo(){
     FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
 
     WeightsHandler wgtHandler;
-    wgtHandler.set2016SchemeFlag(false);
+    wgtHandler.set2016SchemeFlag(!useOriginalWeights);
     for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
     GenInfoHandler genInfoHandler;
@@ -36,7 +37,7 @@ void produceGenLevelInfo(){
     analyzer.setEventFilterFlag(false);
     analyzer.setElectronsFlag(false);
     analyzer.setMuonsFlag(false);
-    analyzer.setJetMETFlag(false);
+    //analyzer.setJetMETFlag(false);
 
     // Set maximum events to process
     analyzer.setMaximumEvents(opts.maxEventsToProcess());

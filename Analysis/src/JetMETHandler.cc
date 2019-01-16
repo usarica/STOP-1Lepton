@@ -61,6 +61,8 @@ void JetMETHandler::clear(){
 
 
 bool JetMETHandler::constructGenJets(){
+  if (!doGenJets) return true;
+
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
   if (!(fwktree->isMC() && fwktree->branchExists(_genjets_momentum_))) return true;
@@ -501,6 +503,8 @@ bool JetMETHandler::matchGenJets(){
   return true;
 }
 bool JetMETHandler::applyJER(){
+  if (!doAK4Jets && !doAK8Jets) return true;
+
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
   if (!(fwktree->isMC() && fwktree->branchExists(_genjets_momentum_))) return true;
