@@ -12,7 +12,12 @@ public:
     wRenScaleUp, wRenScaleDn,
     wPDFUp, wPDFDn,
     wAsMZUp, wAsMZDn,
-    wPSUp, wPSDn,
+    wPSUp, wPSDn, // ISR*FSR
+    // This is the set of default weights
+    wCentral_Default,
+    wPDFUp_Default, wPDFDn_Default,
+    wISRUp, wISRDn,
+    wFSRUp, wFSRDn,
     nWeightTypes
   };
 
@@ -28,6 +33,14 @@ public:
   float wgt_PSUp;
   float wgt_PSDn;
 
+  float wgt_central_default;
+  float wgt_PDFVariationUp_default;
+  float wgt_PDFVariationDn_default;
+  float wgt_ISRUp;
+  float wgt_ISRDn;
+  float wgt_FSRUp;
+  float wgt_FSRDn;
+
   WeightVariables();
   WeightVariables(WeightVariables const& other);
   WeightVariables& operator=(const WeightVariables& other);
@@ -35,8 +48,8 @@ public:
   void swap(WeightVariables& other);
 
   static TString getWeightName(WeightVariables::WeightType type);
+  static TString getWeightLabel(WeightVariables::WeightType type, bool use2016);
   float getWeight(WeightVariables::WeightType type) const;
-
 
 };
 

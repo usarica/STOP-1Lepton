@@ -80,13 +80,17 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_PDFVariationDn = productExtras.wgt_central * (*LHEweight_PDFVariation_Dn_2016);
       productExtras.wgt_AsMZUp = productExtras.wgt_central * (*LHEweight_AsMZ_Up_2016);
       productExtras.wgt_AsMZDn = productExtras.wgt_central * (*LHEweight_AsMZ_Dn_2016);
+
+      productExtras.wgt_central_default = (*genHEPMCweight);
+      productExtras.wgt_PDFVariationUp_default = productExtras.wgt_central_default * (*LHEweight_PDFVariation_Up);
+      productExtras.wgt_PDFVariationDn_default = productExtras.wgt_central_default * (*LHEweight_PDFVariation_Dn);
     }
     else{
       if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using default weights" << endl;
 
-      productExtras.wgt_central = (*genHEPMCweight);
-      productExtras.wgt_PDFVariationUp = productExtras.wgt_central * (*LHEweight_PDFVariation_Up);
-      productExtras.wgt_PDFVariationDn = productExtras.wgt_central * (*LHEweight_PDFVariation_Dn);
+      productExtras.wgt_central_default = productExtras.wgt_central = (*genHEPMCweight);
+      productExtras.wgt_PDFVariationUp_default = productExtras.wgt_PDFVariationUp = productExtras.wgt_central * (*LHEweight_PDFVariation_Up);
+      productExtras.wgt_PDFVariationDn_default = productExtras.wgt_PDFVariationDn = productExtras.wgt_central * (*LHEweight_PDFVariation_Dn);
       productExtras.wgt_AsMZUp = productExtras.wgt_central * (*LHEweight_AsMZ_Up);
       productExtras.wgt_AsMZDn = productExtras.wgt_central * (*LHEweight_AsMZ_Dn);
     }
@@ -119,6 +123,14 @@ bool WeightsHandler::constructWeights(){
       float cvwgt = weightHandler_2016->getLHEOriginalWeight() * weightHandler_2016->getWeightRescale();
       use2016 = ((cvwgt==0.) || !(pdfup==1.f && pdfdn==1.f));
     }
+    if (weightHandler_DefaultPDF){
+      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Constructing default weights" << endl;
+
+      weightHandler_DefaultPDF->set_specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1(exceptionalCases.specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1);
+      weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_nf_4(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_nf_4);
+      weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1);
+      weightHandler_DefaultPDF->extract(*genHEPMCweight_old, *weights, *weightIds);
+    }
     if (use2016){
       if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using 2016-like weights" << endl;
 
@@ -131,24 +143,23 @@ bool WeightsHandler::constructWeights(){
       productExtras.wgt_PDFVariationDn = productExtras.wgt_central * weightHandler_2016->getLHEWeight_PDFVariationUpDn(-1, 1.);
       productExtras.wgt_AsMZUp = productExtras.wgt_central * weightHandler_2016->getLHEWeigh_AsMZUpDn(1, 1.);
       productExtras.wgt_AsMZDn = productExtras.wgt_central * weightHandler_2016->getLHEWeigh_AsMZUpDn(-1, 1.);
+
+      if (weightHandler_DefaultPDF){
+        productExtras.wgt_central_default = weightHandler_DefaultPDF->getLHEOriginalWeight() * weightHandler_DefaultPDF->getWeightRescale();
+        productExtras.wgt_PDFVariationUp_default = productExtras.wgt_central_default * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(1, 1.);
+        productExtras.wgt_PDFVariationDn_default = productExtras.wgt_central_default * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(-1, 1.);
+      }
     }
     else if (weightHandler_DefaultPDF){
-      if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Constructing default weights" << endl;
-
-      weightHandler_DefaultPDF->set_specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1(exceptionalCases.specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1);
-      weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_nf_4(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_nf_4);
-      weightHandler_DefaultPDF->set_specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1(exceptionalCases.specialPDF_NNPDF31_NNLO_as_0118_Madgraph_1000offset_Case1);
-      weightHandler_DefaultPDF->extract(*genHEPMCweight_old, *weights, *weightIds);
-
       if (first_event && verbosity>=TVar::INFO) MELAout << "\t- Using default weights" << endl;
 
-      productExtras.wgt_central = weightHandler_DefaultPDF->getLHEOriginalWeight() * weightHandler_DefaultPDF->getWeightRescale();
+      productExtras.wgt_central_default = productExtras.wgt_central = weightHandler_DefaultPDF->getLHEOriginalWeight() * weightHandler_DefaultPDF->getWeightRescale();
       productExtras.wgt_muF2 = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight(1, 1.);
       productExtras.wgt_muF0p5 = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight(2, 1.);
       productExtras.wgt_muR2 = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight(3, 1.);
       productExtras.wgt_muR0p5 = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight(6, 1.);
-      productExtras.wgt_PDFVariationUp = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(1, 1.);
-      productExtras.wgt_PDFVariationDn = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(-1, 1.);
+      productExtras.wgt_PDFVariationUp_default = productExtras.wgt_PDFVariationUp = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(1, 1.);
+      productExtras.wgt_PDFVariationDn_default = productExtras.wgt_PDFVariationDn = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeight_PDFVariationUpDn(-1, 1.);
       productExtras.wgt_AsMZUp = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeigh_AsMZUpDn(1, 1.);
       productExtras.wgt_AsMZDn = productExtras.wgt_central * weightHandler_DefaultPDF->getLHEWeigh_AsMZUpDn(-1, 1.);
     }
@@ -193,6 +204,10 @@ bool WeightsHandler::constructWeights(){
       float PythiaWeight_fsr_muR4 = (nominal!=0.f ? genwgtvars[13]/nominal : 0.f);
       productExtras.wgt_PSUp = productExtras.wgt_central * PythiaWeight_isr_muR4*PythiaWeight_fsr_muR4;
       productExtras.wgt_PSDn = productExtras.wgt_central * PythiaWeight_isr_muR0p25*PythiaWeight_fsr_muR0p25;
+      productExtras.wgt_ISRUp = productExtras.wgt_central * PythiaWeight_isr_muR4;
+      productExtras.wgt_ISRDn = productExtras.wgt_central * PythiaWeight_isr_muR0p25;
+      productExtras.wgt_FSRUp = productExtras.wgt_central * PythiaWeight_fsr_muR4;
+      productExtras.wgt_FSRDn = productExtras.wgt_central * PythiaWeight_fsr_muR0p25;
     }
   }
 
