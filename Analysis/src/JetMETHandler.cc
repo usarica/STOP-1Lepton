@@ -545,6 +545,8 @@ bool JetMETHandler::applyBtagSFs(){
   BtagScaleFactorHandler* theBTagSFHandler = nullptr;
   if (fwktree->isMC() && fwktree->isFastSim()) theBTagSFHandler = registeredBtagSFHandler_FastSim;
   else if (fwktree->isMC()) theBTagSFHandler = registeredBtagSFHandler;
+  if (!theBTagSFHandler) return true;
+
   float bTaggerThreshold;
   if (theBTagSFHandler) bTaggerThreshold = theBTagSFHandler->WPval;
   else bTaggerThreshold = BtagHelpers::getBtagWP(AK4JetSelectionHelpers::AK4Jets_BTagWPType);

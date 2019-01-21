@@ -174,7 +174,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
         if (
           !(
             extras.isHardProcess // Anything that has status 21 (incoming), 22 (intermediate), 23 (outgoing) or 1 (outgoing without treatment except momentum balance)
-              // Note that momentum balance among isHardProcess particles might not be exact since status==1 particles have adjustment
+                                 // Note that momentum balance among isHardProcess particles might not be exact since status==1 particles have adjustment
             ||
             extras.status==1
             )
@@ -300,6 +300,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
+      if (!HelperFunctions::test_bit(electron->selectionBits, ElectronSelectionHelpers::kGenPtEta)) continue;
+
       ElectronVariables const& extras = electron->extras;
 
       id.push_back(electron->id);
@@ -455,6 +457,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
     for (MuonObject const* muon:muons){
       if (!muon) continue;
+      if (!HelperFunctions::test_bit(muon->selectionBits, MuonSelectionHelpers::kGenPtEta)) continue;
+
       MuonVariables const& extras = muon->extras;
 
       id.push_back(muon->id);
@@ -891,6 +895,47 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
       product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
       product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
+    }
+
+    // TFTops
+    std::vector<float> tftops_pt;
+    std::vector<float> tftops_eta;
+    std::vector<float> tftops_phi;
+    std::vector<float> tftops_mass;
+
+    std::vector<int> tftops_nSubjets;
+
+    std::vector<float> tftops_disc;
+
+    std::vector<long long> tftops_selectionBits;
+
+    for (TFTopObject const* top:tftops){
+      if (!top) continue;
+      auto const& extras = top->extras;
+
+      tftops_selectionBits.push_back(top->selectionBits);
+
+      CMSLorentzVector finalMomentum = top->getFinalMomentum();
+      tftops_pt.push_back(finalMomentum.Pt());
+      tftops_eta.push_back(finalMomentum.Eta());
+      tftops_phi.push_back(finalMomentum.Phi());
+      tftops_mass.push_back(finalMomentum.M());
+
+      tftops_nSubjets.push_back(extras.nSubjets);
+
+      tftops_disc.push_back(extras.disc);
+    }
+    if (jetHandler->getTopsFlag()){
+      product.setNamedVal("tftops_pt", tftops_pt);
+      product.setNamedVal("tftops_eta", tftops_eta);
+      product.setNamedVal("tftops_phi", tftops_phi);
+      product.setNamedVal("tftops_mass", tftops_mass);
+
+      product.setNamedVal("tftops_nSubjets", tftops_nSubjets);
+
+      product.setNamedVal("tftops_disc", tftops_disc);
+
+      product.setNamedVal("tftops_selectionBits", tftops_selectionBits);
     }
   }
 
