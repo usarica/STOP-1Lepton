@@ -5,6 +5,7 @@ class EventAnalyzer : public FrameworkTreeLooperBase{
 protected:
   bool doWeights;
   bool doGenInfo;
+  bool doGenParticles;
   bool doEventFilter;
   bool doElectrons;
   bool doMuons;
@@ -20,6 +21,7 @@ public:
 
   void setWeightsFlag(bool flag){ doWeights = flag; }
   void setGenInfoFlag(bool flag){ doGenInfo = flag; }
+  void setGenParticlesFlag(bool flag){ doGenParticles = flag; if (doGenParticles && !doGenInfo) doGenInfo=true; }
   void setEventFilterFlag(bool flag){ doEventFilter = flag; }
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
@@ -31,6 +33,7 @@ EventAnalyzer::EventAnalyzer() :
   FrameworkTreeLooperBase(),
   doWeights(true),
   doGenInfo(true),
+  doGenParticles(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -40,6 +43,7 @@ EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   FrameworkTreeLooperBase(inTree),
   doWeights(true),
   doGenInfo(true),
+  doGenParticles(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -49,6 +53,7 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   FrameworkTreeLooperBase(inTreeList),
   doWeights(true),
   doGenInfo(true),
+  doGenParticles(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -58,6 +63,7 @@ EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   FrameworkTreeLooperBase(inTreeSet),
   doWeights(true),
   doGenInfo(true),
+  doGenParticles(true),
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
@@ -146,7 +152,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("genMETPhi", genInfo->genMETPhi);
       product.setNamedVal("xsec", genInfo->xsec);
     }
-    if (genInfoHandler->getParticleInfoFlag()){
+    if (genInfoHandler->getParticleInfoFlag() && doGenParticles){
       auto const& genparts = genInfoHandler->getGenParticles();
 
       std::vector<bool> genparticles_isPromptFinalState;

@@ -11,13 +11,14 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-FrameworkTreeLooperBase::FrameworkTreeLooperBase() : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1) { setExternalProductList(); setExternalProductTree(); }
-FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
+FrameworkTreeLooperBase::FrameworkTreeLooperBase() : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1), recordEveryNEvents(-1){ setExternalProductList(); setExternalProductTree(); }
+FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1), recordEveryNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
 FrameworkTreeLooperBase::FrameworkTreeLooperBase(std::vector<FrameworkTree*> const& inTreeList) :
   IvyBase(),
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeList),
-  maxNEvents(-1)
+  maxNEvents(-1),
+  recordEveryNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
@@ -26,7 +27,8 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkSet const* inTreeSet) 
   IvyBase(),
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeSet->getFrameworkTreeList()),
-  maxNEvents(-1)
+  maxNEvents(-1),
+  recordEveryNEvents(-1)
 {
   setExternalProductList();
   setExternalProductTree();
@@ -68,6 +70,8 @@ void FrameworkTreeLooperBase::setExternalProductTree(BaseTree* extTree){
 }
 
 void FrameworkTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
+
+void FrameworkTreeLooperBase::setRecordEveryNEvents(int n){ recordEveryNEvents=n; }
 
 void FrameworkTreeLooperBase::setSampleIdStorageOption(FrameworkTreeLooperBase::SampleIdStorageType opt){ sampleIdOpt=opt; }
 
@@ -165,6 +169,9 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
         HelperFunctions::progressbar(ev, nevents);
         ev++; ev_acc++;
         if (verbosity>=TVar::INFO) (*it_loopTotalSelList)++;
+
+        // Record products to external tree if recordEveryNEvents>0 is specified
+        if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
       }
     }
     // Loop over failed events
@@ -188,6 +195,9 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecFailList)++;
+
+              // Record products to external tree if recordEveryNEvents>0 is specified
+              if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
             }
           }
         }

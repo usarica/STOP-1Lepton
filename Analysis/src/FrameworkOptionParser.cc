@@ -21,6 +21,7 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   theDataPeriod(""),
   theDataVersion(""),
   maxEvents(-1),
+  recordEveryN(-1),
   isMCflag(true),
   isFastSimflag(false),
   exceptionalCases()
@@ -43,6 +44,7 @@ FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
   theDataPeriod(""),
   theDataVersion(""),
   maxEvents(-1),
+  recordEveryN(-1),
   isMCflag(true),
   isFastSimflag(false),
   exceptionalCases()
@@ -149,6 +151,7 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
   else if (wish=="version" || wish=="dataversion" || wish=="release") theDataVersion = value;
 
   else if (wish=="maxevents") maxEvents = (int) atoi(value.c_str());
+  else if (wish=="recordeveryn") recordEveryN = (int) atoi(value.c_str());
 
   else if (wish=="ismc" || wish=="isdata"){ HelperFunctions::castStringToValue(value, isMCflag); if (wish=="isdata") isMCflag = !isMCflag; }
   else if (wish=="isfastsim") HelperFunctions::castStringToValue(value, isFastSimflag);
@@ -205,6 +208,7 @@ void FrameworkOptionParser::printOptionsHelp(){
   MELAout << "- period/dataperiod/year: The data period (2016, 2017, 2018 etc.). Default=\"\"\n\n";
   MELAout << "- version/dataversion/release: The data version (80x, 94x, 10x etc.). Default depends on the data period.\n\n";
   MELAout << "- maxevents: Maximum number of events to process. Default=-1 (all events)\n\n";
+  MELAout << "- recordeveryn: Maximum number of events to loop before recording results to the base tree. Default=-1 (all events in the sub-tree)\n\n";
   MELAout << "- ismc/isdata: Specify whether the sample is from simulation or real data. Default=true (ismc=true)\n\n";
   MELAout << "- isfastsim: Specify whether the simulation sample is using FastSim. Default=false\n\n";
   MELAout << "- specialpdf_nnpdf30_nlo_nf_4_pdfas_madgraph_1000offset_powhegstyle_case1: Set the MC LHE weights flag for specialPDF_NNPDF30_nlo_nf_4_pdfas_Madgraph_1000offset_POWHEGStyle_Case1. Default=false\n\n";

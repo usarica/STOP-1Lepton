@@ -36,7 +36,7 @@ void testHandlers(){
   for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree);
 
   JetMETHandler jetHandler;
-  jetHandler.setVerbosity(TVar::DEBUG);
+  //jetHandler.setVerbosity(TVar::DEBUG);
   BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
   BtagScaleFactorHandler btagSFHandler_MC_FS(BtagHelpers::kDeepCSV_Medium, true);
   jetHandler.registerBtagSFHandlers(&btagSFHandler_MC_noFS, &btagSFHandler_MC_FS);

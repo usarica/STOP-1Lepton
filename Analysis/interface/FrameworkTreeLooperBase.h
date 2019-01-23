@@ -24,6 +24,9 @@ protected:
   // Max. events to process
   int maxNEvents;
 
+  // Max. events before recording
+  int recordEveryNEvents;
+
   // External dependencies
   std::unordered_map<TString, IvyBase*> externalIvyObjects;
   std::unordered_map<TString, ScaleFactorHandlerBase*> externalScaleFactorHandlers;
@@ -64,6 +67,9 @@ public:
 
   // Max. events
   void setMaximumEvents(int n);
+
+  // Max. events to hold before recording
+  void setRecordEveryNEvents(int n);
 
   // Sample id storage option
   void setSampleIdStorageOption(SampleIdStorageType opt);

@@ -18,6 +18,7 @@ protected:
   std::string theDataPeriod;
   std::string theDataVersion;
   int maxEvents;
+  int recordEveryN;
   bool isMCflag;
   bool isFastSimflag;
 
@@ -42,6 +43,7 @@ public:
   std::string const& dataPeriod() const{ return theDataPeriod; }
   std::string const& dataVersion() const{ return theDataVersion; }
   int const& maxEventsToProcess() const{ return maxEvents; }
+  int const& recordEveryNEvents() const{ return recordEveryN; }
   bool isFastSim() const{ return isFastSimflag; }
   bool isMC() const{ return isMCflag; }
   bool isData() const{ return !this->isMC(); }
