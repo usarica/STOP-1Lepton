@@ -26,9 +26,9 @@ namespace JECJERHelpers{
   std::vector<TString> getJECFileNames(JECJERType type, bool isMC, bool isFastSim);
   TString getJECUncertaintyFileName(JECJERType type, bool isMC, bool isFastSim);
 
-  TString getJERFilePath(JECJERType type, bool isFastSim);
-  TString getJERPtFileName(JECJERType type, bool isFastSim);
-  TString getJERPhiFileName(JECJERType type, bool isFastSim);
+  TString getJERFilePath(JECJERType type, bool isMC, bool isFastSim);
+  TString getJERPtFileName(JECJERType type, bool isMC, bool isFastSim);
+  TString getJERPhiFileName(JECJERType type, bool isMC, bool isFastSim);
   TString getJERSFFileName(JECJERType type, bool isFastSim);
 
 }

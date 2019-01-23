@@ -27,6 +27,8 @@ public:
   float JEC;
   float JECup;
   float JECdn;
+
+  float estimatedPtResolution;
   float JER;
   float JERup;
   float JERdn;

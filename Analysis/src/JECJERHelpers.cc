@@ -94,22 +94,30 @@ TString JECJERHelpers::getJECUncertaintyFileName(JECJERType type, bool isMC, boo
   return res;
 }
 
-TString JECJERHelpers::getJERFilePath(JECJERType /*type*/, bool /*isFastSim*/){
+TString JECJERHelpers::getJERFilePath(JECJERType /*type*/, bool isMC, bool /*isFastSim*/){
+  TString res;
+  TString dataOrMC;
+  if (isMC) dataOrMC="MC";
+  else dataOrMC="DATA";
   switch (theDataYear){
   case 2016:
-    return "Summer16_25nsV1_MC";
+    res = "Summer16_25nsV1_";
+    break;
   case 2017:
   case 2018: // FIXME: Update for the 2018 recipe needed
-    return "Fall17_V3_MC";
+    res = "Fall17_V3_";
+    break;
   default:
     MELAerr << "JECJERHelpers::getJERFilePath: Year " << theDataYear << " is unknown." << endl;
     assert(0);
     return "";
   }
+  res += dataOrMC;
+  return res;
 }
-TString JECJERHelpers::getJERPtFileName(JECJERType type, bool isFastSim){
+TString JECJERHelpers::getJERPtFileName(JECJERType type, bool isMC, bool isFastSim){
   TString res = JERDATADIR;
-  TString fext = getJERFilePath(type, isFastSim);
+  TString fext = getJERFilePath(type, isMC, isFastSim);
   res += fext + "/" + fext + "_PtResolution_" + getJECJERTypeName(type) + ".txt";
   if (!HostHelpers::FileExists(res.Data())){
     MELAerr << "JECJERHelpers::getJERPtFileName: File " << res << " does not exist! Aborting..." << endl;
@@ -117,9 +125,9 @@ TString JECJERHelpers::getJERPtFileName(JECJERType type, bool isFastSim){
   }
   return res;
 }
-TString JECJERHelpers::getJERPhiFileName(JECJERType type, bool isFastSim){
+TString JECJERHelpers::getJERPhiFileName(JECJERType type, bool isMC, bool isFastSim){
   TString res = JERDATADIR;
-  TString fext = getJERFilePath(type, isFastSim);
+  TString fext = getJERFilePath(type, isMC, isFastSim);
   res += fext + "/" + fext + "_PhiResolution_" + getJECJERTypeName(type) + ".txt";
   if (!HostHelpers::FileExists(res.Data())){
     MELAerr << "JECJERHelpers::getJERPhiFileName: File " << res << " does not exist! Aborting..." << endl;
@@ -129,7 +137,7 @@ TString JECJERHelpers::getJERPhiFileName(JECJERType type, bool isFastSim){
 }
 TString JECJERHelpers::getJERSFFileName(JECJERType type, bool isFastSim){
   TString res = JERDATADIR;
-  TString fext = getJERFilePath(type, isFastSim);
+  TString fext = getJERFilePath(type, true, isFastSim);
   res += fext + "/" + fext + "_SF_" + getJECJERTypeName(type) + ".txt";
   if (!HostHelpers::FileExists(res.Data())){
     MELAerr << "JECJERHelpers::getJERSFFileName: File " << res << " does not exist! Aborting..." << endl;

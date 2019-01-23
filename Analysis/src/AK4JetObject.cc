@@ -44,6 +44,8 @@ AK4JetVariables::AK4JetVariables() :
   JEC(1),
   JECup(1),
   JECdn(1),
+
+  estimatedPtResolution(0),
   JER(1),
   JERup(1),
   JERdn(1)
@@ -88,6 +90,8 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   JEC(other.JEC),
   JECup(other.JECup),
   JECdn(other.JECdn),
+
+  estimatedPtResolution(other.estimatedPtResolution),
   JER(other.JER),
   JERup(other.JERup),
   JERdn(other.JERdn)
@@ -132,6 +136,8 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(JEC, other.JEC);
   std::swap(JECup, other.JECup);
   std::swap(JECdn, other.JECdn);
+
+  std::swap(estimatedPtResolution, other.estimatedPtResolution);
   std::swap(JER, other.JER);
   std::swap(JERup, other.JERup);
   std::swap(JERdn, other.JERdn);

@@ -65,6 +65,7 @@ bool JetMETHandler::constructGenJets(){
 
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
+  //if (!fwktree->isMC()) return true;
   if (!(fwktree->isMC() && fwktree->branchExists(_genjets_momentum_))) return true;
 
   std::vector<CMSLorentzVector>* genjets_momentum = nullptr;
@@ -319,12 +320,25 @@ bool JetMETHandler::constructMET(){
 
   float met = 0;
   float metPhi = 0;
+  float metraw = 0;
+  float metrawPhi = 0;
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = (
     this->getConsumedValue(_pfmet_, met)
     && this->getConsumedValue(_pfmetPhi_, metPhi)
     );
+  if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X)
+    allVariablesPresent &= (
+      this->getConsumedValue(_pfmetraw_old_, metraw)
+      && this->getConsumedValue(_pfmetrawPhi_old_, metrawPhi)
+      );
+  else
+    allVariablesPresent &= (
+      this->getConsumedValue(_pfmetraw_, metraw)
+      && this->getConsumedValue(_pfmetrawPhi_, metrawPhi)
+      );
+
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
@@ -334,8 +348,10 @@ bool JetMETHandler::constructMET(){
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
   metobj = new METObject;
-  metobj->extras.met = met;
-  metobj->extras.phi = metPhi;
+  metobj->extras.met = metobj->extras.met_JEC = metobj->extras.met_JECup = metobj->extras.met_JECdn = met;
+  metobj->extras.phi = metobj->extras.phi_JEC = metobj->extras.phi_JECup = metobj->extras.phi_JECdn = metPhi;
+  metobj->extras.met_raw = metraw;
+  metobj->extras.phi_raw = metrawPhi;
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
@@ -429,6 +445,35 @@ bool JetMETHandler::applyJEC(){
   bool const doCorrectAK4Jets = true;
   if (registeredJECSFHandler_ak4jets && doCorrectAK4Jets){
     for (AK4JetObject* jet:ak4jets) registeredJECSFHandler_ak4jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
+    if (metobj){ // MET is corrected based on the ak4chs jets
+      //CMSLorentzVector v_rawmet(metobj->extras.met_raw*cos(metobj->extras.phi_raw), metobj->extras.met_raw*sin(metobj->extras.phi_raw), 0, metobj->extras.met_raw);
+      CMSLorentzVector v_met(metobj->extras.met*cos(metobj->extras.phi), metobj->extras.met*sin(metobj->extras.phi), 0, metobj->extras.met);
+      CMSLorentzVector unshiftedSum(0, 0, 0, 0);
+      CMSLorentzVector shiftedSum_nominal(0, 0, 0, 0);
+      CMSLorentzVector shiftedSum_JECup(0, 0, 0, 0);
+      CMSLorentzVector shiftedSum_JECdn(0, 0, 0, 0);
+      for (AK4JetObject* jet:ak4jets){
+        if ((jet->extras.chargedEmE + jet->extras.neutralEmE)/(jet->energy()*jet->extras.undoJEC)>0.9) continue;
+        if (fabs(jet->eta())>9.9) continue;
+        if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && jet->pt() < 50.f && fabs(jet->eta()) >= 2.65 && fabs(jet->eta()) <= 3.139) continue;
+        unshiftedSum += jet->momentum; // With default JEC
+        shiftedSum_nominal += jet->getCorrectedMomentum(0); // New JEC
+        shiftedSum_JECup += jet->getCorrectedMomentum(+1); // New JEC
+        shiftedSum_JECdn += jet->getCorrectedMomentum(-1); // New JEC
+      }
+      CMSLorentzVector v_met_JEC = v_met - shiftedSum_nominal + unshiftedSum;
+      CMSLorentzVector v_met_JECup = v_met - shiftedSum_JECup + unshiftedSum;
+      CMSLorentzVector v_met_JECdn = v_met - shiftedSum_JECdn + unshiftedSum;
+      metobj->extras.met_JEC = v_met_JEC.Pt();
+      metobj->extras.phi_JEC = v_met_JEC.Phi();
+      metobj->extras.met_JECup = v_met_JECup.Pt();
+      metobj->extras.phi_JECup = v_met_JECup.Phi();
+      metobj->extras.met_JECdn = v_met_JECdn.Pt();
+      metobj->extras.phi_JECdn = v_met_JECdn.Phi();
+      if (this->verbosity>=TVar::DEBUG){
+        MELAout << "JetMETHandler::applyJEC: Original MET vector: " << v_met << " | shifted MET vector: " << v_met_JEC << " | shifted MET vector up: " << v_met_JECup << endl;
+      }
+    }
   }
 
   bool const doCorrectAK8Jets = (SampleHelpers::theDataYear == 2016); // FIXME: Need the prescription for 2018 as well
@@ -507,10 +552,6 @@ bool JetMETHandler::applyJER(){
 
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
-  if (!(fwktree->isMC() && fwktree->branchExists(_genjets_momentum_))) return true;
-  std::vector<CMSLorentzVector>* genjets_momentum = nullptr;
-  if (!this->getConsumedValue(_genjets_momentum_, genjets_momentum)) return false;
-  if (!genjets_momentum) return false;
 
   if (registeredJERSFHandler_ak4jets && !ak4jets.empty()){
     float rho=0;
@@ -519,7 +560,7 @@ bool JetMETHandler::applyJER(){
       rho = extras.rho;
       break;
     }
-    registeredJERSFHandler_ak4jets->smear(ak4jets, rho);
+    registeredJERSFHandler_ak4jets->smear(ak4jets, rho, fwktree->isMC());
   }
   if (registeredJERSFHandler_ak8jets && !ak8jets.empty()){
     float rho = 0;
@@ -528,7 +569,7 @@ bool JetMETHandler::applyJER(){
       rho = extras.rho;
       break;
     }
-    registeredJERSFHandler_ak8jets->smear(ak8jets, rho);
+    registeredJERSFHandler_ak8jets->smear(ak8jets, rho, fwktree->isMC());
   }
 
   return true;
@@ -761,7 +802,19 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   if (doMET){
     this->addConsumed<float>(_pfmet_);
     this->addConsumed<float>(_pfmetPhi_);
+    this->addConsumed<float>(_pfmetraw_);
+    this->addConsumed<float>(_pfmetrawPhi_);
     fwktree->bookEDMBranch<float>(_pfmet_, 0);
     fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
+    fwktree->bookEDMBranch<float>(_pfmetraw_, 0);
+    fwktree->bookEDMBranch<float>(_pfmetrawPhi_, 0);
+    if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X){
+      this->addConsumed<float>(_pfmetraw_old_);
+      this->addConsumed<float>(_pfmetrawPhi_old_);
+      this->defineConsumedSloppy(_pfmetraw_old_);
+      this->defineConsumedSloppy(_pfmetrawPhi_old_);
+      fwktree->bookEDMBranch<float>(_pfmetraw_old_, 0);
+      fwktree->bookEDMBranch<float>(_pfmetrawPhi_old_, 0);
+    }
   }
 }

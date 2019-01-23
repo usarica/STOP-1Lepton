@@ -582,8 +582,14 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
     METObject const* metobject = jetHandler->getMET();
     if (jetHandler->getMETFlag()){
-      product.setNamedVal("pfmet", metobject->extras.met);
-      product.setNamedVal("pfmetPhi", metobject->extras.phi);
+      product.setNamedVal("pfmet_original", metobject->extras.met);
+      product.setNamedVal("pfmetPhi_original", metobject->extras.phi);
+      product.setNamedVal("pfmet", metobject->extras.met_JEC);
+      product.setNamedVal("pfmetPhi", metobject->extras.phi_JEC);
+      product.setNamedVal("pfmet_JECup", metobject->extras.met_JECup);
+      product.setNamedVal("pfmetPhi_JECup", metobject->extras.phi_JECup);
+      product.setNamedVal("pfmet_JECdn", metobject->extras.met_JECdn);
+      product.setNamedVal("pfmetPhi_JECdn", metobject->extras.phi_JECdn);
     }
 
     // GenJets
@@ -649,6 +655,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<float> ak4jets_JEC;
     std::vector<float> ak4jets_JECup;
     std::vector<float> ak4jets_JECdn;
+
+    std::vector<float> ak4jets_estimatedPtResolution;
     std::vector<float> ak4jets_JER;
     std::vector<float> ak4jets_JERup;
     std::vector<float> ak4jets_JERdn;
@@ -703,6 +711,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       ak4jets_ptDistribution.push_back(extras.ptDistribution);
       ak4jets_axis1.push_back(extras.axis1);
       ak4jets_axis2.push_back(extras.axis2);
+
+      ak4jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
       ak4jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
       ak4jets_JER.push_back(extras.JER);
@@ -770,6 +780,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
       product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
       product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
+
+      product.setNamedVal("ak4jets_estimatedPtResolution", ak4jets_estimatedPtResolution);
       product.setNamedVal("ak4jets_JER", ak4jets_JER);
       product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
       product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
@@ -804,6 +816,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::vector<float> ak8jets_JEC;
     std::vector<float> ak8jets_JECup;
     std::vector<float> ak8jets_JECdn;
+
+    std::vector<float> ak8jets_estimatedPtResolution;
     std::vector<float> ak8jets_JER;
     std::vector<float> ak8jets_JERup;
     std::vector<float> ak8jets_JERdn;
@@ -839,6 +853,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       ak8jets_deepdisc_zbb.push_back(extras.deepdisc_zbb);
       ak8jets_deepdisc_hbb.push_back(extras.deepdisc_hbb);
       ak8jets_deepdisc_h4q.push_back(extras.deepdisc_h4q);
+
+      ak8jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
       ak8jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
       ak8jets_JER.push_back(extras.JER);
@@ -887,6 +903,8 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
       product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
       product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
+
+      product.setNamedVal("ak8jets_estimatedPtResolution", ak8jets_estimatedPtResolution);
       product.setNamedVal("ak8jets_JER", ak8jets_JER);
       product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
       product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);

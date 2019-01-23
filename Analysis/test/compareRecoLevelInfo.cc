@@ -99,6 +99,8 @@ void compareRecoLevelInfo(TString fname){
   bool isWZZ = (fname.Contains("WZZ"));
   bool isWWW = (fname.Contains("WWW"));
   bool isDYLLJets = (fname.Contains("DYJetsToLL"));
+  bool isTTWLNu = (fname.Contains("TTWJetsToLNu"));
+  bool isTTZLLNuNu = (fname.Contains("TTZToLLNuNu"));
   bool isTT2L2Nu = (fname.Contains("TTTo2L2Nu"));
   bool isTT2L2Nu_0j_special = (fname.Contains("TT_DiLept"));
   bool isTT2L2Nu_1j_special = (fname.Contains("TTPlus1Jet_DiLept"));
@@ -112,6 +114,8 @@ void compareRecoLevelInfo(TString fname){
   if (isWZZ) sampleLabel="WZZ_comparison";
   if (isWWW) sampleLabel="WWW_comparison";
   if (isDYLLJets) sampleLabel="DYJetsToLL_comparison";
+  if (isTTWLNu) sampleLabel="TTWLNu_comparison";
+  if (isTTZLLNuNu) sampleLabel="TTZLLNuNu_comparison";
   if (isTT2L2Nu) sampleLabel="TTTo2L2Nu_comparison";
   if (isTT2L2Nu_0j_special) sampleLabel="TTTo2L2Nu_0j_special_comparison";
   if (isTT2L2Nu_1j_special) sampleLabel="TTTo2L2Nu_1j_special_comparison";
@@ -142,6 +146,7 @@ void compareRecoLevelInfo(TString fname){
   DATA_CLASS(std::vector<float>, genparticles_mass)
   // MET
   DATA_SIMPLE(float, pfmet)
+  DATA_SIMPLE(float, pfmetPhi)
   // Electrons
   DATA_CLASS(std::vector<int>, electrons_id)
   DATA_CLASS(std::vector<float>, electrons_pt)
@@ -282,6 +287,47 @@ void compareRecoLevelInfo(TString fname){
   plotvars.emplace_back("highestdisctftop_mass_metcut_initialqg", "m_{3j} with highest top disc. (E_{T}^{miss}>150 GeV, qg initial states) (GeV)", 50, 100, 250);
   plotvars.emplace_back("highestdisctftop_mass_metcut_initialgg", "m_{3j} with highest top disc. (E_{T}^{miss}>150 GeV, gg initial states) (GeV)", 50, 100, 250);
 
+  plotvars.emplace_back("tMod_metcut", "-t_{mod} (E_{T}^{miss}>150 GeV)", 50, 3, 13);
+  plotvars.emplace_back("tMod_metcut_initialqq", "-t_{mod} (E_{T}^{miss}>150 GeV, qq initial states)", 50, 3, 13);
+  plotvars.emplace_back("tMod_metcut_initialqg", "-t_{mod} (E_{T}^{miss}>150 GeV, qg initial states)", 50, 3, 13);
+  plotvars.emplace_back("tMod_metcut_initialgg", "-t_{mod} (E_{T}^{miss}>150 GeV, gg initial states)", 50, 3, 13);
+
+  plotvars.emplace_back("nak8jets", "N_{ak8}", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_initialqq", "N_{ak8} (qq initial states)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_initialqg", "N_{ak8} (qg initial states)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_initialgg", "N_{ak8} (gg initial states)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_metcut", "N_{ak8} (E_{T}^{miss}>150 GeV)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_metcut_initialqq", "N_{ak8} (E_{T}^{miss}>150 GeV, qq initial states)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_metcut_initialqg", "N_{ak8} (E_{T}^{miss}>150 GeV, qg initial states)", 15, 0, 15);
+  plotvars.emplace_back("nak8jets_metcut_initialgg", "N_{ak8} (E_{T}^{miss}>150 GeV, gg initial states)", 15, 0, 15);
+
+  plotvars.emplace_back("leadingptak8jet_pt", "Leading p_{T} ak8-jet, p_{T} (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_initialqq", "Leading p_{T} ak8-jet, p_{T} (qq initial states) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_initialqg", "Leading p_{T} ak8-jet, p_{T} (qg initial states) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_initialgg", "Leading p_{T} ak8-jet, p_{T} (gg initial states) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_metcut", "Leading p_{T} ak8-jet, p_{T} (E_{T}^{miss}>150 GeV) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_metcut_initialqq", "Leading p_{T} ak8-jet, p_{T} (E_{T}^{miss}>150 GeV, qq initial states) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_metcut_initialqg", "Leading p_{T} ak8-jet, p_{T} (E_{T}^{miss}>150 GeV, qg initial states) (GeV)", 50, 200, 1200);
+  plotvars.emplace_back("leadingptak8jet_pt_metcut_initialgg", "Leading p_{T} ak8-jet, p_{T} (E_{T}^{miss}>150 GeV, gg initial states) (GeV)", 50, 200, 1200);
+
+  plotvars.emplace_back("highesttopdiscak8jet_disc", "Best ak8-jet top disc.", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_initialqq", "Best ak8-jet top disc. (qq initial states)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_initialqg", "Best ak8-jet top disc. (qg initial states)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_initialgg", "Best ak8-jet top disc. (gg initial states)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_metcut", "Best ak8-jet top disc. (E_{T}^{miss}>150 GeV)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_metcut_initialqq", "Best ak8-jet top disc. (E_{T}^{miss}>150 GeV, qq initial states)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_metcut_initialqg", "Best ak8-jet top disc. (E_{T}^{miss}>150 GeV, qg initial states)", 50, 0, 1);
+  plotvars.emplace_back("highesttopdiscak8jet_disc_metcut_initialgg", "Best ak8-jet top disc. (E_{T}^{miss}>150 GeV, gg initial states)", 50, 0, 1);
+
+  plotvars.emplace_back("highesttopdiscak8jet_mass", "Best-top ak8-jet, mass (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_initialqq", "Best-top ak8-jet, mass (qq initial states) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_initialqg", "Best-top ak8-jet, mass (qg initial states) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_initialgg", "Best-top ak8-jet, mass (gg initial states) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_metcut", "Best-top ak8-jet, mass (E_{T}^{miss}>150 GeV) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_metcut_initialqq", "Best-top ak8-jet, mass (E_{T}^{miss}>150 GeV, qq initial states) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_metcut_initialqg", "Best-top ak8-jet, mass (E_{T}^{miss}>150 GeV, qg initial states) (GeV)", 100, -150, 150);
+  plotvars.emplace_back("highesttopdiscak8jet_mass_metcut_initialgg", "Best-top ak8-jet, mass (E_{T}^{miss}>150 GeV, gg initial states) (GeV)", 100, -150, 150);
+
   plotvars.emplace_back("nelectrons", "N_{e}", 6, 0, 6);
   plotvars.emplace_back("nelectrons_initialqq", "N_{e} (qq initial states)", 6, 0, 6);
   plotvars.emplace_back("nelectrons_initialqg", "N_{e} (qg initial states)", 6, 0, 6);
@@ -360,17 +406,21 @@ void compareRecoLevelInfo(TString fname){
     isQG = (ngenparts>=2 && !(isGG || isQQ));
 
     size_t const nelectrons = electrons_pt->size();
+    size_t nelectrons_preselected=0;
     std::vector<MELAParticle> electrons; electrons.reserve(nelectrons);
     for (size_t ip=0; ip<nelectrons; ip++){
       TLorentzVector v; v.SetPtEtaPhiM(electrons_pt->at(ip), electrons_eta->at(ip), electrons_phi->at(ip), electrons_mass->at(ip));
-      electrons.emplace_back(0, v);
+      electrons.emplace_back(electrons_id->at(ip), v);
+      if (HelperFunctions::test_bit(electrons_selectionBits->at(ip), ElectronSelectionHelpers::kPreselection)) nelectrons_preselected++;
     }
 
     size_t const nmuons = muons_pt->size();
+    size_t nmuons_preselected=0;
     std::vector<MELAParticle> muons; muons.reserve(nmuons);
     for (size_t ip=0; ip<nmuons; ip++){
       TLorentzVector v; v.SetPtEtaPhiM(muons_pt->at(ip), muons_eta->at(ip), muons_phi->at(ip), muons_mass->at(ip));
-      muons.emplace_back(0, v);
+      muons.emplace_back(muons_id->at(ip), v);
+      if (HelperFunctions::test_bit(muons_selectionBits->at(ip), MuonSelectionHelpers::kPreselection)) nmuons_preselected++;
     }
 
     size_t const nak4jets = ak4jets_pt->size();
@@ -394,6 +444,28 @@ void compareRecoLevelInfo(TString fname){
       tftops.emplace_back(0, v);
     }
 
+    float topnessMod=-999;
+    if (false){ // Do not calculate tMod, very slow
+    //if (nmuons_preselected + nelectrons_preselected==1 && pfmet>=150.f){ // Calculate only for 1-lepton events
+      std::vector<MELAParticle const*> bjets, otherjets;
+      for (size_t ip=0; ip<nak4jets; ip++){
+        if (!HelperFunctions::test_bit(ak4jets_selectionBits->at(ip), AK4JetSelectionHelpers::kTightID) || fabs(ak4jets.at(ip).eta())>=4.7) continue;
+        bool isBTagged = ((ak4jets_deepCSVb->at(ip)+ak4jets_deepCSVbb->at(ip))>btagWP);
+        if (isBTagged) bjets.push_back(&(ak4jets.at(ip)));
+        else otherjets.push_back(&(ak4jets.at(ip)));
+      }
+      MELAParticle const* theLepton=nullptr;
+      for (size_t ip=0; ip<nmuons; ip++){
+        if (!HelperFunctions::test_bit(muons_selectionBits->at(ip), MuonSelectionHelpers::kPreselection)) continue;
+        if (!theLepton || muons.at(ip).pt()>theLepton->pt()){ theLepton = &(muons.at(ip)); break; }
+      }
+      for (size_t ip=0; ip<nelectrons; ip++){
+        if (!HelperFunctions::test_bit(electrons_selectionBits->at(ip), ElectronSelectionHelpers::kPreselection)) continue;
+        if (!theLepton || electrons.at(ip).pt()>theLepton->pt()){ theLepton = &(electrons.at(ip)); break; }
+      }
+      if (theLepton) topnessMod = TopnessCalculator::CalcTopness(true, pfmet, pfmetPhi, theLepton, bjets, otherjets);
+    }
+
     for (size_t ivar=0; ivar<nvars; ivar++){
       auto& var=plotvars.at(ivar);
       var.reset();
@@ -404,6 +476,10 @@ void compareRecoLevelInfo(TString fname){
       if (var.name.Contains("initialgg") && !isGG) continue;
 
       if (var.name.BeginsWith("recomet")) var.setVal(pfmet, genweights);
+      else if (var.name.BeginsWith("tMod")){
+        if (topnessMod<0.f) continue;
+        var.setVal(-log(topnessMod), genweights);
+      }
       else if (var.name.BeginsWith("nak4jets")){
         size_t nc=0;
         for (size_t ip=0; ip<nak4jets; ip++){
@@ -448,6 +524,38 @@ void compareRecoLevelInfo(TString fname){
         if (itop>=0){
           auto const& top=tftops.at(itop);
           if (var.name.BeginsWith("highestdisctftop_mass")) v=top.m();
+        }
+        if (v==-99.f) continue;
+        var.setVal(v, genweights);
+      }
+      else if (var.name.BeginsWith("nak8jets")){
+        size_t nc=nak8jets;
+        var.setVal(nc, genweights);
+      }
+      else if (var.name.BeginsWith("leadingptak8jet")){
+        float v=-99;
+        for (size_t ip=0; ip<nak8jets; ip++){
+          auto const& jet=ak8jets.at(ip);
+          //if (fabs(jet.eta())>=4.7) continue;
+          if (var.name.BeginsWith("leadingptak8jet_pt")) v=jet.pt();
+          break;
+        }
+        if (v==-99.f) continue;
+        var.setVal(v, genweights);
+      }
+      else if (var.name.BeginsWith("highesttopdiscak8jet")){
+        float v=-99;
+        int ijet=-1;
+        for (size_t ip=0; ip<nak8jets; ip++){
+          auto const& jet=ak8jets.at(ip);
+          //if (fabs(jet.eta())>=4.7) continue;
+          if (ijet<0 || ak8jets_deepdisc_top->at(ip)>v){ v=ak8jets_deepdisc_top->at(ip); ijet=ip; }
+          break;
+        }
+        if (ijet>=0){
+          auto const& jet=ak8jets.at(ijet);
+          if (var.name.BeginsWith("highesttopdiscak8jet_mass")) v=jet.m();
+          //else if (var.name.BeginsWith("highesttopdiscak8jet_disc")) v=ak8jets_deepdisc_top->at(ip); // v is already set
         }
         if (v==-99.f) continue;
         var.setVal(v, genweights);

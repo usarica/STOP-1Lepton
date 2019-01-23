@@ -201,6 +201,10 @@ typedef unsigned long long EventNumber_t;
 
 // MET variables
 // float
+#define _pfmetraw_ "evt_pfmet_raw"
+#define _pfmetrawPhi_ "evt_pfmetPhi_raw"
+#define _pfmetraw_old_ "evt_old_pfmet_raw"
+#define _pfmetrawPhi_old_ "evt_old_pfmetPhi_raw"
 #define _pfmet_ "evt_pfmet"
 #define _pfmetPhi_ "evt_pfmetPhi"
 

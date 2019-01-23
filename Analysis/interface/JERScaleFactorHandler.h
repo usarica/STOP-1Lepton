@@ -18,9 +18,11 @@
 
 class JERScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  JME::JetResolution resolution_pt;
-  JME::JetResolution resolution_phi;
-  JME::JetResolutionScaleFactor resolution_sf;
+  JME::JetResolution resolution_pt_data;
+  JME::JetResolution resolution_phi_data;
+  JME::JetResolution resolution_pt_mc;
+  JME::JetResolution resolution_phi_mc;
+  JME::JetResolutionScaleFactor resolution_sf; // Only MC
 
 public:
   JECJERHelpers::JECJERType const type;
@@ -31,8 +33,8 @@ public:
   bool setup();
   void reset();
 
-  void smear(std::vector<AK4JetObject*>& jets, float rho);
-  void smear(std::vector<AK8JetObject*>& jets, float rho);
+  void smear(std::vector<AK4JetObject*>& jets, float rho, bool isMC);
+  void smear(std::vector<AK8JetObject*>& jets, float rho, bool isMC);
 
 };
 

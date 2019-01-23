@@ -25,6 +25,8 @@ AK8JetVariables::AK8JetVariables() :
   JEC(1),
   JECup(1),
   JECdn(1),
+
+  estimatedPtResolution(0),
   JER(1),
   JERup(1),
   JERdn(1)
@@ -50,6 +52,8 @@ AK8JetVariables::AK8JetVariables(AK8JetVariables const& other) :
   JEC(other.JEC),
   JECup(other.JECup),
   JECdn(other.JECdn),
+
+  estimatedPtResolution(other.estimatedPtResolution),
   JER(other.JER),
   JERup(other.JERup),
   JERdn(other.JERdn)
@@ -75,6 +79,8 @@ void AK8JetVariables::swap(AK8JetVariables& other){
   std::swap(JEC, other.JEC);
   std::swap(JECup, other.JECup);
   std::swap(JECdn, other.JECdn);
+
+  std::swap(estimatedPtResolution, other.estimatedPtResolution);
   std::swap(JER, other.JER);
   std::swap(JERup, other.JERup);
   std::swap(JERdn, other.JERdn);
