@@ -374,7 +374,7 @@ bool JetMETHandler::constructJetMET(){
 
   // Apply selections after sorting
   res &= applyJEC(); // Re-apply JEC before calculating b-tag SFs
-  res &= applyBtagSFs(); // Also handles b-tagging itself
+  res &= applyBtaggingAndSFs(); // Also handles b-tagging itself
   res &= matchGenJets(); // Match before JER
   res &= applyJER(); // Apply JER AFTER calculating b-tag SFs
   res &= applyJetCleaning();
@@ -579,14 +579,14 @@ bool JetMETHandler::applySelections(){
   for (auto* obj:ak8jets){ /*obj->resetSelectionBits();*/ AK8JetSelectionHelpers::setSelectionBits(*obj); }
   return true;
 }
-bool JetMETHandler::applyBtagSFs(){
+bool JetMETHandler::applyBtaggingAndSFs(){
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
 
   BtagScaleFactorHandler* theBTagSFHandler = nullptr;
   if (fwktree->isMC() && fwktree->isFastSim()) theBTagSFHandler = registeredBtagSFHandler_FastSim;
   else if (fwktree->isMC()) theBTagSFHandler = registeredBtagSFHandler;
-  if (!theBTagSFHandler) return true;
+  if (!theBTagSFHandler && fwktree->isMC()) return true;
 
   float bTaggerThreshold;
   if (theBTagSFHandler) bTaggerThreshold = theBTagSFHandler->WPval;
@@ -595,13 +595,26 @@ bool JetMETHandler::applyBtagSFs(){
   for (auto*& jet:ak4jets){
     AK4JetVariables const& extras = jet->extras;
 
-    float bTagger = extras.deepCSVb + extras.deepCSVbb;
-    bool isBtagged = (bTagger > bTaggerThreshold);
+    float bTagger=0;
+    switch (AK4JetSelectionHelpers::AK4Jets_BTagWPType){
+    case kCSVv2_Loose:
+    case kCSVv2_Medium:
+    case kCSVv2_Tight:
+      bTagger = extras.pfCombinedInclusiveSecondaryVertexV2BJetTag;
+      break;
+    case kDeepCSV_Loose:
+    case kDeepCSV_Medium:
+    case kDeepCSV_Tight:
+      bTagger = extras.deepCSVb + extras.deepCSVbb;
+      break;
+    }
 
+    bool isBtagged = (bTagger > bTaggerThreshold);
     bool isBtaggedWithSF   = isBtagged;
     bool isBtaggedWithSFUp = isBtagged;
     bool isBtaggedWithSFDn = isBtagged;
-    if (!theBTagSFHandler){
+
+    if (theBTagSFHandler){
       int const& flav = extras.hadron_flavor;
       CMSLorentzVector correctedMomentum = jet->getFinalMomentum();
       float jpt = correctedMomentum.Pt();

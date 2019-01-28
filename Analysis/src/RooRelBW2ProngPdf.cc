@@ -67,29 +67,29 @@ void RooRelBW2ProngPdf::setProxy(RooRealProxy& proxy, RooAbsReal* objectPtr){
 
 Double_t RooRelBW2ProngPdf::evaluate() const{
   Double_t res=0;
-  const float mx = mX * GeVunit;
-  const float gamx = gamX * GeVunit;
-
-  const float px1 = pT1 * cos(phi1) * GeVunit;
-  const float py1 = pT1 * sin(phi1) * GeVunit;
-  const float pz1 = pT1 * sinh(eta1) * GeVunit;
-  const float E1 = sqrt(pow(pT1 * cosh(eta1) * GeVunit, 2) + pow(mass1 * GeVunit, 2)*(mass1>=0. ? +1.f : -1.f));
-
-  const float px2 = pT2 * cos(phi2) * GeVunit;
-  const float py2 = pT2 * sin(phi2) * GeVunit;
-  const float pz2 = pT2 * sinh(eta2) * GeVunit;
-  const float E2 = sqrt(pow(pT2 * cosh(eta2) * GeVunit, 2) + pow(mass2 * GeVunit, 2)*(mass2>=0. ? +1.f : -1.f));
-
-  const float px = px1 + px2;
-  const float py = py1 + py2;
-  const float pz = pz1 + pz2;
-  const float E = E1 + E2;
-
-  const float qsq = pow(E, 2) - pow(px, 2) - pow(py, 2) - pow(pz, 2);
-  const float denom = pow(qsq - mx*mx, 2) + pow(mx*gamx, 2);
+  const Float_t mx = mX * GeVunit;
+  const Float_t gamx = gamX * GeVunit;
+  const Float_t qsq = this->getQSq();
+  const Float_t denom = pow(qsq - mx*mx, 2) + pow(mx*gamx, 2);
   if (denom>0.f) res = 1.f/denom;
-
   return res;
 }
+Float_t RooRelBW2ProngPdf::getQSq() const{
+  const Float_t px1 = pT1 * cos(phi1) * GeVunit;
+  const Float_t py1 = pT1 * sin(phi1) * GeVunit;
+  const Float_t pz1 = pT1 * sinh(eta1) * GeVunit;
+  const Float_t E1 = sqrt(pow(pT1 * cosh(eta1) * GeVunit, 2) + pow(mass1 * GeVunit, 2)*(mass1>=0. ? +1.f : -1.f));
 
+  const Float_t px2 = pT2 * cos(phi2) * GeVunit;
+  const Float_t py2 = pT2 * sin(phi2) * GeVunit;
+  const Float_t pz2 = pT2 * sinh(eta2) * GeVunit;
+  const Float_t E2 = sqrt(pow(pT2 * cosh(eta2) * GeVunit, 2) + pow(mass2 * GeVunit, 2)*(mass2>=0. ? +1.f : -1.f));
 
+  const Float_t px = px1 + px2;
+  const Float_t py = py1 + py2;
+  const Float_t pz = pz1 + pz2;
+  const Float_t E = E1 + E2;
+
+  const Float_t qsq = pow(E, 2) - pow(px, 2) - pow(py, 2) - pow(pz, 2);
+  return qsq;
+}

@@ -8,6 +8,8 @@
 
 class RooRelBW2ProngPdf : public RooAbsPdf{
 public:
+  static constexpr Double_t GeVunit=1e-2;
+
   struct modelParameters{
     RooAbsReal* mX;
     RooAbsReal* gamX;
@@ -37,9 +39,9 @@ public:
   Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const { return 0; }
   Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const { return 1.; }
 
-protected:
-  static constexpr Double_t GeVunit=1e-2;
+  Float_t getQSq() const;
 
+protected:
   RooRealProxy mX;
   RooRealProxy gamX;
 

@@ -32,7 +32,7 @@ void doFullProduction(int whichSample=-1){
     for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
     GenInfoHandler genInfoHandler;
-    genInfoHandler.setParticleInfoFlag(false);
+    //genInfoHandler.setParticleInfoFlag(false);
     for (auto* tree:theSet.getFrameworkTreeList()) genInfoHandler.bookBranches(tree);
 
     EventFilterHandler eventFilter;

@@ -10,6 +10,7 @@ protected:
   bool doElectrons;
   bool doMuons;
   bool doJetMET;
+  bool doWriteSelectionVariables;
 
   bool runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product);
 
@@ -26,6 +27,7 @@ public:
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
   void setJetMETFlag(bool flag){ doJetMET = flag; }
+  void setWriteSelectionVariables(bool flag){ doWriteSelectionVariables = flag; }
 
 };
 
@@ -37,7 +39,8 @@ EventAnalyzer::EventAnalyzer() :
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
-  doJetMET(true)
+  doJetMET(true),
+  doWriteSelectionVariables(true)
 {}
 EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   FrameworkTreeLooperBase(inTree),
@@ -47,7 +50,8 @@ EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
-  doJetMET(true)
+  doJetMET(true),
+  doWriteSelectionVariables(true)
 {}
 EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   FrameworkTreeLooperBase(inTreeList),
@@ -57,7 +61,8 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
-  doJetMET(true)
+  doJetMET(true),
+  doWriteSelectionVariables(true)
 {}
 EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   FrameworkTreeLooperBase(inTreeSet),
@@ -67,7 +72,8 @@ EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   doEventFilter(true),
   doElectrons(true),
   doMuons(true),
-  doJetMET(true)
+  doJetMET(true),
+  doWriteSelectionVariables(true)
 {}
 
 bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product){
@@ -373,25 +379,25 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     product.setNamedVal<std::vector<float>>("electrons_eta", eta);
     product.setNamedVal<std::vector<float>>("electrons_phi", phi);
     product.setNamedVal<std::vector<float>>("electrons_mass", mass);
-
-    product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
-    product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
-    product.setNamedVal<std::vector<float>>("electrons_energySC", energySC);
-    product.setNamedVal<std::vector<float>>("electrons_etaSC", etaSC);
-    product.setNamedVal<std::vector<float>>("electrons_etaSeedSC", etaSeedSC);
-    product.setNamedVal<std::vector<float>>("electrons_rho", rho);
-    product.setNamedVal<std::vector<float>>("electrons_sigmaIEtaIEta_full5x5", sigmaIEtaIEta_full5x5);
-    product.setNamedVal<std::vector<float>>("electrons_dEtaIn", dEtaIn);
-    product.setNamedVal<std::vector<float>>("electrons_dPhiIn", dPhiIn);
-    product.setNamedVal<std::vector<float>>("electrons_hOverE", hOverE);
-    product.setNamedVal<std::vector<float>>("electrons_ecalEnergy", ecalEnergy);
-    product.setNamedVal<std::vector<float>>("electrons_eOverPIn", eOverPIn);
-    product.setNamedVal<std::vector<float>>("electrons_dxyPV", dxyPV);
-    product.setNamedVal<std::vector<float>>("electrons_dzPV", dzPV);
-    product.setNamedVal<std::vector<float>>("electrons_miniIso_ch", miniIso_ch);
-    product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
-    product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
-
+    if (doWriteSelectionVariables){
+      product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
+      product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
+      product.setNamedVal<std::vector<float>>("electrons_energySC", energySC);
+      product.setNamedVal<std::vector<float>>("electrons_etaSC", etaSC);
+      product.setNamedVal<std::vector<float>>("electrons_etaSeedSC", etaSeedSC);
+      product.setNamedVal<std::vector<float>>("electrons_rho", rho);
+      product.setNamedVal<std::vector<float>>("electrons_sigmaIEtaIEta_full5x5", sigmaIEtaIEta_full5x5);
+      product.setNamedVal<std::vector<float>>("electrons_dEtaIn", dEtaIn);
+      product.setNamedVal<std::vector<float>>("electrons_dPhiIn", dPhiIn);
+      product.setNamedVal<std::vector<float>>("electrons_hOverE", hOverE);
+      product.setNamedVal<std::vector<float>>("electrons_ecalEnergy", ecalEnergy);
+      product.setNamedVal<std::vector<float>>("electrons_eOverPIn", eOverPIn);
+      product.setNamedVal<std::vector<float>>("electrons_dxyPV", dxyPV);
+      product.setNamedVal<std::vector<float>>("electrons_dzPV", dzPV);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_ch", miniIso_ch);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
+    }
     product.setNamedVal<std::vector<long long>>("electrons_selectionBits", selectionBits);
 
     float electronSF = SF_IdIso*SF_Reco;
@@ -533,28 +539,28 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     product.setNamedVal<std::vector<float>>("muons_eta", eta);
     product.setNamedVal<std::vector<float>>("muons_phi", phi);
     product.setNamedVal<std::vector<float>>("muons_mass", mass);
+    if (doWriteSelectionVariables){
+      product.setNamedVal<std::vector<bool>>("muons_isPFMuon", isPFMuon);
 
-    product.setNamedVal<std::vector<bool>>("muons_isPFMuon", isPFMuon);
+      product.setNamedVal<std::vector<long long>>("muons_POGSelectorBit", POGSelectorBit);
 
-    product.setNamedVal<std::vector<long long>>("muons_POGSelectorBit", POGSelectorBit);
+      product.setNamedVal<std::vector<int>>("muons_type", type);
+      product.setNamedVal<std::vector<int>>("muons_validHits", validHits);
+      product.setNamedVal<std::vector<int>>("muons_lostHits", lostHits);
+      product.setNamedVal<std::vector<int>>("muons_expectedMissingInnerHits", expectedMissingInnerHits);
+      product.setNamedVal<std::vector<int>>("muons_expectedMissingOuterHits", expectedMissingOuterHits);
+      product.setNamedVal<std::vector<int>>("muons_GlobalFit_Ndof", GlobalFit_Ndof);
 
-    product.setNamedVal<std::vector<int>>("muons_type", type);
-    product.setNamedVal<std::vector<int>>("muons_validHits", validHits);
-    product.setNamedVal<std::vector<int>>("muons_lostHits", lostHits);
-    product.setNamedVal<std::vector<int>>("muons_expectedMissingInnerHits", expectedMissingInnerHits);
-    product.setNamedVal<std::vector<int>>("muons_expectedMissingOuterHits", expectedMissingOuterHits);
-    product.setNamedVal<std::vector<int>>("muons_GlobalFit_Ndof", GlobalFit_Ndof);
-
-    product.setNamedVal<std::vector<float>>("muons_GlobalFit_Chisq", GlobalFit_Chisq);
-    product.setNamedVal<std::vector<float>>("muons_LocalPos_Chisq", LocalPos_Chisq);
-    product.setNamedVal<std::vector<float>>("muons_TrkKink", TrkKink);
-    product.setNamedVal<std::vector<float>>("muons_SegComp", SegComp);
-    product.setNamedVal<std::vector<float>>("muons_dxyPV", dxyPV);
-    product.setNamedVal<std::vector<float>>("muons_dzPV", dzPV);
-    product.setNamedVal<std::vector<float>>("muons_miniIso_ch", miniIso_ch);
-    product.setNamedVal<std::vector<float>>("muons_miniIso_nh", miniIso_nh);
-    product.setNamedVal<std::vector<float>>("muons_miniIso_em", miniIso_em);
-
+      product.setNamedVal<std::vector<float>>("muons_GlobalFit_Chisq", GlobalFit_Chisq);
+      product.setNamedVal<std::vector<float>>("muons_LocalPos_Chisq", LocalPos_Chisq);
+      product.setNamedVal<std::vector<float>>("muons_TrkKink", TrkKink);
+      product.setNamedVal<std::vector<float>>("muons_SegComp", SegComp);
+      product.setNamedVal<std::vector<float>>("muons_dxyPV", dxyPV);
+      product.setNamedVal<std::vector<float>>("muons_dzPV", dzPV);
+      product.setNamedVal<std::vector<float>>("muons_miniIso_ch", miniIso_ch);
+      product.setNamedVal<std::vector<float>>("muons_miniIso_nh", miniIso_nh);
+      product.setNamedVal<std::vector<float>>("muons_miniIso_em", miniIso_em);
+    }
     product.setNamedVal<std::vector<long long>>("muons_selectionBits", selectionBits);
 
     float muonSF = SF_IdIso*SF_Reco;
@@ -752,27 +758,6 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("ak4jets_npfcands", ak4jets_npfcands);
       product.setNamedVal("ak4jets_parton_flavor", ak4jets_parton_flavor);
       product.setNamedVal("ak4jets_hadron_flavor", ak4jets_hadron_flavor);
-      product.setNamedVal("ak4jets_chargedHadronMultiplicity", ak4jets_chargedHadronMultiplicity);
-      product.setNamedVal("ak4jets_neutralHadronMultiplicity", ak4jets_neutralHadronMultiplicity);
-      product.setNamedVal("ak4jets_photonMultiplicity", ak4jets_photonMultiplicity);
-      product.setNamedVal("ak4jets_electronMultiplicity", ak4jets_electronMultiplicity);
-      product.setNamedVal("ak4jets_muonMultiplicity", ak4jets_muonMultiplicity);
-      product.setNamedVal("ak4jets_chargedMultiplicity", ak4jets_chargedMultiplicity);
-      product.setNamedVal("ak4jets_neutralMultiplicity", ak4jets_neutralMultiplicity);
-      product.setNamedVal("ak4jets_totalMultiplicity", ak4jets_totalMultiplicity);
-
-      product.setNamedVal("ak4jets_area", ak4jets_area);
-      product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
-      product.setNamedVal("ak4jets_chargedHadronE", ak4jets_chargedHadronE);
-      product.setNamedVal("ak4jets_chargedEmE", ak4jets_chargedEmE);
-      product.setNamedVal("ak4jets_neutralHadronE", ak4jets_neutralHadronE);
-      product.setNamedVal("ak4jets_neutralEmE", ak4jets_neutralEmE);
-      product.setNamedVal("ak4jets_hfHadronE", ak4jets_hfHadronE);
-      product.setNamedVal("ak4jets_hfEmE", ak4jets_hfEmE);
-      product.setNamedVal("ak4jets_photonE", ak4jets_photonE);
-      product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
-      product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
-
       product.setNamedVal("ak4jets_deepCSVb", ak4jets_deepCSVb);
       product.setNamedVal("ak4jets_deepCSVc", ak4jets_deepCSVc);
       product.setNamedVal("ak4jets_deepCSVl", ak4jets_deepCSVl);
@@ -782,7 +767,28 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("ak4jets_ptDistribution", ak4jets_ptDistribution);
       product.setNamedVal("ak4jets_axis1", ak4jets_axis1);
       product.setNamedVal("ak4jets_axis2", ak4jets_axis2);
+      if (doWriteSelectionVariables){
+        product.setNamedVal("ak4jets_chargedHadronMultiplicity", ak4jets_chargedHadronMultiplicity);
+        product.setNamedVal("ak4jets_neutralHadronMultiplicity", ak4jets_neutralHadronMultiplicity);
+        product.setNamedVal("ak4jets_photonMultiplicity", ak4jets_photonMultiplicity);
+        product.setNamedVal("ak4jets_electronMultiplicity", ak4jets_electronMultiplicity);
+        product.setNamedVal("ak4jets_muonMultiplicity", ak4jets_muonMultiplicity);
+        product.setNamedVal("ak4jets_chargedMultiplicity", ak4jets_chargedMultiplicity);
+        product.setNamedVal("ak4jets_neutralMultiplicity", ak4jets_neutralMultiplicity);
+        product.setNamedVal("ak4jets_totalMultiplicity", ak4jets_totalMultiplicity);
 
+        product.setNamedVal("ak4jets_area", ak4jets_area);
+        product.setNamedVal("ak4jets_chargedHadronE", ak4jets_chargedHadronE);
+        product.setNamedVal("ak4jets_chargedEmE", ak4jets_chargedEmE);
+        product.setNamedVal("ak4jets_neutralHadronE", ak4jets_neutralHadronE);
+        product.setNamedVal("ak4jets_neutralEmE", ak4jets_neutralEmE);
+        product.setNamedVal("ak4jets_hfHadronE", ak4jets_hfHadronE);
+        product.setNamedVal("ak4jets_hfEmE", ak4jets_hfEmE);
+        product.setNamedVal("ak4jets_photonE", ak4jets_photonE);
+        product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
+        product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
+      }
+      product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
       product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
       product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
       product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
@@ -893,8 +899,6 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
 
       product.setNamedVal("ak8jets_parton_flavor", ak8jets_parton_flavor);
 
-      product.setNamedVal("ak8jets_area", ak8jets_area);
-      product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
       product.setNamedVal("ak8jets_tau1", ak8jets_tau1);
       product.setNamedVal("ak8jets_tau2", ak8jets_tau2);
       product.setNamedVal("ak8jets_tau3", ak8jets_tau3);
@@ -905,7 +909,11 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       product.setNamedVal("ak8jets_deepdisc_zbb", ak8jets_deepdisc_zbb);
       product.setNamedVal("ak8jets_deepdisc_hbb", ak8jets_deepdisc_hbb);
       product.setNamedVal("ak8jets_deepdisc_h4q", ak8jets_deepdisc_h4q);
+      if (doWriteSelectionVariables){
+        product.setNamedVal("ak8jets_area", ak8jets_area);
+      }
 
+      product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
       product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
       product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
       product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);

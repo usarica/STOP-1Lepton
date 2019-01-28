@@ -46,7 +46,7 @@ protected:
   bool constructMET();
   bool constructTFTops();
   bool matchGenJets();
-  bool applyBtagSFs();
+  bool applyBtaggingAndSFs();
   bool applyJetCleaning();
   bool applyJEC();
   bool applyJER();

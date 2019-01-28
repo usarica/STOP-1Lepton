@@ -1,6 +1,6 @@
 #include "common_includes.h"
 #include "RooMsgService.h"
-#include "RooRelBW2ProngPdf.h"
+#include "RooRelBW3ProngPdf.h"
 #include "RooConstVar.h"
 #include "RooGaussian.h"
 #include "RooProdPdf.h"
@@ -97,7 +97,34 @@ int getHistogramDashByWeightType(WeightVariables::WeightType type){
   };
 }
 
-void testZFit(TString fname){
+bool getBestZCandidate(std::vector<MELAParticle>& leptons, MELAParticle& bestZ){
+  std::vector<MELAParticle*> leps, aleps;
+  for (auto& l:leptons){
+    if (l.id>0) leps.push_back(&l);
+    else if (l.id<0) aleps.push_back(&l);
+  }
+  std::pair<MELAParticle*, MELAParticle*> Zpair=std::pair<MELAParticle*, MELAParticle*>(nullptr, nullptr);
+  for (auto lep=leps.cbegin(); lep!=leps.cend(); lep++){
+    for (auto alep=aleps.cbegin(); alep!=aleps.cend(); alep++){
+      if (PDGHelpers::getCoupledVertex(lep.id, alep.id)!=23) continue;
+      if (
+        (!Zpair.first || !Zpair.second)
+        ||
+        fabs((lep.p4 + alep.p4).M()-PDGHelpers::Zmass)<fabs((Zpair.first->p4 + Zpair.second->p4).M()-PDGHelpers::Zmass)
+        ){ Zpair.first = &lep; Zpair.second.second = &alep; }
+    }
+  }
+  if (Zpair.first && Zpair.second){
+    MELAParticle tmpZ(23, Zpair.first->p4 + Zpair.second->p4);
+    tmpZ.addDaughter(Zpair.first);
+    tmpZ.addDaughter(Zpair.second);
+    bestZ.swap(tmpZ);
+    return true;
+  }
+  else return false;
+}
+
+void testAllFits(TString fname){
   gStyle->SetOptStat(0);
   RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
 
@@ -110,13 +137,11 @@ void testZFit(TString fname){
   RooConstVar one_rcv("one_rcv", "one_rcv", 1);
   RooConstVar zero_rcv("zero_rcv", "zero_rcv", 0);
 
-  RooRelBW2ProngPdf::modelParameters Zpars;
-  Zpars.mX = new RooConstVar("mZ", "mZ", 91.2);
-  Zpars.gamX = new RooConstVar("gamZ", "gamZ", 2.);
-
-  RooRelBW2ProngPdf::modelParameters Wpars;
-  Wpars.mX = new RooConstVar("mW", "mW", 80.4);
-  Wpars.gamX = new RooConstVar("gamW", "gamW", 2.);
+  RooRelBW3ProngPdf::modelParameters Tpars;
+  Tpars.mX = new RooConstVar("mT", "mT", 173.2);
+  Tpars.gamX = new RooConstVar("gamT", "gamT", 1.4);
+  Tpars.mV = new RooConstVar("mW", "mW", 80.4);
+  Tpars.gamV = new RooConstVar("gamW", "gamW", 2.);
 
   bool isWZ = (fname.Contains("WZTo"));
   bool isWZZ = (fname.Contains("WZZ"));
@@ -130,7 +155,7 @@ void testZFit(TString fname){
   bool isZZ4L = (fname.Contains("ZZTo4L"));
   if (!fname.Contains(".root")) fname += ".root";
   const TString strindir="output/test_GenWeights/2018/";
-  TString stroutputcore=strindir+"/fitterTests/Zfit/";
+  TString stroutputcore=strindir+"/fitterTests/AllFits/";
   TString stroutput=stroutputcore;
   TString sampleLabel;
   if (isWZ) sampleLabel="WZTo3LNu_comparison";
@@ -211,17 +236,50 @@ void testZFit(TString fname){
 
   TFile* foutput = TFile::Open(stroutput, "recreate");
   TTree tout("ZFitTest", "");
+  tout.Branch("pfmet", &pfmet);
+  tout.Branch("pfmetPhi", &pfmetPhi);
+  BOOK_BRANCH(float, mT, tout);
   BOOK_BRANCH(unsigned int, nak4jets_preselected, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jetpt, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jeteta, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jetphi, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jetmass, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jetrelresolution, tout);
-  BOOK_BRANCH(std::vector<float>, qqfit_jetnuisance, tout);
-  BOOK_BRANCH(int, qqfit_status, tout);
-  BOOK_BRANCH(int, qqfit_VId, tout);
-  BOOK_BRANCH(float, mqq_prefit, tout);
-  BOOK_BRANCH(float, mqq_postfit, tout);
+  BOOK_BRANCH(std::vector<float>, ak4jets_preselected_pt, tout);
+  BOOK_BRANCH(std::vector<float>, ak4jets_preselected_eta, tout);
+  BOOK_BRANCH(std::vector<float>, ak4jets_preselected_phi, tout);
+  BOOK_BRANCH(std::vector<float>, ak4jets_preselected_mass, tout);
+  BOOK_BRANCH(std::vector<float>, ak4jets_preselected_relPtResolution, tout);
+  BOOK_BRANCH(float, bestTFTop_mass, tout);
+  BOOK_BRANCH(float, bestTFTop_disc, tout);
+  BOOK_BRANCH(unsigned int, nelectrons_preselected, tout);
+  BOOK_BRANCH(std::vector<float>, electrons_preselected_pt, tout);
+  BOOK_BRANCH(std::vector<float>, electrons_preselected_eta, tout);
+  BOOK_BRANCH(std::vector<float>, electrons_preselected_phi, tout);
+  BOOK_BRANCH(std::vector<float>, electrons_preselected_mass, tout);
+  BOOK_BRANCH(unsigned int, nmuons_preselected, tout);
+  BOOK_BRANCH(std::vector<float>, muons_preselected_pt, tout);
+  BOOK_BRANCH(std::vector<float>, muons_preselected_eta, tout);
+  BOOK_BRANCH(std::vector<float>, muons_preselected_phi, tout);
+  BOOK_BRANCH(std::vector<float>, muons_preselected_mass, tout);
+  BOOK_BRANCH(float, bestLeptonicZ_mass, tout);
+  BOOK_BRANCH(float, bestLeptonicZ_id, tout); // 11 or 13
+  BOOK_BRANCH(std::vector<unsigned int>, bestLeptonicZ_leptonIndices, tout);
+
+  BOOK_BRANCH(std::vector<unsigned int>, hadTfit_jetIndices, tout);
+  BOOK_BRANCH(std::vector<float>, hadTfit_jetnuisance, tout);
+  BOOK_BRANCH(int, hadTfit_status, tout);
+  BOOK_BRANCH(int, hadTfit_VId, tout);
+  BOOK_BRANCH(float, hadTfit_mW_prefit, tout);
+  BOOK_BRANCH(float, hadTfit_mW_postfit, tout);
+  BOOK_BRANCH(float, hadTfit_mtop_prefit, tout);
+  BOOK_BRANCH(float, hadTfit_mtop_postfit, tout);
+  BOOK_BRANCH(float, bestHadTFitMatchTFTop_mass, tout);
+  BOOK_BRANCH(float, bestHadTFitMatchTFTop_disc, tout);
+  BOOK_BRANCH(float, bestHadTFitMatchTFTop_dR, tout);
+
+  BOOK_BRANCH(std::vector<unsigned int>, hadVfit_jetIndices, tout);
+  BOOK_BRANCH(std::vector<float>, hadVfit_jetnuisance, tout);
+  BOOK_BRANCH(int, hadVfit_status, tout);
+  BOOK_BRANCH(int, hadVfit_VId, tout);
+  BOOK_BRANCH(float, hadVfit_mV_prefit, tout);
+  BOOK_BRANCH(float, hadVfit_mV_postfit, tout);
+
 
   // Plotted variables
   struct Variable{
@@ -249,10 +307,9 @@ void testZFit(TString fname){
   };
 
   std::vector<Variable> plotvars;
-  plotvars.emplace_back("mll", "m_{ll} (GeV)", 40, 80, 100);
-  plotvars.emplace_back("mqq_prefit", "m_{qq} (pre-fit) (GeV)", 60, 70, 100);
-  plotvars.emplace_back("mqq_postfit", "m_{qq} (post-fit) (GeV)", 60, 70, 100);
-
+  //plotvars.emplace_back("mll", "m_{ll} (GeV)", 40, 80, 100);
+  plotvars.emplace_back("hadTfit_mW_prefit", "m_{qq} (pre-fit) (GeV)", 60, 70, 100);
+  plotvars.emplace_back("hadTfit_mW_postfit", "m_{qq} (post-fit) (GeV)", 60, 70, 100);
   size_t const nvars = plotvars.size();
 
   std::vector<std::vector<TH1F*>> histColl(plotvars.size(), std::vector<TH1F*>(WeightVariables::nWeightTypes, nullptr));
@@ -283,32 +340,114 @@ void testZFit(TString fname){
 
     for (int iwt=0; iwt<WeightVariables::nWeightTypes; iwt++) sumCtrWgt[iwt] += genweights[iwt];
 
+    mT=-1;
+    nak4jets_preselected=0;
+    ak4jets_preselected_pt.clear();
+    ak4jets_preselected_eta.clear();
+    ak4jets_preselected_phi.clear();
+    ak4jets_preselected_mass.clear();
+    ak4jets_preselected_relPtResolution.clear();
+    bestTFTop_mass=-1;
+    bestTFTop_disc=-1;
+    nelectrons_preselected=0;
+    electrons_preselected_pt.clear();
+    electrons_preselected_eta.clear();
+    electrons_preselected_phi.clear();
+    electrons_preselected_mass.clear();
+    nmuons_preselected=0;
+    muons_preselected_pt.clear();
+    muons_preselected_eta.clear();
+    muons_preselected_phi.clear();
+    muons_preselected_mass.clear();
+    bestLeptonicZ_mass=-1;
+    bestLeptonicZ_id=-9000; // 11 or 13
+    bestLeptonicZ_leptonIndices.clear();
+
+    hadTfit_jetIndices.clear();
+    hadTfit_jetnuisance.clear();
+    hadTfit_status=-1;
+    hadTfit_VId=-9000;
+    hadTfit_mW_prefit=-1;
+    hadTfit_mW_postfit=-1;
+    hadTfit_mtop_prefit=-1;
+    hadTfit_mtop_postfit=-1;
+    bestHadTFitMatchTFTop_mass=-1;
+    bestHadTFitMatchTFTop_disc=-1;
+    bestHadTFitMatchTFTop_dR=-1;
+
+    hadVfit_jetIndices.clear();
+    hadVfit_jetnuisance.clear();
+    hadVfit_status=-1;
+    hadVfit_VId=-9000;
+    hadVfit_mV_prefit=-1;
+    hadVfit_mV_postfit=-1;
+
+
+    MELAParticle bestLeptonicZcand;
+    bool hasLeptonicZ=false;
+
     size_t const nelectrons = electrons_pt->size();
-    size_t nelectrons_preselected=0;
     std::vector<MELAParticle> electrons; electrons.reserve(nelectrons);
     for (size_t ip=0; ip<nelectrons; ip++){
-      if (!HelperFunctions::test_bit(electrons_selectionBits->at(ip), ElectronSelectionHelpers::kPreselection)) continue;
-      nelectrons_preselected++;
+      if (!HelperFunctions::test_bit(electrons_selectionBits->at(ip), ElectronSelectionHelpers::kMediumIDReco)) continue;
       TLorentzVector v; v.SetPtEtaPhiM(electrons_pt->at(ip), electrons_eta->at(ip), electrons_phi->at(ip), electrons_mass->at(ip));
+      if (v.Pt()<ElectronSelectionHelpers::ptThr_skim_medium || fabs(v.Eta())>=ElectronSelectionHelpers::etaThr_skim_loose) continue; // Preselection requires some crazy tight eta cut, so apply manually
       electrons.emplace_back(electrons_id->at(ip), v);
+    }
+    nelectrons_preselected = electrons.size();
+    if (getBestZCandidate(electrons, bestLeptonicZcand)){
+      bestLeptonicZ_leptonIndices.clear();
+      for (unsigned int ip=0; ip<electrons.size();ip++){
+        for (unsigned int jp=0; jp<electrons.size(); jp++){
+          if (ip==jp) continue;
+          if (bestLeptonicZcand.getDaughter(0)==&(electrons.at(ip)) && bestLeptonicZcand.getDaughter(1)==&(electrons.at(jp))){
+            bestLeptonicZ_leptonIndices.push_back(ip);
+            bestLeptonicZ_leptonIndices.push_back(jp);
+            bestLeptonicZ_id = 11;
+            bestLeptonicZ_mass = bestLeptonicZcand.m();
+          }
+        }
+      }
+      hasLeptonicZ = true;
     }
 
     size_t const nmuons = muons_pt->size();
-    size_t nmuons_preselected=0;
     std::vector<MELAParticle> muons; muons.reserve(nmuons);
     for (size_t ip=0; ip<nmuons; ip++){
       if (!HelperFunctions::test_bit(muons_selectionBits->at(ip), MuonSelectionHelpers::kPreselection)) continue;
-      nmuons_preselected++;
       TLorentzVector v; v.SetPtEtaPhiM(muons_pt->at(ip), muons_eta->at(ip), muons_phi->at(ip), muons_mass->at(ip));
       muons.emplace_back(muons_id->at(ip), v);
     }
+    nmuons_preselected = muons.size();
+    if (getBestZCandidate(muons, bestLeptonicZcand)){
+      bestLeptonicZ_leptonIndices.clear();
+      for (unsigned int ip=0; ip<muons.size(); ip++){
+        for (unsigned int jp=0; jp<muons.size(); jp++){
+          if (ip==jp) continue;
+          if (bestLeptonicZcand.getDaughter(0)==&(muons.at(ip)) && bestLeptonicZcand.getDaughter(1)==&(muons.at(jp))){
+            bestLeptonicZ_leptonIndices.push_back(ip);
+            bestLeptonicZ_leptonIndices.push_back(jp);
+            bestLeptonicZ_id = 13;
+            bestLeptonicZ_mass = bestLeptonicZcand.m();
+          }
+        }
+      }
+      hasLeptonicZ = true;
+    }
+
 
     size_t const nak4jets = ak4jets_pt->size();
     std::vector<MELAParticle> ak4jets; ak4jets.reserve(nak4jets);
     for (size_t ip=0; ip<nak4jets; ip++){
-      if (!HelperFunctions::test_bit(ak4jets_selectionBits->at(ip), AK4JetSelectionHelpers::kTightID) || ak4jets_pt->at(ip)<30.f || fabs(ak4jets_eta->at(ip))>4.7) continue;
+      if (!HelperFunctions::test_bit(ak4jets_selectionBits->at(ip), AK4JetSelectionHelpers::kTightID) || ak4jets_pt->at(ip)<AK4JetSelectionHelpers::ptThr_skim_preselection || fabs(ak4jets_eta->at(ip))>=4.7) continue;
       TLorentzVector v; v.SetPtEtaPhiM(ak4jets_pt->at(ip), ak4jets_eta->at(ip), ak4jets_phi->at(ip), ak4jets_mass->at(ip));
       ak4jets.emplace_back(0, v);
+
+      ak4jets_preselected_pt.push_back(v.Pt());
+      ak4jets_preselected_eta.push_back(v.Eta());
+      ak4jets_preselected_phi.push_back(v.Phi());
+      ak4jets_preselected_mass.push_back(v.M());
+      ak4jets_preselected_relPtResolution.push_back(ak4jets_estimatedPtResolution->at(ip)/v.Pt());
     }
     nak4jets_preselected = ak4jets.size();
 
@@ -321,53 +460,40 @@ void testZFit(TString fname){
 
     size_t const ntftops = tftops_pt->size();
     std::vector<MELAParticle> tftops; tftops.reserve(ntftops);
+    MELAParticle* bestTFTop = nullptr;
     for (size_t ip=0; ip<ntftops; ip++){
       TLorentzVector v; v.SetPtEtaPhiM(tftops_pt->at(ip), tftops_eta->at(ip), tftops_phi->at(ip), tftops_mass->at(ip));
       tftops.emplace_back(0, v);
+      if (bestTFTop_disc<0.f || tftops_disc->at(ip)>bestTFTop_disc){
+        bestTFTop_disc = tftops_disc->at(ip);
+        bestTFTop_mass = v.M();
+        bestTFTop = &(tftops.back());
+      }
     }
 
-    qqfit_jetpt.clear();
-    qqfit_jeteta.clear();
-    qqfit_jetphi.clear();
-    qqfit_jetmass.clear();
-    qqfit_jetrelresolution.clear();
-    qqfit_jetnuisance.clear();
-    mqq_prefit = -1;
-    mqq_postfit = -1;
-    qqfit_VId = -1;
-    qqfit_status = -1;
 
-    int bestWfitstatus=-999;
-    float bestWpdfval=-1;
-    float bestWconstraintpdfval=-1;
+    int bestfitstatus=-999;
+    float bestpdfval=-1;
+    float bestconstraintpdfval=-1;
     float bestWmass = -1;
     float bestWmass_prefit = -1;
-    std::vector<float> qqWfit_jetpt;
-    std::vector<float> qqWfit_jeteta;
-    std::vector<float> qqWfit_jetphi;
-    std::vector<float> qqWfit_jetmass;
-    std::vector<float> qqWfit_jetrelresolution;
-    std::vector<float> qqWfit_jetnuisance;
+    float bestTmass = -1;
+    float bestTmass_prefit = -1;
+    std::vector<float> topfit_jetpt;
+    std::vector<float> topfit_jeteta;
+    std::vector<float> topfit_jetphi;
+    std::vector<float> topfit_jetmass;
+    std::vector<float> topfit_jetrelresolution;
+    std::vector<float> topfit_jetnuisance;
 
-    int bestZfitstatus=-999;
-    float bestZpdfval=-1;
-    float bestZconstraintpdfval=-1;
-    float bestZmass = -1;
-    float bestZmass_prefit = -1;
-    std::vector<float> qqZfit_jetpt;
-    std::vector<float> qqZfit_jeteta;
-    std::vector<float> qqZfit_jetphi;
-    std::vector<float> qqZfit_jetmass;
-    std::vector<float> qqZfit_jetrelresolution;
-    std::vector<float> qqZfit_jetnuisance;
-
-    if (nak4jets_preselected>=2 && nak4jets_preselected<=4){
+    if (nak4jets_preselected>=3 && nak4jets_preselected<=4){
       std::vector<std::vector<int>> comblist;
-      TNumericUtil::CombinationGenerator(nak4jets_preselected, 2, comblist, 0); // Need to use PermutationGenerator with j<k req. for n>2
+      TNumericUtil::PermutationGenerator(nak4jets_preselected, 3, comblist, 0);
 
       for (auto const& comb:comblist){
         size_t const nprongs = comb.size();
-        RooRelBW2ProngPdf::modelMeasurables vars;
+        if (comb.at(1)>comb.at(2)) continue;
+        RooRelBW3ProngPdf::modelMeasurables vars;
         std::vector<RooConstVar> ptraw, eta, phi, massraw, kappaLow, kappaHigh;
         ptraw.reserve(nprongs); eta.reserve(nprongs); phi.reserve(nprongs); massraw.reserve(nprongs); kappaLow.reserve(nprongs); kappaHigh.reserve(nprongs);
         std::vector<RooRealVar> theta_ptunc; theta_ptunc.reserve(nprongs);
@@ -404,51 +530,59 @@ void testZFit(TString fname){
         vars.phi2 = &(phi.at(1));
         vars.mass2 = &(mass_rfv.at(1));
 
-        RooProdPdf constraintspdf("constraintspdf", "constraintspdf", RooArgList(pdf_ptunc.at(0), pdf_ptunc.at(1)));
+        vars.pT3 = &(pt_rfv.at(2));
+        vars.eta3 = &(eta.at(2));
+        vars.phi3 = &(phi.at(2));
+        vars.mass3 = &(mass_rfv.at(2));
 
-        RooRelBW2ProngPdf bwZpdf("bwZpdf", "bwZpdf", Zpars, vars);
-        RooProdPdf totalZpdf("totalZpdf", "totalZpdf", RooArgList(bwZpdf, constraintspdf));
-        RooFormulaVar logL_Zpdf("logLikelihood_Zpdf", "-log(@0)", RooArgList(totalZpdf));
+        RooProdPdf constraintspdf("constraintspdf", "constraintspdf", RooArgList(pdf_ptunc.at(0), pdf_ptunc.at(1), pdf_ptunc.at(2)));
 
-        RooRelBW2ProngPdf bwWpdf("bwWpdf", "bwWpdf", Wpars, vars);
-        RooProdPdf totalWpdf("totalWpdf", "totalWpdf", RooArgList(bwWpdf, constraintspdf));
-        RooFormulaVar logL_Wpdf("logLikelihood_Wpdf", "-log(@0)", RooArgList(totalWpdf));
+        RooRelBW3ProngPdf topWpdf("topWpdf", "topWpdf", Tpars, vars, RooRelBW3ProngPdf::kWany);
+        RooProdPdf totalpdf("totalpdf", "totalpdf", RooArgList(topWpdf, constraintspdf));
+        RooFormulaVar logL_rfv("logLikelihood_rfv", "-log(@0)", RooArgList(totalpdf));
 
-        float mass_prefit = bwZpdf.getQSq(); // Not important from which pdf you read it
-        bool const dofits = (mass_prefit>0.f && sqrt(mass_prefit)/RooRelBW2ProngPdf::GeVunit>=40.f && sqrt(mass_prefit)/RooRelBW2ProngPdf::GeVunit<=210.f);
+        float topmass_prefit = topWpdf.getQXSq(); // Not important from which pdf you read it
+        float Wmass_prefit = topWpdf.getQVSq(); // Not important from which pdf you read it
+        /*
+        bool const dofits = 
+          (topmass_prefit>0.f && sqrt(topmass_prefit)/RooRelBW3ProngPdf::GeVunit>=100.f && sqrt(topmass_prefit)/RooRelBW3ProngPdf::GeVunit<=350.f)
+          &&
+          (Wmass_prefit>0.f && sqrt(Wmass_prefit)/RooRelBW3ProngPdf::GeVunit>=40.f && sqrt(Wmass_prefit)/RooRelBW3ProngPdf::GeVunit<=210.f)
+          ;
         if (!dofits) continue;
-
+        */
         RooFitResult* fitResult = nullptr;
 
-        float constraintsStatus_Wpdf;
-        std::vector<float> thetaValues_Wpdf; thetaValues_Wpdf.reserve(nprongs);
-        float tmpWpdfval;
-        float massW_postfit;        
-        bool isWfitOK=false;
-        int fitWstatus=-999;
-        { // Do W minimization
+        float constraintsStatus;
+        std::vector<float> thetaValues; thetaValues.reserve(nprongs);
+        float tmppdfval;
+        float topmass_postfit;
+        float Wmass_postfit;
+        bool isFitOK=false;
+        int fitstatus=-999;
+        { // Do T+W minimization
           for (auto& var:theta_ptunc) var.setVal(0);
-          RooMinuit minimizer(logL_Wpdf);
+          RooMinuit minimizer(logL_rfv);
           minimizer.setPrintLevel(-1);
           minimizer.setNoWarn();
           minimizer.setStrategy(2);
           minimizer.migrad();
           fitResult = minimizer.save();
           if (fitResult){
-            fitWstatus=fitResult->status();
-            isWfitOK=(fitWstatus==0);
+            fitstatus=fitResult->status();
+            isFitOK=(fitstatus==0);
             delete fitResult; fitResult=nullptr;
           }
-          if (fitWstatus==4){
+          if (fitstatus==4){
             for (unsigned int itry=0; itry<5; itry++){
               minimizer.migrad();
               fitResult = minimizer.save();
               if (fitResult){
-                fitWstatus=fitResult->status();
-                isWfitOK=(fitWstatus==0);
+                fitstatus=fitResult->status();
+                isFitOK=(fitstatus==0);
                 delete fitResult; fitResult=nullptr;
               }
-              if (isWfitOK) break;
+              if (isFitOK) break;
             }
           }
           else{
@@ -457,140 +591,74 @@ void testZFit(TString fname){
               minimizer.migrad();
               fitResult = minimizer.save();
               if (fitResult){
-                fitWstatus=fitResult->status();
-                isWfitOK=(fitWstatus==0);
+                fitstatus=fitResult->status();
+                isFitOK=(fitstatus==0);
                 delete fitResult; fitResult=nullptr;
               }
-              if (isWfitOK) break;
+              if (isFitOK) break;
             }
           }
-          tmpWpdfval = totalWpdf.getVal();
-          massW_postfit = bwWpdf.getQSq();
-          constraintsStatus_Wpdf = constraintspdf.getVal();
-          for (size_t ijet=0; ijet<nprongs; ijet++) thetaValues_Wpdf.push_back(theta_ptunc.at(ijet).getVal());
+          tmppdfval = totalpdf.getVal();
+          topmass_postfit = topWpdf.getQXSq();
+          Wmass_postfit = topWpdf.getQVSq();
+          constraintsStatus = constraintspdf.getVal();
+          for (size_t ijet=0; ijet<nprongs; ijet++) thetaValues.push_back(theta_ptunc.at(ijet).getVal());
+          //MELAout << "\t\t- Masses for W and top: " << sqrt(Wmass_prefit)/100.f  << ", " << sqrt(topmass_prefit)/100.f << " -> " << sqrt(Wmass_postfit)/100.f << ", " << sqrt(topmass_postfit)/100.f << endl;
         }
 
-        float constraintsStatus_Zpdf;
-        std::vector<float> thetaValues_Zpdf; thetaValues_Zpdf.reserve(nprongs);
-        float tmpZpdfval;
-        float massZ_postfit;
-        bool isZfitOK=false;
-        int fitZstatus=-999;
-        { // Do Z minimization
-          for (auto& var:theta_ptunc) var.setVal(0);
-          RooMinuit minimizer(logL_Zpdf);
-          minimizer.setPrintLevel(-1);
-          minimizer.setNoWarn();
-          minimizer.setStrategy(2);
-          minimizer.migrad();
-          fitResult = minimizer.save();
-          if (fitResult){
-            fitZstatus=fitResult->status();
-            isZfitOK=(fitZstatus==0);
-            delete fitResult; fitResult=nullptr;
-          }
-          if (fitZstatus==4){
-            for (unsigned int itry=0; itry<5; itry++){
-              minimizer.migrad();
-              fitResult = minimizer.save();
-              if (fitResult){
-                fitZstatus=fitResult->status();
-                isZfitOK=(fitZstatus==0);
-                delete fitResult; fitResult=nullptr;
-              }
-              if (isZfitOK) break;
-            }
-          }
-          else{
-            minimizer.setStrategy(0);
-            for (unsigned int itry=0; itry<5; itry++){
-              minimizer.migrad();
-              fitResult = minimizer.save();
-              if (fitResult){
-                fitZstatus=fitResult->status();
-                isZfitOK=(fitZstatus==0);
-                delete fitResult; fitResult=nullptr;
-              }
-              if (isZfitOK) break;
-            }
-          }
-          tmpZpdfval = totalZpdf.getVal();
-          massZ_postfit = bwZpdf.getQSq();
-          constraintsStatus_Zpdf = constraintspdf.getVal();
-          for (size_t ijet=0; ijet<nprongs; ijet++) thetaValues_Zpdf.push_back(theta_ptunc.at(ijet).getVal());
-        }
+        if (isFitOK && (bestpdfval<0.f || tmppdfval>bestpdfval)){
+          bestpdfval = tmppdfval;
+          bestconstraintpdfval = constraintsStatus;
+          bestTmass = topmass_postfit;
+          bestTmass_prefit = topmass_prefit;
+          bestWmass = Wmass_postfit;
+          bestWmass_prefit = Wmass_prefit;
+          bestfitstatus = fitstatus;
 
-        if (isWfitOK && (bestWpdfval<0.f || tmpWpdfval>bestWpdfval)){
-          bestWpdfval = tmpWpdfval;
-          bestWconstraintpdfval = constraintsStatus_Wpdf;
-          bestWmass = massW_postfit;
-          bestWmass_prefit = mass_prefit;
-          bestWfitstatus = fitWstatus;
-
-          qqWfit_jetpt.clear();
-          qqWfit_jeteta.clear();
-          qqWfit_jetphi.clear();
-          qqWfit_jetmass.clear();
-          qqWfit_jetrelresolution.clear();
-          qqWfit_jetnuisance = thetaValues_Wpdf;
+          topfit_jetpt.clear();
+          topfit_jeteta.clear();
+          topfit_jetphi.clear();
+          topfit_jetmass.clear();
+          topfit_jetrelresolution.clear();
+          topfit_jetnuisance = thetaValues;
           for (unsigned int ijet=0; ijet<nprongs; ijet++){
-            qqWfit_jetpt.push_back(ptraw.at(ijet).getVal());
-            qqWfit_jetmass.push_back(massraw.at(ijet).getVal());
-            qqWfit_jeteta.push_back(eta.at(ijet).getVal());
-            qqWfit_jetphi.push_back(phi.at(ijet).getVal());
-            qqWfit_jetrelresolution.push_back(kappaHigh.at(ijet).getVal()-1.);
-          }
-        }
-        if (isZfitOK && (bestZpdfval<0.f || tmpZpdfval>bestZpdfval)){
-          bestZpdfval = tmpZpdfval;
-          bestZconstraintpdfval = constraintsStatus_Zpdf;
-          bestZmass = massZ_postfit;
-          bestZmass_prefit = mass_prefit;
-          bestZfitstatus = fitZstatus;
-
-          qqZfit_jetpt.clear();
-          qqZfit_jeteta.clear();
-          qqZfit_jetphi.clear();
-          qqZfit_jetmass.clear();
-          qqZfit_jetrelresolution.clear();
-          qqZfit_jetnuisance = thetaValues_Zpdf;
-          for (unsigned int ijet=0; ijet<nprongs; ijet++){
-            qqZfit_jetpt.push_back(ptraw.at(ijet).getVal());
-            qqZfit_jetmass.push_back(massraw.at(ijet).getVal());
-            qqZfit_jeteta.push_back(eta.at(ijet).getVal());
-            qqZfit_jetphi.push_back(phi.at(ijet).getVal());
-            qqZfit_jetrelresolution.push_back(kappaHigh.at(ijet).getVal()-1.);
+            topfit_jetpt.push_back(ptraw.at(ijet).getVal());
+            topfit_jetmass.push_back(massraw.at(ijet).getVal());
+            topfit_jeteta.push_back(eta.at(ijet).getVal());
+            topfit_jetphi.push_back(phi.at(ijet).getVal());
+            topfit_jetrelresolution.push_back(kappaHigh.at(ijet).getVal()-1.);
           }
         }
       }
     }
-    if (bestWpdfval>0.f && bestZpdfval>0.f){ // Need to pick
-      if (bestWconstraintpdfval>bestZconstraintpdfval) qqfit_VId=24; // Superior in W constraint
-      else qqfit_VId=23;
-    }
-    else if (bestWpdfval>0.f) qqfit_VId=24;
-    else if (bestZpdfval>0.f) qqfit_VId=23;
-    if (qqfit_VId==24){
-      mqq_prefit = sqrt(bestWmass_prefit)/RooRelBW2ProngPdf::GeVunit;
-      mqq_postfit = sqrt(bestWmass)/RooRelBW2ProngPdf::GeVunit;
-      qqfit_jetpt = qqWfit_jetpt;
-      qqfit_jeteta = qqWfit_jeteta;
-      qqfit_jetphi = qqWfit_jetphi;
-      qqfit_jetmass = qqWfit_jetmass;
-      qqfit_jetrelresolution = qqWfit_jetrelresolution;
-      qqfit_jetnuisance = qqWfit_jetnuisance;
-      qqfit_status = bestWfitstatus;
-    }
-    else if (qqfit_VId==23){
-      mqq_prefit = sqrt(bestZmass_prefit)/RooRelBW2ProngPdf::GeVunit;
-      mqq_postfit = sqrt(bestZmass)/RooRelBW2ProngPdf::GeVunit;
-      qqfit_jetpt = qqZfit_jetpt;
-      qqfit_jeteta = qqZfit_jeteta;
-      qqfit_jetphi = qqZfit_jetphi;
-      qqfit_jetmass = qqZfit_jetmass;
-      qqfit_jetrelresolution = qqZfit_jetrelresolution;
-      qqfit_jetnuisance = qqZfit_jetnuisance;
-      qqfit_status = bestZfitstatus;
+
+    if (bestpdfval>0.f){
+      hadTfit_VId=6;
+      hadTfit_mW_prefit = sqrt(bestWmass_prefit)/RooRelBW3ProngPdf::GeVunit;
+      hadTfit_mW_postfit = sqrt(bestWmass)/RooRelBW3ProngPdf::GeVunit;
+      hadTfit_mtop_prefit = sqrt(bestTmass_prefit)/RooRelBW3ProngPdf::GeVunit;
+      hadTfit_mtop_postfit = sqrt(bestTmass)/RooRelBW3ProngPdf::GeVunit;
+      hadTfit_jetpt = topfit_jetpt;
+      hadTfit_jeteta = topfit_jeteta;
+      hadTfit_jetphi = topfit_jetphi;
+      hadTfit_jetmass = topfit_jetmass;
+      hadTfit_jetrelresolution = topfit_jetrelresolution;
+      hadTfit_jetnuisance = topfit_jetnuisance;
+      hadTfit_status = bestfitstatus;
+      //MELAout << "\t- Best masses for W and top: " << hadTfit_mW_prefit << ", " << hadTfit_mtop_prefit << " -> " << hadTfit_mW_postfit << ", " << hadTfit_mtop_postfit << endl;
+      if (hadTfit_jetpt.size()>=3){
+        TLorentzVector p_top_prefit;
+        for (unsigned int i=0; i<3; i++){ TLorentzVector pjet; pjet.SetPtEtaPhiM(hadTfit_jetpt.at(i), hadTfit_jeteta.at(i), hadTfit_jetphi.at(i), hadTfit_jetmass.at(i)); p_top_prefit += pjet; }
+
+        for (size_t ip=0; ip<ntftops; ip++){
+          auto const& tftop = tftops.at(ip);
+          float tmpdr = tftop.deltaR(p_top_prefit);
+          if (bestHadTFitMatchTFTop_dR<0.f || tmpdr<bestHadTFitMatchTFTop_dR){
+            bestHadTFitMatchTFTop_dR = tmpdr;
+            bestHadTFitMatchTFTop_mass = tftop.m();
+          }
+        }
+      }
     }
 
     // Fill the output tree
@@ -604,8 +672,8 @@ void testZFit(TString fname){
       if (var.name.Contains("metcut") && pfmet<150.f) continue;
 
       if (var.name.BeginsWith("recomet")) var.setVal(pfmet, genweights);
-      else if (var.name.BeginsWith("mqq_postfit")){ if (mqq_postfit<0.f){ continue; } var.setVal(mqq_postfit, genweights); }
-      else if (var.name.BeginsWith("mqq_prefit")){ if (mqq_prefit<0.f){ continue; } var.setVal(mqq_prefit, genweights); }
+      else if (var.name.BeginsWith("hadTfit_mW_postfit")){ if (hadTfit_mW_postfit<0.f){ continue; } var.setVal(hadTfit_mW_postfit, genweights); }
+      else if (var.name.BeginsWith("hadTfit_mW_prefit")){ if (hadTfit_mW_prefit<0.f){ continue; } var.setVal(hadTfit_mW_prefit, genweights); }
       else if (var.name.BeginsWith("nak4jets")){
         size_t nc=0;
         for (size_t ip=0; ip<nak4jets; ip++){
@@ -922,6 +990,8 @@ void testZFit(TString fname){
   foutput->Close();
   finput->Close();
 
-  delete Zpars.mX;
-  delete Zpars.gamX;
+  delete Tpars.mX;
+  delete Tpars.gamX;
+  delete Tpars.mV;
+  delete Tpars.gamV;
 }

@@ -134,6 +134,7 @@ float BtagHelpers::getBtagWP(BtagWPType type){
     WP_CSVv2_LOOSE = 0.5426;
   }
   else if (theDataYear == 2017){
+    // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X
     WP_DEEPCSV_TIGHT = 0.8001;
     WP_DEEPCSV_MEDIUM = 0.4941;
     WP_DEEPCSV_LOOSE = 0.1522;
@@ -142,9 +143,11 @@ float BtagHelpers::getBtagWP(BtagWPType type){
     WP_CSVv2_LOOSE = 0.5803;
   }
   else if (theDataYear == 2018){
-    WP_DEEPCSV_TIGHT = 0.8001;
-    WP_DEEPCSV_MEDIUM = 0.4941;
-    WP_DEEPCSV_LOOSE = 0.1522;
+    // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
+    WP_DEEPCSV_TIGHT = 0.7527;
+    WP_DEEPCSV_MEDIUM = 0.4184;
+    WP_DEEPCSV_LOOSE = 0.1241;
+    // FIXME: Not really supported yet, so keep 2017 values
     WP_CSVv2_TIGHT = 0.9693;
     WP_CSVv2_MEDIUM = 0.8838;
     WP_CSVv2_LOOSE = 0.5803;
