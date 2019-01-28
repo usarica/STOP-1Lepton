@@ -597,14 +597,14 @@ bool JetMETHandler::applyBtaggingAndSFs(){
 
     float bTagger=0;
     switch (AK4JetSelectionHelpers::AK4Jets_BTagWPType){
-    case kCSVv2_Loose:
-    case kCSVv2_Medium:
-    case kCSVv2_Tight:
+    case BtagHelpers::kCSVv2_Loose:
+    case BtagHelpers::kCSVv2_Medium:
+    case BtagHelpers::kCSVv2_Tight:
       bTagger = extras.pfCombinedInclusiveSecondaryVertexV2BJetTag;
       break;
-    case kDeepCSV_Loose:
-    case kDeepCSV_Medium:
-    case kDeepCSV_Tight:
+    case BtagHelpers::kDeepCSV_Loose:
+    case BtagHelpers::kDeepCSV_Medium:
+    case BtagHelpers::kDeepCSV_Tight:
       bTagger = extras.deepCSVb + extras.deepCSVbb;
       break;
     }
