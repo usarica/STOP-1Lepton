@@ -11,6 +11,8 @@ typedef unsigned long long EventNumber_t;
 #define _event_RunNumber_ "evt_run"
 #define _event_Lumisection_ "evt_lumiBlock"
 #define _event_EventNumber_ "evt_event"
+// End event variables
+
 
 // Event weight variables
 // Default weight list
@@ -40,6 +42,24 @@ typedef unsigned long long EventNumber_t;
 #define _genweights_ "genweights"
 // vstring
 #define _genweightIDs_ "genweightsID"
+// End event weight variables
+
+
+// PF candidate variables
+// vbool
+#define _pfcands_trackHighPurity_ "pfcands_trackHighPurity"
+// vint
+#define _pfcands_charge_ "pfcands_charge"
+#define _pfcands_id_ "pfcands_particleId"
+// vfloat
+#define _pfcands_dxy_ "pfcands_dxy"
+#define _pfcands_dz_ "pfcands_dz"
+#define _pfcands_dxyError_ "pfcands_dxyError"
+#define _pfcands_dzError_ "pfcands_dzError"
+// vCMSLorentzVector
+#define _pfcands_momentum_ "pfcands_p4"
+// End PF candidate variables
+
 
 // Electron variables
 // float

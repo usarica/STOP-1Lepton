@@ -122,6 +122,21 @@ void FrameworkOptionParser::analyze(){
   // Warnings-only
   if (!redefinedOutputFile) MELAout << "WARNING: No output file specified. Defaulting to " << outputName << "." << endl;
 
+  if (theInputFileNames.empty()){
+    TString dirname = SampleHelpers::getDatasetDirectoryName(*this);
+    MELAout << "Attempting to find the input file names in " << dirname << "..." << endl;
+    std::vector<TString> fnamelist = SampleHelpers::lsdir(dirname);
+    if (!fnamelist.empty()){
+      theInputFileNames.reserve(fnamelist.size());
+      for (TString const& fname:fnamelist){ if (fname.Contains(".root")) theInputFileNames.emplace_back(fname.Data()); }
+    }
+    if (theInputFileNames.empty()){
+      MELAerr << "\t- No ROOT files found!" << endl;
+      hasInvalidOption |= true;
+    }
+    else MELAout << "\t- Found the following files: " << theInputFileNames << endl;
+  }
+
   // Print help if needed and abort at this point, nowhere later
   if (hasInvalidOption) printOptionsHelp();
 
@@ -143,6 +158,7 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
   }
 
   else if (wish=="indir") indir = value;
+  else if (wish=="inputfiles") splitOptionRecursive(value, theInputFileNames, ',', true);
   else if (wish=="outdir") outdir = value;
   else if (wish=="sample") sample = value;
   else if (wish=="sampletag" || wish=="tag") sampletag = value;
@@ -198,13 +214,14 @@ bool FrameworkOptionParser::findTagFromDatasetFile(){
 
 void FrameworkOptionParser::printOptionsHelp(){
   MELAout << endl;
-  MELAout << "The options implemented for the LHEAnalyzer (format: specifier=value):\n\n";
+  MELAout << "The options implemented for the FrameworkOptionParser (format: specifier=value):\n\n";
 
   MELAout << "- indir: Location of input files. Default=\"./\"\n\n";
+  MELAout << "- inputfiles: Input file names. Default=\"\", corresponding to all files in the input directory.\n\n";
   MELAout << "- outdir: Location of the output file. Default=\"./\"\n\n";
+  MELAout << "- outfile: Output file name. Default=\"tmp.root\"\n\n";
   MELAout << "- sample: Sample name. Example: sample=/ZZTo4L_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM. Default=\"\"\n\n";
   MELAout << "- sampletag/tag: Sample tag. Example: sampletag=CMS4_V09-04-19. Default=\"\"\n\n";
-  MELAout << "- outfile: Output file name. Default=\"tmp.root\"\n\n";
   MELAout << "- period/dataperiod/year: The data period (2016, 2017, 2018 etc.). Default=\"\"\n\n";
   MELAout << "- version/dataversion/release: The data version (80x, 94x, 10x etc.). Default depends on the data period.\n\n";
   MELAout << "- maxevents: Maximum number of events to process. Default=-1 (all events)\n\n";

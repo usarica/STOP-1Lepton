@@ -10,6 +10,7 @@ class FrameworkOptionParser{
 protected:
   std::vector<std::string> rawOptions;
 
+  std::vector<std::string> theInputFileNames;
   std::string indir;
   std::string outdir;
   std::string sample;
@@ -35,6 +36,7 @@ public:
   void interpretOption(const std::string& wish, std::string value);
   void printOptionsHelp();
 
+  std::vector<std::string> const& inputFileNames() const{ return theInputFileNames; }
   std::string const& inputDir() const{ return indir; }
   std::string const& outputDir() const{ return outdir; }
   std::string const& outputFilename() const{ return outputName; }

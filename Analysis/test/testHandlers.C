@@ -4,7 +4,8 @@
 void testHandlers(){
   TDirectory* curdir = gDirectory;
 
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
+  //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=1000 ismc=true";
   FrameworkOptionParser opts(stropts);
 
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
@@ -24,6 +25,10 @@ void testHandlers(){
   EventFilterHandler eventFilter;
   //eventFilter.setVerbosity(TVar::DEBUG_VERBOSE);
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
+
+  PFCandHandler pfcandHandler;
+  //pfcandHandler.setVerbosity(TVar::DEBUG);
+  for (auto* tree:theSet.getFrameworkTreeList()) pfcandHandler.bookBranches(tree);
 
   ElectronScaleFactorHandler electronSFHandler;
   ElectronHandler electronHandler;
@@ -55,6 +60,7 @@ void testHandlers(){
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
   analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
+  analyzer.addExternalIvyObject("PFCandHandler", &pfcandHandler);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
   analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);

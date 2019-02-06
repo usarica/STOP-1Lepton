@@ -30,9 +30,8 @@ bool FrameworkSet::addFrameworkTree(FrameworkOptionParser const& opts, const TSt
 }
 bool FrameworkSet::addFrameworkTreeList(FrameworkOptionParser const& opts, const TString treename){
   bool res=true;
-  TString dirname = SampleHelpers::getDatasetDirectoryName(opts);
-  std::vector<TString> fnamelist = SampleHelpers::lsdir(dirname);
-  for (auto const& s:fnamelist){ if (s.Contains(".root")) res &= addFrameworkTree(opts, s, treename); }
+  std::vector<std::string> const& fnamelist = opts.inputFileNames();
+  for (auto const& s:fnamelist) res &= addFrameworkTree(opts, s.c_str(), treename); // fnamelist is already cleared of non-ROOT files
   return res;
 }
 

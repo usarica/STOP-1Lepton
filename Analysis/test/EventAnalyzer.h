@@ -7,6 +7,7 @@ protected:
   bool doGenInfo;
   bool doGenParticles;
   bool doEventFilter;
+  bool doPFCands;
   bool doElectrons;
   bool doMuons;
   bool doJetMET;
@@ -24,6 +25,7 @@ public:
   void setGenInfoFlag(bool flag){ doGenInfo = flag; }
   void setGenParticlesFlag(bool flag){ doGenParticles = flag; if (doGenParticles && !doGenInfo) doGenInfo=true; }
   void setEventFilterFlag(bool flag){ doEventFilter = flag; }
+  void setPFCandsFlag(bool flag){ doPFCands = flag; }
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
   void setJetMETFlag(bool flag){ doJetMET = flag; }
@@ -37,6 +39,7 @@ EventAnalyzer::EventAnalyzer() :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doPFCands(true),
   doElectrons(true),
   doMuons(true),
   doJetMET(true),
@@ -48,6 +51,7 @@ EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doPFCands(true),
   doElectrons(true),
   doMuons(true),
   doJetMET(true),
@@ -59,6 +63,7 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doPFCands(true),
   doElectrons(true),
   doMuons(true),
   doJetMET(true),
@@ -70,6 +75,7 @@ EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doPFCands(true),
   doElectrons(true),
   doMuons(true),
   doJetMET(true),
@@ -84,16 +90,18 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   WeightsHandler* wgtHandler=nullptr;
   GenInfoHandler* genInfoHandler = nullptr;
   EventFilterHandler* eventFilter = nullptr;
+  PFCandHandler* pfcandHandler=nullptr;
   ElectronHandler* eleHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
-    if (doWeights && !tree->isData()){ WeightsHandler* wgt_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && wgt_ivy){ wgtHandler = wgt_ivy; } }
+    if (doWeights && !tree->isData()){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
     if (doGenInfo && !tree->isData()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
     if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
-    if (doElectrons){ ElectronHandler* ele_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && ele_ivy){ eleHandler = ele_ivy; } }
-    if (doMuons){ MuonHandler* muon_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && muon_ivy){ muonHandler = muon_ivy; } }
-    if (doJetMET){ JetMETHandler* jet_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && jet_ivy){ jetHandler = jet_ivy; } }
+    if (doPFCands){ PFCandHandler* tmp_ivy = dynamic_cast<PFCandHandler*>(it->second); if (!pfcandHandler && tmp_ivy){ pfcandHandler = tmp_ivy; } }
+    if (doElectrons){ ElectronHandler* tmp_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && tmp_ivy){ eleHandler = tmp_ivy; } }
+    if (doMuons){ MuonHandler* tmp_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && tmp_ivy){ muonHandler = tmp_ivy; } }
+    if (doJetMET){ JetMETHandler* tmp_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && tmp_ivy){ jetHandler = tmp_ivy; } }
   }
 
   // SF handlers
@@ -183,10 +191,11 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
       for (auto const& part:genparts){
         auto const& extras = part->extras;
 
+        // Anything that has status 21 (incoming), 22 (intermediate), 23 (outgoing hard process), 1 (outgoing without treatment except momentum balance) and 2 (only in hard process, like 1 but with subsequent Pythia decay, like in taus)
+        // Note that momentum balance among isHardProcess particles might not be exact since status==1 particles have adjustment
         if (
           !(
-            extras.isHardProcess // Anything that has status 21 (incoming), 22 (intermediate), 23 (outgoing) or 1 (outgoing without treatment except momentum balance)
-                                 // Note that momentum balance among isHardProcess particles might not be exact since status==1 particles have adjustment
+            extras.isHardProcess
             ||
             extras.status==1
             )
@@ -253,6 +262,76 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
     for (auto const& pair:(*passingHLTPaths)) product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second);
     product.setNamedVal<bool>("passEventFilters", passEventFilters);
+  }
+
+
+  /*********************/
+  /**  PFCANDS BLOCK  **/
+  /*********************/
+  std::vector<PFCandObject*> pfcands;
+  validProducts &= (!doPFCands || pfcandHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: PFCand handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (pfcandHandler){
+    validProducts &= pfcandHandler->constructPFCands();
+    if (!validProducts){
+      MELAerr << "EventAnalyzer::runEvent: PFCands could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+    pfcands = pfcandHandler->getProducts();
+
+    std::vector<int> id;
+    std::vector<int> charge;
+
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
+    std::vector<bool> trackHighPurity;
+
+    std::vector<float> dxy;
+    std::vector<float> dz;
+    std::vector<float> dxyError;
+    std::vector<float> dzError;
+
+    for (PFCandObject const* pfcand:pfcands){
+      if (!pfcand) continue;
+
+      PFCandVariables const& extras = pfcand->extras;
+
+      id.push_back(pfcand->id);
+      charge.push_back(extras.charge);
+
+      pt.push_back(pfcand->pt());
+      eta.push_back(pfcand->eta());
+      phi.push_back(pfcand->phi());
+      mass.push_back(pfcand->m());
+
+      trackHighPurity.push_back(extras.trackHighPurity);
+      dxy.push_back(extras.dxy);
+      dz.push_back(extras.dz);
+      dxyError.push_back(extras.dxyError);
+      dzError.push_back(extras.dzError);
+    }
+    product.setNamedVal<std::vector<int>>("pfcands_id", id);
+    product.setNamedVal<std::vector<int>>("pfcands_charge", charge);
+
+    product.setNamedVal<std::vector<float>>("pfcands_pt", pt);
+    product.setNamedVal<std::vector<float>>("pfcands_eta", eta);
+    product.setNamedVal<std::vector<float>>("pfcands_phi", phi);
+    product.setNamedVal<std::vector<float>>("pfcands_mass", mass);
+
+    product.setNamedVal<std::vector<bool>>("pfcands_trackHighPurity", trackHighPurity);
+
+    product.setNamedVal<std::vector<float>>("pfcands_dxy", dxy);
+    product.setNamedVal<std::vector<float>>("pfcands_dz", dz);
+    product.setNamedVal<std::vector<float>>("pfcands_dxyError", dxyError);
+    product.setNamedVal<std::vector<float>>("pfcands_dzError", dzError);
   }
 
 

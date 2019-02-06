@@ -12,6 +12,7 @@
 #include "FrameworkTreeLooperBase.h"
 #include "WeightsHandler.h"
 #include "GenInfoHandler.h"
+#include "PFCandHandler.h"
 #include "ElectronHandler.h"
 #include "ElectronSelectionHelpers.h"
 #include "ElectronScaleFactorHandler.h"
