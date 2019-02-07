@@ -51,7 +51,9 @@ if [[ -f $SCRIPTNAME ]]; then
     if [[ "$QUEUE" != "default" ]];then
       THEQUEUE=$QUEUE
     fi
-    configureSTOP1LCondorJob.py --batchqueue="$THEQUEUE" --outdir=$OUTDIR --outlog="Logs/log_$extLog.txt" -=errlog="Logs/err_$extLog.err" --batchscript=submitSTOP1LGenericJob.condor.sh --script="$SCRIPTNAME" --fcn="$FCN" --fcnargs="$FCNARGS"
+    checkGridProxy.sh
+    createSTOP1LTarball.sh
+    configureSTOP1LCondorJob.py --batchqueue="$THEQUEUE" --outdir="$OUTDIR" --outlog="Logs/log_$extLog.txt" --errlog="Logs/err_$extLog.err" --batchscript="submitSTOP1LGenericJob.condor.sh" --script="$SCRIPTNAME" --fcn="$FCN" --fcnargs="$FCNARGS"
   elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
     echo "Host is on MARCC, so need to use SLURM batch"
     THEQUEUE="lrgmem"

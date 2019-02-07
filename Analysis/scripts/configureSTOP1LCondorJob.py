@@ -52,27 +52,44 @@ class BatchManager:
       if not os.path.isfile(self.opt.script):
          sys.exit("Script {} does not exist. Exiting...".format(self.opt.script))
 
+      if not os.path.isfile(self.opt.batchscript):
+         print "Batch script does not exist in current directory, will search for CMSSW_BASE/bin"
+         if os.path.isfile(os.getenv("CMSSW_BASE")+"/bin/"+os.getenv("SCRAM_ARCH")+"/"+self.opt.batchscript):
+            self.opt.batchscript = os.getenv("CMSSW_BASE")+"/bin/"+os.getenv("SCRAM_ARCH")+"/"+self.opt.batchscript
+            print "\t- Found the batch script"
+         else:
+            sys.exit("Batch script {} does not exist. Exiting...".format(self.opt.batchscript))
+
+
       self.submitJobs()
 
 
    def produceCondorScript(self):
       currentdir = os.getcwd()
-      scriptcontents = """executable              = {batchScript}
-         arguments               = {mainDir} $(ClusterId)$(ProcId)
-         output                  = {outLog}
-         error                   = {errLog}
-         log                     = $(ClusterId).$(ProcId).log
-         Initialdir              = (outDir)
-         request_memory          = 4000M
-         +JobFlavour             = "tomorrow"
-         x509userproxy           = {home}/x509up_u{uid}
-         #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml
-         periodic_remove         = JobStatus == 5
-         WhenToTransferOutput    = ON_EXIT_OR_EVICT
-         """
+      scriptcontents = """
+executable              = {batchScript}
+arguments               = $(ClusterId) $(ProcId) {mainDir} {version} {script} {fcn} {fcnargs}
+output                  = {outLog}
+error                   = {errLog}
+log                     = $(ClusterId).$(ProcId).log
+Initialdir              = {outDir}
+request_memory          = 4000M
++JobFlavour             = "tomorrow"
+x509userproxy           = {home}/x509up_u{uid}
+#https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml
+periodic_remove         = JobStatus == 5
+transfer_input_files    = stop_1lepton.tar
+WhenToTransferOutput    = ON_EXIT_OR_EVICT
+#Requirements = TARGET.UidDomain == "*t2.ucsd.edu*" && TARGET.FileSystemDomain == "*t2.ucsd.edu*"
+
+queue
+
+"""
       scriptcontents = scriptcontents.format(
          home=os.path.expanduser("~"), uid=os.getuid(),
          mainDir=currentdir, batchScript=self.opt.batchscript,
+         version=os.getenv("CMSSW_VERSION"),
+         script=self.opt.script, fcn=self.opt.fcn, fcnargs=self.opt.fcnargs,
          outLog=self.opt.outlog, errLog=self.opt.errlog,
          outDir=self.opt.outdir
          )
@@ -82,15 +99,10 @@ class BatchManager:
       condorScriptFile.close()
 
 
-
    def submitJobs(self):
       self.produceCondorScript()
 
-      strscrcmd = argstr.format(channel=ch,category=cat,achypothesis=hypo,systematic=syst,frmethod=frm)
-      strscrcmd = strscrcmd.replace(' ','') # The command passed to bash script should not contain whitespace itself
-      jobcmd = "submitHiggsWidthTemplateStageGeneric.sh {} \({}\) {}".format(self.fcnname, strscrcmd, self.opt.batchqueue)
-      if self.opt.interactive:
-         jobcmd = "root -l -b -q -e \"gROOT->ProcessLine(\\\".x loadLib.C\\\");gROOT->ProcessLine(\\\".x {}.c+({})\\\");\"".format(self.fcnname, strscrcmd)
+      jobcmd = "condor_submit {}".format(self.condorScriptName)
       if self.opt.dryRun:
          jobcmd = "echo " + jobcmd
       ret = os.system( jobcmd )

@@ -9,6 +9,9 @@ __init__.py
 **/input.DAT
 **/process.DAT
 **/*.old.*
+**/*.tar
+**/*.tar.gz
+**/*.sub
 **/*.out
 **/*.o
 **/*.a
