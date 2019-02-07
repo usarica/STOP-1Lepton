@@ -57,7 +57,7 @@ bool AK4JetSelectionHelpers::isTightAK4JetPOG(AK4JetObject const& part){
     if (nhf >= 0.90) return false;
     if (eta < 2.4 && cef >= 0.90) return false;
   }
-  else if (SampleHelpers::theDataYear==2017 || SampleHelpers::theDataYear==2018){
+  else if (SampleHelpers::theDataYear==2017){
     if (eta <= 2.4){
       if (chf == 0.00) return false;
       if (cm == 0) return false;
@@ -66,6 +66,30 @@ bool AK4JetSelectionHelpers::isTightAK4JetPOG(AK4JetObject const& part){
       if (nhf >= 0.90) return false;
       if (nef >= 0.90) return false;
       if (ncands <= 1) return false;
+    }
+    if (eta > 2.7 && eta <= 3.0){
+      if (nef <= 0.02 || nef >= 0.99) return false;
+      if (nm <= 2) return false;
+    }
+    if (eta > 3.0){
+      if (nhf <= 0.02) return false;
+      if (nef >= 0.90) return false;
+      if (nm <= 10) return false;
+    }
+  }
+  else if (SampleHelpers::theDataYear==2018){
+    // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
+    if (eta <= 2.6){
+      if (nhf >= 0.90) return false;
+      if (nef >= 0.90) return false;
+      if (ncands <= 1) return false;
+      if (chf <= 1e-6) return false;
+      if (cm == 0) return false;
+    }
+    if (eta > 2.6 && eta <= 2.7){
+      if (nhf >= 0.90) return false;
+      if (nef >= 0.99) return false;
+      if (cm == 0) return false;
     }
     if (eta > 2.7 && eta <= 3.0){
       if (nef <= 0.02 || nef >= 0.99) return false;
