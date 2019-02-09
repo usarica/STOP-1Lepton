@@ -24,6 +24,7 @@ Analysis/**/plot*.c
 Analysis/**/*_one.c
 Analysis/*.log
 Analysis/*.txt
+Analysis/test/Logs
 Analysis/test/*.pdf
 Analysis/test/*.png
 Analysis/test/*.eps
