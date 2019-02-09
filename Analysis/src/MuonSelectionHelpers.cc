@@ -163,6 +163,8 @@ bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
 bool MuonSelectionHelpers::testPtEtaSkim(MuonObject const& part){
   // pT and eta skim cut
   if (
+    //(testTightSelection(part) && (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight))
+    //||
     (testMediumSelection(part) && (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium))
     ||
     (testLooseSelection(part) && (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose))
@@ -171,7 +173,19 @@ bool MuonSelectionHelpers::testPtEtaSkim(MuonObject const& part){
     ) return true;
   return false;
 }
-bool MuonSelectionHelpers::testPreselection(MuonObject const& part){ return (testMediumSelection(part) && testPtEtaSkim(part)); }
+bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
+  return (
+    (
+    (bit_preselection_idisoreco == kVetoIDReco && testVetoSelection(part))
+      ||
+      (bit_preselection_idisoreco == kLooseIDReco && testLooseSelection(part))
+      ||
+      (bit_preselection_idisoreco == kMediumIDReco && testMediumSelection(part))
+      //||
+      //(bit_preselection_idisoreco == kTightIDReco && testTightSelection(part))
+      ) && testPtEtaSkim(part)
+    );
+}
 
 void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);

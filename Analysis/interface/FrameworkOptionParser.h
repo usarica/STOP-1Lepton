@@ -13,6 +13,8 @@ protected:
   std::vector<std::string> theInputFileNames;
   std::string indir;
   std::string outdir;
+  std::string theCondorSite;
+  std::string condorOutdir;
   std::string sample;
   std::string sampletag;
   std::string outputName;
@@ -39,6 +41,8 @@ public:
   std::vector<std::string> const& inputFileNames() const{ return theInputFileNames; }
   std::string const& inputDir() const{ return indir; }
   std::string const& outputDir() const{ return outdir; }
+  std::string const& condorSite() const{ return theCondorSite; }
+  std::string const& condorOutputDir() const{ return condorOutdir; }
   std::string const& outputFilename() const{ return outputName; }
   std::string const& sampleName() const{ return sample; }
   std::string const& sampleTag() const{ return sampletag; }

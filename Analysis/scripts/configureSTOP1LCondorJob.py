@@ -21,6 +21,7 @@ class BatchManager:
 
       self.parser.add_option("--batchqueue", type="string", help="Batch queue")
       self.parser.add_option("--batchscript", type="string", help="Name of the HTCondor script")
+      self.parser.add_option("--tarfile", type="string", help="Name of the tar file to upload")
       self.parser.add_option("--outdir", type="string", help="Name of the output directory")
       self.parser.add_option("--outlog", type="string", help="Name of the output log file")
       self.parser.add_option("--errlog", type="string", help="Name of the output error file")
@@ -38,6 +39,7 @@ class BatchManager:
       optchecks=[
          "batchqueue",
          "batchscript",
+         "tarfile",
          "outdir",
          "outlog",
          "errlog",
@@ -60,39 +62,65 @@ class BatchManager:
          else:
             sys.exit("Batch script {} does not exist. Exiting...".format(self.opt.batchscript))
 
+      for theOpt in optchecks:
+         print "Option {}={}".format(theOpt,getattr(self.opt, theOpt))
+
 
       self.submitJobs()
 
 
    def produceCondorScript(self):
       currentdir = os.getcwd()
+      currentCMSSWBASESRC = os.getenv("CMSSW_BASE")+"/src/" # Need the trailing '/'
+      currendir_noCMSSWsrc = currentdir.replace(currentCMSSWBASESRC,'')
+
+      scriptargs = {
+         "home" : os.path.expanduser("~"),
+         "uid" : os.getuid(),
+         "batchScript" : self.opt.batchscript,
+         "outDir" : self.opt.outdir,
+         "outLog" : self.opt.outlog,
+         "errLog" : self.opt.errlog,
+         "QUEUE" : self.opt.batchqueue,
+         "CMSSWVERSION" : os.getenv("CMSSW_VERSION"),
+         "SCRAMARCH" : os.getenv("SCRAM_ARCH"),
+         "SUBMITDIR" : currendir_noCMSSWsrc,
+         "TARFILE" : self.opt.tarfile,
+         "RUNFILE" : self.opt.script,
+         "FCN" : self.opt.fcn,
+         "FCNARGS" : self.opt.fcnargs
+      }
+
       scriptcontents = """
+universe={QUEUE}
++DESIRED_Sites="T2_US_UCSD"
 executable              = {batchScript}
-arguments               = $(ClusterId) $(ProcId) {mainDir} {version} {script} {fcn} {fcnargs}
-output                  = {outLog}
-error                   = {errLog}
-log                     = $(ClusterId).$(ProcId).log
+arguments               = {CMSSWVERSION} {SCRAMARCH} {SUBMITDIR} {TARFILE} {RUNFILE} {FCN} {FCNARGS}
 Initialdir              = {outDir}
+output                  = {outLog}.$(ClusterId).$(ProcId).txt
+error                   = {errLog}.$(ClusterId).$(ProcId).err
+log                     = $(ClusterId).$(ProcId).log
 request_memory          = 4000M
 +JobFlavour             = "tomorrow"
 x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml
 periodic_remove         = JobStatus == 5
-transfer_input_files    = stop_1lepton.tar
-WhenToTransferOutput    = ON_EXIT_OR_EVICT
-#Requirements = TARGET.UidDomain == "*t2.ucsd.edu*" && TARGET.FileSystemDomain == "*t2.ucsd.edu*"
+transfer_executable=True
+transfer_input_files    = {TARFILE}
+transfer_output_files = ""
++Owner = undefined
++project_Name = "cmssurfandturf"
+notification=Never
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+Requirements = ((HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)) || (regexp("(uaf-[0-9]{{1,2}}|uafino)\.", TARGET.Machine) && !(TARGET.SlotID>(TotalSlots<14 ? 3:7) && regexp("uaf-[0-9]", TARGET.machine)))
+
 
 queue
 
 """
-      scriptcontents = scriptcontents.format(
-         home=os.path.expanduser("~"), uid=os.getuid(),
-         mainDir=currentdir, batchScript=self.opt.batchscript,
-         version=os.getenv("CMSSW_VERSION"),
-         script=self.opt.script, fcn=self.opt.fcn, fcnargs=self.opt.fcnargs,
-         outLog=self.opt.outlog, errLog=self.opt.errlog,
-         outDir=self.opt.outdir
-         )
+      scriptcontents = scriptcontents.format(**scriptargs)
+
       self.condorScriptName = "condor.sub"
       condorScriptFile = open(self.condorScriptName,'w')
       condorScriptFile.write(scriptcontents)

@@ -1,10 +1,10 @@
 #!/bin/sh
 
-SCRIPTNAME=$1
-FCN=$2
-FCNARGS=$3
-QUEUE=$4
-OUTDIR=$5
+SCRIPTNAME="$1"
+FCN="$2"
+FCNARGS="$3"
+QUEUE="$4"
+OUTDIR="$5"
 
 if [[ "$OUTDIR" == "" ]];then
   echo "You must set the output directory!"
@@ -52,8 +52,11 @@ if [[ -f $SCRIPTNAME ]]; then
       THEQUEUE=$QUEUE
     fi
     checkGridProxy.sh
-    createSTOP1LTarball.sh
-    configureSTOP1LCondorJob.py --batchqueue="$THEQUEUE" --outdir="$OUTDIR" --outlog="Logs/log_$extLog.txt" --errlog="Logs/err_$extLog.err" --batchscript="submitSTOP1LGenericJob.condor.sh" --script="$SCRIPTNAME" --fcn="$FCN" --fcnargs="$FCNARGS"
+    TARFILE="stop_1lepton.tar"
+    if [ ! -e $TARFILE ];then
+      createSTOP1LTarball.sh
+    fi
+    configureSTOP1LCondorJob.py --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$OUTDIR" --outlog="Logs/log_$extLog" --errlog="Logs/err_$extLog" --batchscript="submitSTOP1LGenericJob.condor.sh" --script="$SCRIPTNAME" --fcn="$FCN" --fcnargs="$FCNARGS"
   elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
     echo "Host is on MARCC, so need to use SLURM batch"
     THEQUEUE="lrgmem"

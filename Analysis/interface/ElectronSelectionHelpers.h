@@ -15,7 +15,7 @@ namespace ElectronSelectionHelpers{
   constexpr float etaThr_gen = 2.4;
   constexpr float etaThr_skim_veto = 2.4;
   constexpr float etaThr_skim_loose = 2.4;
-  constexpr float etaThr_skim_medium = 1.4442;
+  constexpr float etaThr_skim_medium = 1.4442; // Last ECAL crystal in barrel
 
   // Veto, loose, medium, tight etc. selection bits
   enum SelectionBits{

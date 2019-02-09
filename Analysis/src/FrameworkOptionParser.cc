@@ -15,6 +15,8 @@ using namespace HelperFunctions;
 FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   indir("./"),
   outdir("./"),
+  theCondorSite(""),
+  condorOutdir(""),
   sample(""),
   sampletag(""),
   outputName("tmp.root"),
@@ -38,6 +40,8 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
 FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
   indir("./"),
   outdir("./"),
+  theCondorSite(""),
+  condorOutdir(""),
   sample(""),
   sampletag(""),
   outputName("tmp.root"),
@@ -115,8 +119,17 @@ void FrameworkOptionParser::analyze(){
     }
   }
 
+  // Check Condor specifications
+  if ((theCondorSite!="" && condorOutdir=="") || (theCondorSite=="" && condorOutdir!="")){
+    MELAerr << "Either the transfer site or the target directory is not defined for HTCondor." << endl;
+    hasInvalidOption |= true;
+  }
+  if (theCondorSite!="" && condorOutdir!="" && outdir.find('/')==0){
+    MELAerr << "Local output directory has to be relative when a remote transfer site is specified." << endl;
+    hasInvalidOption |= true;
+  }
+
   // Check for any invalid options and print an error
-  //
   if (isData() && isFastSim()){ MELAerr << "FastSim option is only usable in the MC!" << endl; isFastSimflag=false; }
 
   // Warnings-only
@@ -160,6 +173,8 @@ void FrameworkOptionParser::interpretOption(const std::string& wish, std::string
   else if (wish=="indir") indir = value;
   else if (wish=="inputfiles") splitOptionRecursive(value, theInputFileNames, ',', true);
   else if (wish=="outdir") outdir = value;
+  else if (wish=="condorsite") theCondorSite = value;
+  else if (wish=="condoroutdir") condorOutdir = value;
   else if (wish=="sample") sample = value;
   else if (wish=="sampletag" || wish=="tag") sampletag = value;
   else if (wish=="outfile") outputName = value;
@@ -218,7 +233,9 @@ void FrameworkOptionParser::printOptionsHelp(){
 
   MELAout << "- indir: Location of input files. Default=\"./\"\n\n";
   MELAout << "- inputfiles: Input file names. Default=\"\", corresponding to all files in the input directory.\n\n";
-  MELAout << "- outdir: Location of the output file. Default=\"./\"\n\n";
+  MELAout << "- condorsite: Condor transsfer site. Default=\"\"\n\n";
+  MELAout << "- condoroutdir: Transfer directory at the output site. Default=\"\"\n\n";
+  MELAout << "- outdir: Local output directory. Default=\"./\"\n\t- When a remote transfer site is specified, this directory has to be relative.\n\n";
   MELAout << "- outfile: Output file name. Default=\"tmp.root\"\n\n";
   MELAout << "- sample: Sample name. Example: sample=/ZZTo4L_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM. Default=\"\"\n\n";
   MELAout << "- sampletag/tag: Sample tag. Example: sampletag=CMS4_V09-04-19. Default=\"\"\n\n";
