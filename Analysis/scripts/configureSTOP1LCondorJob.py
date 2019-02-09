@@ -12,6 +12,7 @@ import pprint
 import subprocess
 from datetime import date
 from optparse import OptionParser
+from CMSDataTools.AnalysisTree.TranslateStringBetweenPythonAndShell import *
 
 
 class BatchManager:
@@ -73,6 +74,8 @@ class BatchManager:
       currentdir = os.getcwd()
       currentCMSSWBASESRC = os.getenv("CMSSW_BASE")+"/src/" # Need the trailing '/'
       currendir_noCMSSWsrc = currentdir.replace(currentCMSSWBASESRC,'')
+      if self.opt.fcnargs is not None:
+         self.opt.fcnargs = translateFromPythonToShell(self.opt.fcnargs)
 
       scriptargs = {
          "home" : os.path.expanduser("~"),

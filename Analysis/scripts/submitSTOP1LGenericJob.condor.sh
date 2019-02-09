@@ -1,13 +1,16 @@
 #!/bin/sh
 
 
-CMSSWVERSION=$1
-SCRAMARCH=$2
-SUBMIT_DIR=$3 # Must be within $CMSSW_BASE/src/
-TARFILE=$4
-RUNFILE=$5
-FCN=$6
-FCNARGS=$7
+CMSSWVERSION="$1"
+SCRAMARCH="$2"
+SUBMIT_DIR="$3" # Must be within $CMSSW_BASE/src/
+TARFILE="$4"
+RUNFILE="$5"
+FCN="$6"
+FCNARGS="$7"
+#FCNARGS=${FCNARGS//".oO[SPACE]Oo."/" "} # This is a special replacement to work around arguments with spaces
+#FCNARGS=${FCNARGS//".oO[DOUBLEQUOTE]Oo."/"\""} # This is a special replacement to work around arguments with double quotes
+#FCNARGS=${FCNARGS//".oO[BACKLASH]Oo."/"\\"} # This is a special replacement to work around arguments with backlashes
 
 # Make sure OUTPUTNAME doesn't have .root since we add it manually
 #OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
@@ -48,80 +51,100 @@ else
 fi
 
 
-# holy crap this is a mess. :( why does PAT code have to do such insane
-# things with paths?
-# if the first file in the tarball filelist starts with CMSSW, then it is
-# a tarball made outside of the full CMSSW directory, and must be handled
+# If the first file in the tarball filelist starts with CMSSW, it is a
+# tarball made outside of the full CMSSW directory and must be handled
 # differently
 if [ ! -z $(tar -tf ${TARFILE} | head -n 1 | grep "^CMSSW") ]; then
-    echo "this is a full cmssw tar file"
+    echo "This is a full cmssw tar file."
     tar xf ${TARFILE}
     cd $CMSSWVERSION
-    echo $PWD
+    echo "Current directory ${PWD} =? ${CMSSWVERSION}"
     echo "Running ProjectRename"
     scramv1 b ProjectRename
-    echo "Running `scramv1 runtime -sh`"
-    eval `scramv1 runtime -sh`
-    mv ../${TARFILE} .
 else
-    echo "this is a selective cmssw tar file"
+    # Setup the CMSSW area
+    echo "This is a selective CMSSW tar file."
     eval `scramv1 project CMSSW $CMSSWVERSION`
     cd $CMSSWVERSION
-    eval `scramv1 runtime -sh`
-    if [ -e ../${TARFILE} ]; then
-        mv ../${TARFILE} ${TARFILE}
-        tar xf ${TARFILE}
-        rm ${TARFILE}
-    fi
-    echo "================================================================"
-    echo "Before cleaning everything, need to check lib/${SCRAM_ARCH}"
-    echo "================================================================"
-    ls lib/${SCRAM_ARCH}
-    cd src/cmstas/CORE
-    make clean
-    make -j 12
-    cd ../../../
-    scramv1 b clean
-    echo "================================================================"
-    echo "After cleaning everything, need to check lib/${SCRAM_ARCH} again"
-    echo "================================================================"
-    ls lib/${SCRAM_ARCH}
-    scramv1 b -j 12
-    echo "CMSSW_BASE: ${CMSSW_BASE}"
-    #[ -e ${TARFILE} ] && tar xf ${TARFILE}
-    # Needed or else cmssw can't find libmcfm_705.so
-    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}
-    # This is nicer than above. both work, and both have scary but benign warnings/printouts
-    # cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
-    # "Needed" to get rid of benign warnings/printouts
-    export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
 fi
+
+# Setup the CMSSW environment
+eval `scramv1 runtime -sh`
+echo "CMSSW_BASE: ${CMSSW_BASE}"
+
+# Remove the tarfile
+if [ -e ../${TARFILE} ]; then
+  mv ../${TARFILE} ${TARFILE}
+  tar xf ${TARFILE}
+  rm ${TARFILE}
+fi
+
+# Check the lib area as uploaded
+echo "=============================="
+echo "lib/${SCRAM_ARCH} as uploaded:"
+ls lib/${SCRAM_ARCH}
+echo "=============================="
+
+# Compile cmstas/CORE first
+cd src/cmstas/CORE
+make clean &>> compilation.log
+make -j 12 &>> compilation.log
+CORE_COMPILE_STATUS=$?
+if [ $CORE_COMPILE_STATUS != 0 ];then
+  echo "cmstas/CORE compilation exited with error ${CORE_COMPILE_STATUS}. Printing the log:"
+  cat compilation.log
+fi
+rm -f compilation.log
+cd ../../../
+
+# Clean CMSSW-related compilation objects and print the lib area afterward
+scramv1 b clean &>> compilation.log
+echo "================================="
+echo "lib/${SCRAM_ARCH} after cleaning:"
+ls lib/${SCRAM_ARCH}
+echo "================================="
+
+# Compile CMSSW-dependent packages
+scramv1 b -j 12 &>> compilation.log
+CMSSW_COMPILE_STATUS=$?
+if [ $CMSSW_COMPILE_STATUS != 0 ];then
+  echo "CMSSW compilation exited with error ${CMSSW_COMPILE_STATUS}. Printing the log:"
+  cat compilation.log
+fi
+rm -f compilation.log
+
+# Needed to locate the include directory of MELA classes. It can get lost.
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
+# Ensure CMSSW can find libmcfm
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}
+# Do not do the one below instead of the above; it will create problems when loading the MELA library interactively
+# cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
+
 
 # Go into the submission directory within $CMSSW_BASE/src
 cd src/$SUBMIT_DIR
 
-
-echo "before running: ls -lrth"
+echo "Submission directory before running: ls -lrth"
 ls -lrth
-
-echo -e "\n--- begin running ---\n" #                           <----- section division
 
 
 ##############
 # ACTUAL RUN #
 ##############
 # Transfer needs to be done through the script run.
-runGenericROOTCommand.py --loadlib="loadLib.C" --script="$RUNFILE" --function="$FCN" --command="$EXTCMD" --recompile # Must force recompilation
+echo -e "\n--- Begin RUN ---\n"
+runGenericROOTCommand.py --loadlib="loadLib.C" --script="$RUNFILE" --function="$FCN" --command="$FCNARGS" --recompile # Must force recompilation
 RUN_STATUS=$?
+echo -e "\n--- End RUN ---\n"
+##############
 
-echo "after running: ls -lrth"
+
+echo "Submission directory after running: ls -lrth"
 ls -lrth
 
-if [[ $RUN_STATUS != 0 ]]; then
+if [ $RUN_STATUS != 0 ]; then
     echo "Run has crashed with exit code ${RUN_STATUS}"
     exit 1
 fi
-
-echo -e "\n--- end running ---\n" #                             <----- section division
 
 echo "time at end: $(date +%s)"

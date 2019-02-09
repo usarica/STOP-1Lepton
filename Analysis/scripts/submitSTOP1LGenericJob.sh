@@ -6,28 +6,35 @@ FCNARGS="$3"
 QUEUE="$4"
 OUTDIR="$5"
 
+echo "Calling the main submission script with the following arguments:"
+echo "SCRIPTNAME: ${SCRIPTNAME}"
+echo "FCN: ${FCN}"
+echo "FCNARGS: ${FCNARGS}"
+echo "QUEUE: ${QUEUE}"
+echo "OUTDIR: ${OUTDIR}"
+
+
 if [[ "$OUTDIR" == "" ]];then
   echo "You must set the output directory!"
   exit 1
 fi
 
-SCRIPTSO=${SCRIPTNAME%.*}"_"${SCRIPTNAME##*.}".so"
-
-LOGSDIR=$OUTDIR"/Logs"
-
 CMSENVDIR=$CMSSW_BASE
-if [[ "$CMSENVDIR" == "" ]];then
+if [ -z $CMSENVDIR ];then
   echo "Set up CMSSW first!"
   exit 1
 fi
 
 
+LOGSDIR=$OUTDIR"/Logs"
 mkdir -p $LOGSDIR
 
 extLog=$FCN
 if [[ "$FCNARGS" != "" ]];then
-  fcnargname=${FCNARGS//\"}
-  fcnargname=${FCNARGS//\\}
+  fcnargname=${FCNARGS//" "/"_"}
+  fcnargname=${fcnargname//\"}
+  fcnargname=${fcnargname//\!}
+  fcnargname=${fcnargname//\\}
   fcnargname=${fcnargname//"("}
   fcnargname=${fcnargname//")"}
   fcnargname=${fcnargname//","/"_"}
@@ -38,6 +45,7 @@ fi
 if [[ -f $SCRIPTNAME ]]; then
   echo "File "$SCRIPTNAME" exists."
 
+  SCRIPTSO=${SCRIPTNAME%.*}"_"${SCRIPTNAME##*.}".so"
   if [[ ! -f $SCRIPTSO ]]; then
     echo "Compiling "$SCRIPTNAME"..."
     root -l -b -q -e "gROOT->ProcessLine(\".x loadLib.C\"); gROOT->ProcessLine(\".L "$SCRIPTNAME"+\");"
@@ -53,8 +61,9 @@ if [[ -f $SCRIPTNAME ]]; then
     fi
     checkGridProxy.sh
     TARFILE="stop_1lepton.tar"
-    if [ ! -e $TARFILE ];then
+    if [ ! -e ${OUTDIR}/${TARFILE} ];then
       createSTOP1LTarball.sh
+      mv ${TARFILE} ${OUTDIR}/
     fi
     configureSTOP1LCondorJob.py --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$OUTDIR" --outlog="Logs/log_$extLog" --errlog="Logs/err_$extLog" --batchscript="submitSTOP1LGenericJob.condor.sh" --script="$SCRIPTNAME" --fcn="$FCN" --fcnargs="$FCNARGS"
   elif [[ "$hname" == *"login-node"* ]] || [[ "$hname" == *"bc-login"* ]]; then
