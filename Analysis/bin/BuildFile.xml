@@ -1,0 +1,9 @@
+<flags CPPFLAGS="-Wall -Wextra -Wpedantic -I$(CMSSW_BASE)/src/STOP_1Lepton/Analysis/interface/ -I$(CMSSW_BASE)/src/CMSDataTools/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/ZZMatrixElement/MELA/interface/" />
+<flags CPPDEFINES="_stop1lpkgpathstr_='TString(std::getenv(xstr_lit(CMSSW_BASE)))+TString(xstr_lit(/src/STOP_1Lepton/Analysis/))'" />
+<flags LDFLAGS="-Wl,-rpath=$(CMSSW_BASE)/src/cmstas/CORE -L$(CMSSW_BASE)/src/cmstas/CORE -l:CMS3_CORE.so" />
+
+<bin file="SplitFrameworkJob.cc" name="SplitFrameworkJob">
+  <use name="ZZMatrixElement/MELA"/>
+  <use name="CMSDataTools/AnalysisTree"/>
+  <use name="STOP_1Lepton/Analysis"/>
+</bin>

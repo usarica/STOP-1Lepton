@@ -232,7 +232,7 @@ void FrameworkOptionParser::printOptionsHelp(){
   MELAout << "The options implemented for the FrameworkOptionParser (format: specifier=value):\n\n";
 
   MELAout << "- indir: Location of input files. Default=\"./\"\n\n";
-  MELAout << "- inputfiles: Input file names. Default=\"\", corresponding to all files in the input directory.\n\n";
+  MELAout << "- inputfiles: Comma-separated list of input file names. Default=\"\", corresponding to all files in the input directory.\n\n";
   MELAout << "- condorsite: Condor transsfer site. Default=\"\"\n\n";
   MELAout << "- condoroutdir: Transfer directory at the output site. Default=\"\"\n\n";
   MELAout << "- outdir: Local output directory. Default=\"./\"\n\t- When a remote transfer site is specified, this directory has to be relative.\n\n";
