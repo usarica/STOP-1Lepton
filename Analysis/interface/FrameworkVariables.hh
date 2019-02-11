@@ -89,6 +89,21 @@ typedef unsigned long long EventNumber_t;
 // End electron variables
 
 
+// Photon variables
+// float
+#define _photons_rho_ "evt_fixgridfastjet_all_rho"
+// vfloat
+//#define _photons_etaSC_ "photons_etaSC" // FIXME: No such variable is defined in cmstas/CORE yet!
+#define _photons_recoChargedHadronIso_ "photons_recoChargedHadronIso"
+#define _photons_recoNeutralHadronIso_ "photons_recoNeutralHadronIso"
+#define _photons_recoPhotonIso_ "photons_recoPhotonIso"
+#define _photons_sigmaIEtaIEta_full5x5_ "photons_full5x5_sigmaIEtaIEta"
+#define _photons_hOverE_full5x5_ "photons_full5x5_hOverE"
+// vCMSLorentzVector
+#define _photons_momentum_ "photons_p4"
+// End photon variables
+
+
 // Muon variables
 // float
 #define _muons_rho_ "evt_fixgridfastjet_all_rho"

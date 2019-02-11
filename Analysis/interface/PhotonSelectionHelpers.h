@@ -41,9 +41,6 @@ namespace PhotonSelectionHelpers{
 
   bool testPtEtaGen(PhotonObject const& part);
 
-  bool testVetoCutBasedId(PhotonObject const& part);
-  bool testVetoSelection(PhotonObject const& part);
-
   bool testLooseCutBasedId(PhotonObject const& part);
   bool testLooseSelection(PhotonObject const& part);
 

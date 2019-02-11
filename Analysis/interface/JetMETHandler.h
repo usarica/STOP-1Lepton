@@ -3,8 +3,9 @@
 
 #include <vector>
 #include "IvyBase.h"
-#include "ElectronObject.h"
 #include "MuonObject.h"
+#include "ElectronObject.h"
+#include "PhotonObject.h"
 #include "AK4JetObject.h"
 #include "AK8JetObject.h"
 #include "TFTopObject.h"
@@ -37,8 +38,9 @@ protected:
   JERScaleFactorHandler* registeredJERSFHandler_ak4jets;
   JERScaleFactorHandler* registeredJERSFHandler_ak8jets;
 
-  std::vector<ElectronObject*> const* registeredElectrons;
   std::vector<MuonObject*> const* registeredMuons;
+  std::vector<ElectronObject*> const* registeredElectrons;
+  std::vector<PhotonObject*> const* registeredPhotons;
 
   bool constructGenJets();
   bool constructAK4Jets();
@@ -73,7 +75,7 @@ public:
   std::vector<TFTopObject*> const& getTFTops() const{ return tftops; }
   METObject* const& getMET() const{ return metobj; }
 
-  void registerLeptons(std::vector<ElectronObject*> const* electrons, std::vector<MuonObject*> const* muons){ registeredElectrons = electrons; registeredMuons = muons; }
+  void registerParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){ registeredMuons = muons; registeredElectrons = electrons; registeredPhotons = photons; }
   void registerBtagSFHandlers(BtagScaleFactorHandler* handler, BtagScaleFactorHandler* handler_fastsim){ registeredBtagSFHandler = handler; registeredBtagSFHandler_FastSim = handler_fastsim; }
   void registerJECSFHandlers(JECScaleFactorHandler* ak4jer, JECScaleFactorHandler* ak8jer){ registeredJECSFHandler_ak4jets = ak4jer; registeredJECSFHandler_ak8jets = ak8jer; }
   void registerJERSFHandlers(JERScaleFactorHandler* ak4jer, JERScaleFactorHandler* ak8jer){ registeredJERSFHandler_ak4jets = ak4jer; registeredJERSFHandler_ak8jets = ak8jer; }

@@ -1,5 +1,3 @@
-#ifdef NOT_YET
-
 #include <cassert>
 #include "Samples.h"
 #include "PhotonSelectionHelpers.h"
@@ -95,17 +93,17 @@ float PhotonSelectionHelpers::photonEMEffArea_DR0p3(PhotonObject const& part){
 float PhotonSelectionHelpers::photonCHIsoCorr_DR0p3(PhotonObject const& part){
   float iso = part.extras.recoChargedHadronIso;
   float ea = photonCHEffArea_DR0p3(part);
-  return std::max(float(0.0), iso - part.rho*ea);
+  return std::max(float(0.0), iso - part.extras.rho*ea);
 }
 float PhotonSelectionHelpers::photonNHIsoCorr_DR0p3(PhotonObject const& part){
   float iso = part.extras.recoNeutralHadronIso;
   float ea = photonNHEffArea_DR0p3(part);
-  return std::max(float(0.0), iso - part.rho*ea);
+  return std::max(float(0.0), iso - part.extras.rho*ea);
 }
 float PhotonSelectionHelpers::photonEMIsoCorr_DR0p3(PhotonObject const& part){
   float iso = part.extras.recoPhotonIso;
   float ea = photonEMEffArea_DR0p3(part);
-  return std::max(float(0.0), iso - part.rho*ea);
+  return std::max(float(0.0), iso - part.extras.rho*ea);
 }
 
 bool PhotonSelectionHelpers::testLooseCutBasedId(PhotonObject const& part){
@@ -158,11 +156,8 @@ bool PhotonSelectionHelpers::testLooseCutBasedId(PhotonObject const& part){
   return true;
 }
 bool PhotonSelectionHelpers::testLooseSelection(PhotonObject const& part){
-  // Id cut
+  // Id+iso cut
   if (!testLooseCutBasedId(part)) return false;
-  // Iso cut
-  float reliso = miniRelIso_DR0p3(part);
-  if (reliso>0.2) return false;
   return true;
 }
 
@@ -216,11 +211,8 @@ bool PhotonSelectionHelpers::testMediumCutBasedId(PhotonObject const& part){
   return true;
 }
 bool PhotonSelectionHelpers::testMediumSelection(PhotonObject const& part){
-  // Id cut
+  // Id+iso cut
   if (!testMediumCutBasedId(part)) return false;
-  // Iso cut
-  float reliso = miniRelIso_DR0p3(part);
-  if (reliso>0.1) return false;
   return true;
 }
 
@@ -274,11 +266,8 @@ bool PhotonSelectionHelpers::testTightCutBasedId(PhotonObject const& part){
   return true;
 }
 bool PhotonSelectionHelpers::testTightSelection(PhotonObject const& part){
-  // Id cut
+  // Id+iso cut
   if (!testTightCutBasedId(part)) return false;
-  // Iso cut
-  float reliso = miniRelIso_DR0p3(part);
-  if (reliso>0.1) return false;
   return true;
 }
 
@@ -294,8 +283,6 @@ bool PhotonSelectionHelpers::testPtEtaSkim(PhotonObject const& part){
     (testMediumSelection(part) && (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium))
     ||
     (testLooseSelection(part) && (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose))
-    ||
-    (testVetoSelection(part) && (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto))
     ) return true;
   return false;
 }
@@ -322,5 +309,3 @@ void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
   if (testPreselection(part)) part.setSelectionBit(kPreselection);
 }
-
-#endif // NOT_YET

@@ -2,8 +2,9 @@
 #include "Samples.h"
 #include "ParticleObjectHelpers.h"
 #include "JetMETHandler.h"
-#include "ElectronSelectionHelpers.h"
 #include "MuonSelectionHelpers.h"
+#include "ElectronSelectionHelpers.h"
+#include "PhotonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 #include "JECJERHelpers.h"
@@ -36,8 +37,9 @@ JetMETHandler::JetMETHandler() :
   registeredJECSFHandler_ak8jets(nullptr),
   registeredJERSFHandler_ak4jets(nullptr),
   registeredJERSFHandler_ak8jets(nullptr),
+  registeredMuons(nullptr),
   registeredElectrons(nullptr),
-  registeredMuons(nullptr)
+  registeredPhotons(nullptr)
 {}
 
 void JetMETHandler::clear(){
@@ -409,6 +411,12 @@ bool JetMETHandler::applyJetCleaning(){
         if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
+    if (registeredPhotons){
+      for (auto const* part:*(registeredPhotons)){
+        if (!part->testSelection(PhotonSelectionHelpers::kLooseIDReco) || !part->testSelection(PhotonSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
     if (!doSkip) ak4jets_new.push_back(jet);
     else delete jet;
   }
@@ -429,6 +437,12 @@ bool JetMETHandler::applyJetCleaning(){
         if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
+    if (registeredPhotons){
+      for (auto const* part:*(registeredPhotons)){
+        if (!part->testSelection(PhotonSelectionHelpers::kLooseIDReco) || !part->testSelection(PhotonSelectionHelpers::kSkimPtEta)) continue;
+        if (reco::deltaR(jet->getFinalMomentum(), part->momentum)<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
     if (!doSkip) ak8jets_new.push_back(jet);
     else delete jet;
   }
@@ -436,6 +450,7 @@ bool JetMETHandler::applyJetCleaning(){
 
   registeredMuons=nullptr; // De-register muons now
   registeredElectrons=nullptr; // De-register electrons now
+  registeredPhotons=nullptr; // De-register electrons now
   return true;
 }
 bool JetMETHandler::applyJEC(){
