@@ -8,8 +8,9 @@ protected:
   bool doGenParticles;
   bool doEventFilter;
   bool doPFCands;
-  bool doElectrons;
   bool doMuons;
+  bool doElectrons;
+  bool doPhotons;
   bool doJetMET;
   bool doWriteSelectionVariables;
 
@@ -26,8 +27,9 @@ public:
   void setGenParticlesFlag(bool flag){ doGenParticles = flag; if (doGenParticles && !doGenInfo) doGenInfo=true; }
   void setEventFilterFlag(bool flag){ doEventFilter = flag; }
   void setPFCandsFlag(bool flag){ doPFCands = flag; }
-  void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
+  void setElectronsFlag(bool flag){ doElectrons = flag; }
+  void setPhotonsFlag(bool flag){ doPhotons = flag; }
   void setJetMETFlag(bool flag){ doJetMET = flag; }
   void setWriteSelectionVariables(bool flag){ doWriteSelectionVariables = flag; }
 
@@ -40,8 +42,9 @@ EventAnalyzer::EventAnalyzer() :
   doGenParticles(true),
   doEventFilter(true),
   doPFCands(true),
-  doElectrons(true),
   doMuons(true),
+  doElectrons(true),
+  doPhotons(true),
   doJetMET(true),
   doWriteSelectionVariables(true)
 {}
@@ -52,8 +55,9 @@ EventAnalyzer::EventAnalyzer(FrameworkTree* inTree) :
   doGenParticles(true),
   doEventFilter(true),
   doPFCands(true),
-  doElectrons(true),
   doMuons(true),
+  doElectrons(true),
+  doPhotons(true),
   doJetMET(true),
   doWriteSelectionVariables(true)
 {}
@@ -64,8 +68,9 @@ EventAnalyzer::EventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
   doGenParticles(true),
   doEventFilter(true),
   doPFCands(true),
-  doElectrons(true),
   doMuons(true),
+  doElectrons(true),
+  doPhotons(true),
   doJetMET(true),
   doWriteSelectionVariables(true)
 {}
@@ -76,8 +81,9 @@ EventAnalyzer::EventAnalyzer(FrameworkSet const* inTreeSet) :
   doGenParticles(true),
   doEventFilter(true),
   doPFCands(true),
-  doElectrons(true),
   doMuons(true),
+  doElectrons(true),
+  doPhotons(true),
   doJetMET(true),
   doWriteSelectionVariables(true)
 {}
@@ -91,25 +97,27 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   GenInfoHandler* genInfoHandler = nullptr;
   EventFilterHandler* eventFilter = nullptr;
   PFCandHandler* pfcandHandler=nullptr;
-  ElectronHandler* eleHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
+  ElectronHandler* eleHandler=nullptr;
+  PhotonHandler* photonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
     if (doWeights && !tree->isData()){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
     if (doGenInfo && !tree->isData()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
     if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
     if (doPFCands){ PFCandHandler* tmp_ivy = dynamic_cast<PFCandHandler*>(it->second); if (!pfcandHandler && tmp_ivy){ pfcandHandler = tmp_ivy; } }
-    if (doElectrons){ ElectronHandler* tmp_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && tmp_ivy){ eleHandler = tmp_ivy; } }
     if (doMuons){ MuonHandler* tmp_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && tmp_ivy){ muonHandler = tmp_ivy; } }
+    if (doElectrons){ ElectronHandler* tmp_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && tmp_ivy){ eleHandler = tmp_ivy; } }
+    if (doPhotons){ PhotonHandler* tmp_ivy = dynamic_cast<PhotonHandler*>(it->second); if (!photonHandler && tmp_ivy){ photonHandler = tmp_ivy; } }
     if (doJetMET){ JetMETHandler* tmp_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && tmp_ivy){ jetHandler = tmp_ivy; } }
   }
 
   // SF handlers
-  ElectronScaleFactorHandler* eleSFHandler=nullptr;
   MuonScaleFactorHandler* muonSFHandler=nullptr;
+  ElectronScaleFactorHandler* eleSFHandler=nullptr;
   for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
-    if (doElectrons){ ElectronScaleFactorHandler* ele_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && ele_sfs){ eleSFHandler = ele_sfs; } }
     if (doMuons){ MuonScaleFactorHandler* muon_sfs = dynamic_cast<MuonScaleFactorHandler*>(it->second); if (!muonSFHandler && muon_sfs){ muonSFHandler = muon_sfs; } }
+    if (doElectrons){ ElectronScaleFactorHandler* ele_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && ele_sfs){ eleSFHandler = ele_sfs; } }
   }
 
 
@@ -335,159 +343,6 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   }
 
 
-  /***********************/
-  /**  ELECTRONS BLOCK  **/
-  /***********************/
-  std::vector<ElectronObject*> electrons;
-  validProducts &= (!doElectrons || eleHandler!=nullptr);
-  if (!validProducts){
-    MELAerr << "EventAnalyzer::runEvent: Electron handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
-    return validProducts;
-  }
-  if (eleHandler){
-    validProducts &= eleHandler->constructElectrons();
-    if (!validProducts){
-      MELAerr << "EventAnalyzer::runEvent: Electrons could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
-      tree->print();
-      exit(1);
-      return validProducts;
-    }
-    electrons = eleHandler->getProducts();
-
-    std::vector<int> id;
-    std::vector<float> pt;
-    std::vector<float> eta;
-    std::vector<float> phi;
-    std::vector<float> mass;
-
-    std::vector<bool> conv_vtx_flag;
-    std::vector<int> expectedMissingInnerHits;
-    std::vector<float> energySC;
-    std::vector<float> etaSC;
-    std::vector<float> etaSeedSC;
-    std::vector<float> rho;
-    std::vector<float> sigmaIEtaIEta_full5x5;
-    std::vector<float> dEtaIn;
-    std::vector<float> dPhiIn;
-    std::vector<float> hOverE;
-    std::vector<float> ecalEnergy;
-    std::vector<float> eOverPIn;
-    std::vector<float> dxyPV;
-    std::vector<float> dzPV;
-    std::vector<float> miniIso_ch;
-    std::vector<float> miniIso_nh;
-    std::vector<float> miniIso_em;
-    std::vector<long long> selectionBits;
-
-    float SF_IdIso=1;
-    float SF_Reco=1;
-    float SF_Gen=1;
-    float SF_IdIso_Up=1;
-    float SF_Reco_Up=1;
-    float SF_Gen_Up=1;
-    float SF_IdIso_Dn=1;
-    float SF_Reco_Dn=1;
-    float SF_Gen_Dn=1;
-
-    for (ElectronObject const* electron:electrons){
-      if (!electron) continue;
-      if (!HelperFunctions::test_bit(electron->selectionBits, ElectronSelectionHelpers::kGenPtEta)) continue;
-
-      ElectronVariables const& extras = electron->extras;
-
-      id.push_back(electron->id);
-      pt.push_back(electron->pt());
-      eta.push_back(electron->eta());
-      phi.push_back(electron->phi());
-      mass.push_back(electron->m());
-
-      conv_vtx_flag.push_back(extras.conv_vtx_flag);
-      expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
-      energySC.push_back(extras.energySC);
-      etaSC.push_back(extras.etaSC);
-      etaSeedSC.push_back(extras.etaSeedSC);
-      rho.push_back(extras.rho);
-      sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
-      dEtaIn.push_back(extras.dEtaIn);
-      dPhiIn.push_back(extras.dPhiIn);
-      hOverE.push_back(extras.hOverE);
-      ecalEnergy.push_back(extras.ecalEnergy);
-      eOverPIn.push_back(extras.eOverPIn);
-      dxyPV.push_back(extras.dxyPV);
-      dzPV.push_back(extras.dzPV);
-      miniIso_ch.push_back(extras.miniIso_ch);
-      miniIso_nh.push_back(extras.miniIso_nh);
-      miniIso_em.push_back(extras.miniIso_em);
-
-      selectionBits.push_back(electron->selectionBits);
-
-      if (eleSFHandler){
-        float tmp_SF_IdIso=1;
-        float tmp_SF_Reco=1;
-        float tmp_SF_Gen=1;
-        float tmp_SFerr_IdIso=0;
-        float tmp_SFerr_Reco=0;
-        float tmp_SFerr_Gen=0;
-
-        eleSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, electron, tree->isFastSim());
-        eleSFHandler->getRecoSFAndError(tmp_SF_Reco, tmp_SFerr_Reco, electron);
-        eleSFHandler->getGenSFAndError(tmp_SF_Gen, tmp_SFerr_Gen, electron, tmp_SF_IdIso, tmp_SFerr_IdIso);
-
-        if (!(isfinite(tmp_SF_IdIso) && isfinite(tmp_SF_Reco) && isfinite(tmp_SF_Gen) && isfinite(tmp_SFerr_IdIso) && isfinite(tmp_SFerr_Reco) && isfinite(tmp_SFerr_Gen))){
-          if (verbosity>=TVar::ERROR){
-            MELAerr << "EventAnalyzer::runEvent: Some electron scale factors are not finite!" << endl;
-            MELAerr << "\t- ID+iso = " << tmp_SF_IdIso << " * (1 +- " << tmp_SFerr_IdIso << ")" << endl;
-            MELAerr << "\t- ID+iso = " << tmp_SF_Reco << " * (1 +- " << tmp_SFerr_Reco << ")" << endl;
-            MELAerr << "\t- ID+iso = " << tmp_SF_Gen << " * (1 +- " << tmp_SFerr_Gen << ")" << endl;
-          }
-          exit(1);
-        }
-        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
-        SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
-        SF_Gen *= std::min(1.f, std::max(0.f, tmp_SF_Gen));
-        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
-        SF_Reco_Up *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f + tmp_SFerr_Reco)));
-        SF_Gen_Up *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f + tmp_SFerr_Gen)));
-        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
-        SF_Reco_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f - tmp_SFerr_Reco)));
-        SF_Gen_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f - tmp_SFerr_Gen)));
-      }
-    }
-    product.setNamedVal<std::vector<int>>("electrons_id", id);
-    product.setNamedVal<std::vector<float>>("electrons_pt", pt);
-    product.setNamedVal<std::vector<float>>("electrons_eta", eta);
-    product.setNamedVal<std::vector<float>>("electrons_phi", phi);
-    product.setNamedVal<std::vector<float>>("electrons_mass", mass);
-    if (doWriteSelectionVariables){
-      product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
-      product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
-      product.setNamedVal<std::vector<float>>("electrons_energySC", energySC);
-      product.setNamedVal<std::vector<float>>("electrons_etaSC", etaSC);
-      product.setNamedVal<std::vector<float>>("electrons_etaSeedSC", etaSeedSC);
-      product.setNamedVal<std::vector<float>>("electrons_rho", rho);
-      product.setNamedVal<std::vector<float>>("electrons_sigmaIEtaIEta_full5x5", sigmaIEtaIEta_full5x5);
-      product.setNamedVal<std::vector<float>>("electrons_dEtaIn", dEtaIn);
-      product.setNamedVal<std::vector<float>>("electrons_dPhiIn", dPhiIn);
-      product.setNamedVal<std::vector<float>>("electrons_hOverE", hOverE);
-      product.setNamedVal<std::vector<float>>("electrons_ecalEnergy", ecalEnergy);
-      product.setNamedVal<std::vector<float>>("electrons_eOverPIn", eOverPIn);
-      product.setNamedVal<std::vector<float>>("electrons_dxyPV", dxyPV);
-      product.setNamedVal<std::vector<float>>("electrons_dzPV", dzPV);
-      product.setNamedVal<std::vector<float>>("electrons_miniIso_ch", miniIso_ch);
-      product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
-      product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
-    }
-    product.setNamedVal<std::vector<long long>>("electrons_selectionBits", selectionBits);
-
-    float electronSF = SF_IdIso*SF_Reco;
-    float electronSFUp = SF_IdIso_Up*SF_Reco_Up;
-    float electronSFDn = SF_IdIso_Dn*SF_Reco_Dn;
-    product.setNamedVal<float>("weight_electrons", electronSF);
-    product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
-    product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
-  }
-
-
   /*******************/
   /**  MUONS BLOCK  **/
   /*******************/
@@ -651,6 +506,229 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
   }
 
 
+  /***********************/
+  /**  ELECTRONS BLOCK  **/
+  /***********************/
+  std::vector<ElectronObject*> electrons;
+  validProducts &= (!doElectrons || eleHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: Electron handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (eleHandler){
+    validProducts &= eleHandler->constructElectrons();
+    if (!validProducts){
+      MELAerr << "EventAnalyzer::runEvent: Electrons could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+    electrons = eleHandler->getProducts();
+
+    std::vector<int> id;
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
+    std::vector<bool> conv_vtx_flag;
+    std::vector<int> expectedMissingInnerHits;
+    std::vector<float> energySC;
+    std::vector<float> etaSC;
+    std::vector<float> etaSeedSC;
+    std::vector<float> rho;
+    std::vector<float> sigmaIEtaIEta_full5x5;
+    std::vector<float> dEtaIn;
+    std::vector<float> dPhiIn;
+    std::vector<float> hOverE;
+    std::vector<float> ecalEnergy;
+    std::vector<float> eOverPIn;
+    std::vector<float> dxyPV;
+    std::vector<float> dzPV;
+    std::vector<float> miniIso_ch;
+    std::vector<float> miniIso_nh;
+    std::vector<float> miniIso_em;
+    std::vector<long long> selectionBits;
+
+    float SF_IdIso=1;
+    float SF_Reco=1;
+    float SF_Gen=1;
+    float SF_IdIso_Up=1;
+    float SF_Reco_Up=1;
+    float SF_Gen_Up=1;
+    float SF_IdIso_Dn=1;
+    float SF_Reco_Dn=1;
+    float SF_Gen_Dn=1;
+
+    for (ElectronObject const* electron:electrons){
+      if (!electron) continue;
+      if (!HelperFunctions::test_bit(electron->selectionBits, ElectronSelectionHelpers::kGenPtEta)) continue;
+
+      ElectronVariables const& extras = electron->extras;
+
+      id.push_back(electron->id);
+      pt.push_back(electron->pt());
+      eta.push_back(electron->eta());
+      phi.push_back(electron->phi());
+      mass.push_back(electron->m());
+
+      conv_vtx_flag.push_back(extras.conv_vtx_flag);
+      expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
+      energySC.push_back(extras.energySC);
+      etaSC.push_back(extras.etaSC);
+      etaSeedSC.push_back(extras.etaSeedSC);
+      rho.push_back(extras.rho);
+      sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
+      dEtaIn.push_back(extras.dEtaIn);
+      dPhiIn.push_back(extras.dPhiIn);
+      hOverE.push_back(extras.hOverE);
+      ecalEnergy.push_back(extras.ecalEnergy);
+      eOverPIn.push_back(extras.eOverPIn);
+      dxyPV.push_back(extras.dxyPV);
+      dzPV.push_back(extras.dzPV);
+      miniIso_ch.push_back(extras.miniIso_ch);
+      miniIso_nh.push_back(extras.miniIso_nh);
+      miniIso_em.push_back(extras.miniIso_em);
+
+      selectionBits.push_back(electron->selectionBits);
+
+      if (eleSFHandler){
+        float tmp_SF_IdIso=1;
+        float tmp_SF_Reco=1;
+        float tmp_SF_Gen=1;
+        float tmp_SFerr_IdIso=0;
+        float tmp_SFerr_Reco=0;
+        float tmp_SFerr_Gen=0;
+
+        eleSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, electron, tree->isFastSim());
+        eleSFHandler->getRecoSFAndError(tmp_SF_Reco, tmp_SFerr_Reco, electron);
+        eleSFHandler->getGenSFAndError(tmp_SF_Gen, tmp_SFerr_Gen, electron, tmp_SF_IdIso, tmp_SFerr_IdIso);
+
+        if (!(isfinite(tmp_SF_IdIso) && isfinite(tmp_SF_Reco) && isfinite(tmp_SF_Gen) && isfinite(tmp_SFerr_IdIso) && isfinite(tmp_SFerr_Reco) && isfinite(tmp_SFerr_Gen))){
+          if (verbosity>=TVar::ERROR){
+            MELAerr << "EventAnalyzer::runEvent: Some electron scale factors are not finite!" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_IdIso << " * (1 +- " << tmp_SFerr_IdIso << ")" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_Reco << " * (1 +- " << tmp_SFerr_Reco << ")" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_Gen << " * (1 +- " << tmp_SFerr_Gen << ")" << endl;
+
+          }
+          exit(1);
+
+        }
+        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
+        SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
+        SF_Gen *= std::min(1.f, std::max(0.f, tmp_SF_Gen));
+        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
+        SF_Reco_Up *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f + tmp_SFerr_Reco)));
+        SF_Gen_Up *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f + tmp_SFerr_Gen)));
+        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
+        SF_Reco_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f - tmp_SFerr_Reco)));
+        SF_Gen_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f - tmp_SFerr_Gen)));
+      }
+    }
+    product.setNamedVal<std::vector<int>>("electrons_id", id);
+    product.setNamedVal<std::vector<float>>("electrons_pt", pt);
+    product.setNamedVal<std::vector<float>>("electrons_eta", eta);
+    product.setNamedVal<std::vector<float>>("electrons_phi", phi);
+    product.setNamedVal<std::vector<float>>("electrons_mass", mass);
+    if (doWriteSelectionVariables){
+      product.setNamedVal<std::vector<bool>>("electrons_conv_vtx_flag", conv_vtx_flag);
+      product.setNamedVal<std::vector<int>>("electrons_expectedMissingInnerHits", expectedMissingInnerHits);
+      product.setNamedVal<std::vector<float>>("electrons_energySC", energySC);
+      product.setNamedVal<std::vector<float>>("electrons_etaSC", etaSC);
+      product.setNamedVal<std::vector<float>>("electrons_etaSeedSC", etaSeedSC);
+      product.setNamedVal<std::vector<float>>("electrons_rho", rho);
+      product.setNamedVal<std::vector<float>>("electrons_sigmaIEtaIEta_full5x5", sigmaIEtaIEta_full5x5);
+      product.setNamedVal<std::vector<float>>("electrons_dEtaIn", dEtaIn);
+      product.setNamedVal<std::vector<float>>("electrons_dPhiIn", dPhiIn);
+      product.setNamedVal<std::vector<float>>("electrons_hOverE", hOverE);
+      product.setNamedVal<std::vector<float>>("electrons_ecalEnergy", ecalEnergy);
+      product.setNamedVal<std::vector<float>>("electrons_eOverPIn", eOverPIn);
+      product.setNamedVal<std::vector<float>>("electrons_dxyPV", dxyPV);
+      product.setNamedVal<std::vector<float>>("electrons_dzPV", dzPV);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_ch", miniIso_ch);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_nh", miniIso_nh);
+      product.setNamedVal<std::vector<float>>("electrons_miniIso_em", miniIso_em);
+    }
+    product.setNamedVal<std::vector<long long>>("electrons_selectionBits", selectionBits);
+
+    float electronSF = SF_IdIso*SF_Reco;
+    float electronSFUp = SF_IdIso_Up*SF_Reco_Up;
+    float electronSFDn = SF_IdIso_Dn*SF_Reco_Dn;
+    product.setNamedVal<float>("weight_electrons", electronSF);
+    product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
+    product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
+  }
+
+
+  /*********************/
+  /**  PHOTONS BLOCK  **/
+  /*********************/
+  std::vector<PhotonObject*> photons;
+  validProducts &= (!doPhotons || photonHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "EventAnalyzer::runEvent: Photon handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (photonHandler){
+    validProducts &= photonHandler->constructPhotons();
+    if (!validProducts){
+      MELAerr << "EventAnalyzer::runEvent: Photons could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+    photons = photonHandler->getProducts();
+
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
+    std::vector<float> etaSC;
+    std::vector<float> recoChargedHadronIso;
+    std::vector<float> recoNeutralHadronIso;
+    std::vector<float> recoPhotonIso;
+    std::vector<float> sigmaIEtaIEta_full5x5;
+    std::vector<float> hOverE_full5x5;
+    std::vector<long long> selectionBits;
+
+    for (PhotonObject const* photon:photons){
+      if (!photon) continue;
+      if (!HelperFunctions::test_bit(photon->selectionBits, PhotonSelectionHelpers::kGenPtEta)) continue;
+
+      PhotonVariables const& extras = photon->extras;
+
+      pt.push_back(photon->pt());
+      eta.push_back(photon->eta());
+      phi.push_back(photon->phi());
+      mass.push_back(photon->m());
+
+      etaSC.push_back(extras.etaSC);
+      recoChargedHadronIso.push_back(extras.recoChargedHadronIso);
+      recoNeutralHadronIso.push_back(extras.recoNeutralHadronIso);
+      recoPhotonIso.push_back(extras.recoPhotonIso);
+      sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
+      hOverE_full5x5.push_back(extras.hOverE_full5x5);
+
+      selectionBits.push_back(photon->selectionBits);
+    }
+    product.setNamedVal<std::vector<float>>("photons_pt", pt);
+    product.setNamedVal<std::vector<float>>("photons_eta", eta);
+    product.setNamedVal<std::vector<float>>("photons_phi", phi);
+    product.setNamedVal<std::vector<float>>("photons_mass", mass);
+    if (doWriteSelectionVariables){
+      product.setNamedVal<std::vector<float>>("photons_etaSC", etaSC);
+      product.setNamedVal<std::vector<float>>("photons_recoChargedHadronIso", recoChargedHadronIso);
+      product.setNamedVal<std::vector<float>>("photons_recoNeutralHadronIso", recoNeutralHadronIso);
+      product.setNamedVal<std::vector<float>>("photons_recoPhotonIso", recoPhotonIso);
+      product.setNamedVal<std::vector<float>>("photons_sigmaIEtaIEta_full5x5", sigmaIEtaIEta_full5x5);
+      product.setNamedVal<std::vector<float>>("photons_hOverE_full5x5", hOverE_full5x5);
+    }
+    product.setNamedVal<std::vector<long long>>("photons_selectionBits", selectionBits);
+  }
+
+
   /********************/
   /**  JetMET BLOCK  **/
   /********************/
@@ -660,7 +738,7 @@ bool EventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWgt, Simp
     return validProducts;
   }
   if (jetHandler){
-    jetHandler->registerLeptons(&electrons, &muons);
+    jetHandler->registerParticles(&muons, &electrons, &photons);
     validProducts &= jetHandler->constructJetMET();
     if (!validProducts){
       MELAerr << "EventAnalyzer::runEvent: Jets or MET could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;

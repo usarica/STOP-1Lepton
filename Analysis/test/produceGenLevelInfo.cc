@@ -34,11 +34,14 @@ void produceGenLevelInfo(bool doReco=false, int whichSample=-1){
     GenInfoHandler genInfoHandler;
     for (auto* tree:theSet.getFrameworkTreeList()) genInfoHandler.bookBranches(tree);
 
+    MuonHandler muonHandler;
+    if (doReco){ for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree); }
+
     ElectronHandler electronHandler;
     if (doReco){ for (auto* tree:theSet.getFrameworkTreeList()) electronHandler.bookBranches(tree); }
 
-    MuonHandler muonHandler;
-    if (doReco){ for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree); }
+    PhotonHandler photonHandler;
+    if (doReco){ for (auto* tree:theSet.getFrameworkTreeList()) photonHandler.bookBranches(tree); }
 
     JetMETHandler jetHandler; // Needed for gen. jets
     if (!doReco){
@@ -52,8 +55,9 @@ void produceGenLevelInfo(bool doReco=false, int whichSample=-1){
     EventAnalyzer analyzer(&theSet);
     analyzer.setEventFilterFlag(false);
     if (!doReco){
-      analyzer.setElectronsFlag(false);
       analyzer.setMuonsFlag(false);
+      analyzer.setElectronsFlag(false);
+      analyzer.setPhotonsFlag(false);
     }
 
     // Set maximum events to process
@@ -62,8 +66,9 @@ void produceGenLevelInfo(bool doReco=false, int whichSample=-1){
     analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
     analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
     if (doReco){
-      analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
       analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
+      analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
+      analyzer.addExternalIvyObject("PhotonHandler", &photonHandler);
     }
     analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
     // Output tree setup

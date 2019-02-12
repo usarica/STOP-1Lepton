@@ -50,8 +50,9 @@ void doMTDProduction(int whichSample=-1){
     //analyzer.setGenParticlesFlag(false);
     analyzer.setEventFilterFlag(false);
     analyzer.setPFCandsFlag(false);
-    analyzer.setElectronsFlag(false);
     analyzer.setMuonsFlag(false);
+    analyzer.setElectronsFlag(false);
+    analyzer.setPhotonsFlag(false);
     //analyzer.setJetMETFlag(false);
     analyzer.setWriteSelectionVariables(false);
     // Ivy handlers

@@ -42,13 +42,17 @@ void doFullProduction(int whichSample=-1){
     PFCandHandler pfcandHandler;
     for (auto* tree:theSet.getFrameworkTreeList()) pfcandHandler.bookBranches(tree);
 
+    MuonScaleFactorHandler muonSFHandler;
+    MuonHandler muonHandler;
+    for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree);
+
     ElectronScaleFactorHandler electronSFHandler;
     ElectronHandler electronHandler;
     for (auto* tree:theSet.getFrameworkTreeList()) electronHandler.bookBranches(tree);
 
-    MuonScaleFactorHandler muonSFHandler;
-    MuonHandler muonHandler;
-    for (auto* tree:theSet.getFrameworkTreeList()) muonHandler.bookBranches(tree);
+    //PhotonScaleFactorHandler photonSFHandler;
+    PhotonHandler photonHandler;
+    for (auto* tree:theSet.getFrameworkTreeList()) photonHandler.bookBranches(tree);
 
     JetMETHandler jetHandler; // Needed for gen. jets
     BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
@@ -73,12 +77,14 @@ void doFullProduction(int whichSample=-1){
     analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
     analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
     analyzer.addExternalIvyObject("PFCandHandler", &pfcandHandler);
-    analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
     analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
+    analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
+    analyzer.addExternalIvyObject("PhotonHandler", &photonHandler);
     analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
     // SF handlers
-    analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
     analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
+    analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
+    //analyzer.addExternalScaleFactorHandler("PhotonSFHandler", &photonSFHandler);
     // Register JetMET SF handlers so that they can be updated
     analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_noFS", &btagSFHandler_MC_noFS);
     analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_FS", &btagSFHandler_MC_FS);
