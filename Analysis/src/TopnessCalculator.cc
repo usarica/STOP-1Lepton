@@ -33,6 +33,15 @@ double TopnessCalculator::topnessFunction(
   double Topness = tWL + tTL + tTM + tCM;
   return Topness;
 }
+void TopnessCalculator::minuitFcn_Topness(int&, double*, double& result, double* par, int){
+  result = topnessFunction(
+    par[0], par[1], par[2], par[3],
+    par[4], par[5], par[6], par[7],
+    par[8], par[9], par[10], par[11],
+    par[12], par[13], par[14], par[15],
+    par[16], par[17], par[18], par[19]
+  );
+}
 
 double TopnessCalculator::topnessModFunction(
   double const& pwx_, double const& pwy_, double const& pwz_, double const& pnz_,
@@ -60,6 +69,15 @@ double TopnessCalculator::topnessModFunction(
   // calculate Topness
   double Topness = tWL + tTM;
   return Topness;
+}
+void TopnessCalculator::minuitFcn_ModTopness(int&, double*, double& result, double* par, int){
+  result = topnessModFunction(
+    par[0], par[1], par[2], par[3],
+    par[4], par[5], par[6], par[7],
+    par[8], par[9], par[10], par[11],
+    par[12], par[13], par[14], par[15],
+    par[16], par[17], par[18], par[19]
+  );
 }
 
 float TopnessCalculator::topnessMinimization(bool isModified, float const& METx, float const& METy, MELAParticle const* const& lep, MELAParticle const* const& bjet1, MELAParticle const* const& bjet2){
