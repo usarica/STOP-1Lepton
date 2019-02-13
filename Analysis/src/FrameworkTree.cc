@@ -26,8 +26,6 @@ void FrameworkTree::autoBookBranches(){
 }
 
 bool FrameworkTree::isValidEvent() const{
-  if (!BaseEDMInputTree::isValidEvent()) return false;
-  if (this->isMC()) return true;
-  if (!RunNumberRef || !LumisectionRef) return false;
-  return GoodEventFilter::testEvent(*RunNumberRef, *LumisectionRef);
+  return BaseEDMInputTree::isValidEvent();
+  // All other data-related stuff is migrated to EventFilterHandler
 }

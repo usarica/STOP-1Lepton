@@ -35,7 +35,17 @@ void FrameworkTag::setupParsedTag(){
     assert(0);
     return;
   }
-  string splitfurther=splittag.at(1); splittag.clear();
+  unsigned int ioffset=0;
+  for (auto const& st:splittag){
+    if (st.find("CMS")!=std::string::npos) break;
+    else ioffset++;
+  }
+  if (ioffset==splittag.size()-1){
+    MELAerr << "FrameworkTag::setupParsedTag: Offset index reached split tag size!" << endl;
+    assert(0);
+    return;
+  }
+  string splitfurther=splittag.at(ioffset+1); splittag.clear();
   replaceString<std::string, const char*>(splitfurther, "V", "");
   splitOptionRecursive(splitfurther, splittag, '-', false);
   if (splittag.size()!=3){

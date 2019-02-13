@@ -123,7 +123,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     MELAerr << "GenericEventAnalyzer::runEvent: Weight handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
     return validProducts;
   }
-  if (wgtHandler){
+  if (wgtHandler && tree->isMC()){
     validProducts &= wgtHandler->constructWeights();
     if (!validProducts){
       MELAerr << "GenericEventAnalyzer::runEvent: Weight product could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -151,7 +151,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     MELAerr << "GenericEventAnalyzer::runEvent: Weight handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
     return validProducts;
   }
-  if (genInfoHandler){
+  if (genInfoHandler && tree->isMC()){
     validProducts &= genInfoHandler->constructGenInfo();
     if (!validProducts){
       MELAerr << "GenericEventAnalyzer::runEvent: Weight product could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -498,9 +498,11 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     float muonSF = SF_IdIso*SF_Reco;
     float muonSFUp = SF_IdIso_Up*SF_Reco_Up;
     float muonSFDn = SF_IdIso_Dn*SF_Reco_Dn;
-    product.setNamedVal<float>("weight_muons", muonSF);
-    product.setNamedVal<float>("weight_muons_SFUp", muonSFUp);
-    product.setNamedVal<float>("weight_muons_SFDn", muonSFDn);
+    if (tree->isMC()){
+      product.setNamedVal<float>("weight_muons", muonSF);
+      product.setNamedVal<float>("weight_muons_SFUp", muonSFUp);
+      product.setNamedVal<float>("weight_muons_SFDn", muonSFDn);
+    }
   }
 
 
@@ -651,9 +653,11 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     float electronSF = SF_IdIso*SF_Reco;
     float electronSFUp = SF_IdIso_Up*SF_Reco_Up;
     float electronSFDn = SF_IdIso_Dn*SF_Reco_Dn;
-    product.setNamedVal<float>("weight_electrons", electronSF);
-    product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
-    product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
+    if (tree->isMC()){
+      product.setNamedVal<float>("weight_electrons", electronSF);
+      product.setNamedVal<float>("weight_electrons_SFUp", electronSFUp);
+      product.setNamedVal<float>("weight_electrons_SFDn", electronSFDn);
+    }
   }
 
 
@@ -748,9 +752,11 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     float photonSF = SF_IdIso;
     float photonSFUp = SF_IdIso_Up;
     float photonSFDn = SF_IdIso_Dn;
-    product.setNamedVal<float>("weight_photons", photonSF);
-    product.setNamedVal<float>("weight_photons_SFUp", photonSFUp);
-    product.setNamedVal<float>("weight_photons_SFDn", photonSFDn);
+    if (tree->isMC()){
+      product.setNamedVal<float>("weight_photons", photonSF);
+      product.setNamedVal<float>("weight_photons_SFUp", photonSFUp);
+      product.setNamedVal<float>("weight_photons_SFDn", photonSFDn);
+    }
   }
 
 
@@ -799,7 +805,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       genjets_phi.push_back(momentum.Phi());
       genjets_mass.push_back(momentum.M());
     }
-    if (jetHandler->getGenJetsFlag()){
+    if (jetHandler->getGenJetsFlag() && tree->isMC()){
       product.setNamedVal("genjets_pt", genjets_pt);
       product.setNamedVal("genjets_eta", genjets_eta);
       product.setNamedVal("genjets_phi", genjets_phi);
@@ -970,20 +976,23 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("ak4jets_electronE", ak4jets_electronE);
         product.setNamedVal("ak4jets_muonE", ak4jets_muonE);
       }
-      product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
-      product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
-      product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
-      product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
-
-      product.setNamedVal("ak4jets_estimatedPtResolution", ak4jets_estimatedPtResolution);
-      product.setNamedVal("ak4jets_JER", ak4jets_JER);
-      product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
-      product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
-
       product.setNamedVal("ak4jets_selectionBits", ak4jets_selectionBits);
 
-      product.setNamedVal("ak4jets_genjetIndex", ak4jets_genjetIndex);
-      product.setNamedVal("ak4jets_genjetDeltaR", ak4jets_genjetDeltaR);
+      product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
+      product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
+      product.setNamedVal("ak4jets_estimatedPtResolution", ak4jets_estimatedPtResolution);
+      product.setNamedVal("ak4jets_JER", ak4jets_JER);
+
+      if (tree->isMC()){
+        product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
+        product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
+
+        product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
+        product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
+
+        product.setNamedVal("ak4jets_genjetIndex", ak4jets_genjetIndex);
+        product.setNamedVal("ak4jets_genjetDeltaR", ak4jets_genjetDeltaR);
+      }
     }
 
     // AK8Jets
@@ -1095,20 +1104,23 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("ak8jets_area", ak8jets_area);
       }
 
-      product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
-      product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
-      product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
-      product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
-
-      product.setNamedVal("ak8jets_estimatedPtResolution", ak8jets_estimatedPtResolution);
-      product.setNamedVal("ak8jets_JER", ak8jets_JER);
-      product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
-      product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
-
       product.setNamedVal("ak8jets_selectionBits", ak8jets_selectionBits);
 
-      product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
-      product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
+      product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
+      product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
+      product.setNamedVal("ak8jets_estimatedPtResolution", ak8jets_estimatedPtResolution);
+      product.setNamedVal("ak8jets_JER", ak8jets_JER);
+
+      if (tree->isMC()){
+        product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
+        product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
+
+        product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
+        product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
+
+        product.setNamedVal("ak8jets_genjetIndex", ak8jets_genjetIndex);
+        product.setNamedVal("ak8jets_genjetDeltaR", ak8jets_genjetDeltaR);
+      }
     }
 
     // TFTops

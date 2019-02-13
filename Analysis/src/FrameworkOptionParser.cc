@@ -211,10 +211,13 @@ bool FrameworkOptionParser::findTagFromDatasetFile(){
   }
   else{ // Search the available folders for the data
     TString partial_sample = SampleHelpers::getDatasetDirectoryName(sample, "");
+    //MELAout << "Partial sample dir: " << partial_sample << endl;
     std::vector<TString> dirlist = SampleHelpers::lsdir(indir);
     for (auto const& dir:dirlist){
       TString tmptag = dir;
       if (tmptag.Contains(partial_sample)) replaceString<TString, const char*>(tmptag, (partial_sample+"_").Data(), "");
+      else continue;
+      //MELAout << "Checking dir: " << dir << ", tag: " << tmptag << endl;
       FrameworkTag tmp_tag(tmptag.Data());
       if (tmp_tag>=latest_tag) latest_tag=tmp_tag;
     }

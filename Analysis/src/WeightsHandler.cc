@@ -34,6 +34,7 @@ bool WeightsHandler::constructWeights(){
     if (verbosity>=TVar::ERROR) MELAerr << "WeightsHandler::constructWeights: Current tree is not derived from a FrameworkTree class!" << endl;
     return false;
   }
+  if (fwktree->isData()) return false;
 
   std::vector<float>* const* weightsPtr = valVfloats[_genweights_];
   std::vector<float> const* weights = (weightsPtr ? *weightsPtr : nullptr);
@@ -220,6 +221,7 @@ void WeightsHandler::bookBranches(BaseTree* tree){
   if (!tree || !tree->isValid()) return;
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
   if (!fwktree) return;
+  if (fwktree->isData()) return;
   SampleHelpers::setupUsingOptions(fwktree->getOptions());
 
   bool hasNewWeights = (SampleHelpers::branchExists(fwktree->getSelectedTree(), _genHEPMCweight_) || SampleHelpers::aliasExists(fwktree->getSelectedTree(), _genHEPMCweight_));

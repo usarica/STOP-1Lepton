@@ -84,7 +84,7 @@ bool GenInfoHandler::constructGenInfo(){
 
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
-  if (!fwktree->isMC()) return true;
+  if (fwktree->isData()) return false;
 
   unsigned int geninfo_processID = 0;
   float geninfo_qscale = 0;
