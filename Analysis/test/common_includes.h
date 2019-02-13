@@ -21,7 +21,7 @@
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonHandler.h"
 #include "PhotonSelectionHelpers.h"
-//#include "PhotonScaleFactorHandler.h"
+#include "PhotonScaleFactorHandler.h"
 #include "JetMETHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"

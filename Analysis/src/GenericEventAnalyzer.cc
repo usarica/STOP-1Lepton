@@ -11,7 +11,7 @@
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonHandler.h"
 #include "PhotonSelectionHelpers.h"
-//#include "PhotonScaleFactorHandler.h"
+#include "PhotonScaleFactorHandler.h"
 #include "JetMETHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
@@ -91,8 +91,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   PhotonHandler* photonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
-    if (doWeights && !tree->isData()){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
-    if (doGenInfo && !tree->isData()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
+    if (doWeights && tree->isMC()){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
+    if (doGenInfo && tree->isMC()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
     if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
     if (doPFCands){ PFCandHandler* tmp_ivy = dynamic_cast<PFCandHandler*>(it->second); if (!pfcandHandler && tmp_ivy){ pfcandHandler = tmp_ivy; } }
     if (doMuons){ MuonHandler* tmp_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && tmp_ivy){ muonHandler = tmp_ivy; } }
@@ -104,9 +104,13 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   // SF handlers
   MuonScaleFactorHandler* muonSFHandler=nullptr;
   ElectronScaleFactorHandler* eleSFHandler=nullptr;
-  for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
-    if (doMuons){ MuonScaleFactorHandler* muon_sfs = dynamic_cast<MuonScaleFactorHandler*>(it->second); if (!muonSFHandler && muon_sfs){ muonSFHandler = muon_sfs; } }
-    if (doElectrons){ ElectronScaleFactorHandler* ele_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && ele_sfs){ eleSFHandler = ele_sfs; } }
+  PhotonScaleFactorHandler* photonSFHandler=nullptr;
+  if (tree->isMC()){
+    for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
+      if (doMuons){ MuonScaleFactorHandler* tmp_sfs = dynamic_cast<MuonScaleFactorHandler*>(it->second); if (!muonSFHandler && tmp_sfs){ muonSFHandler = tmp_sfs; } }
+      if (doElectrons){ ElectronScaleFactorHandler* tmp_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && tmp_sfs){ eleSFHandler = tmp_sfs; } }
+      if (doPhotons){ PhotonScaleFactorHandler* tmp_sfs = dynamic_cast<PhotonScaleFactorHandler*>(it->second); if (!photonSFHandler && tmp_sfs){ photonSFHandler = tmp_sfs; } }
+    }
   }
 
 
@@ -249,16 +253,21 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     return validProducts;
   }
   if (eventFilter){
-    bool passEventFilters=true;
     validProducts &= eventFilter->constructFilter();
     if (!validProducts){
       MELAerr << "GenericEventAnalyzer::runEvent: Event filter HLT paths are empty. (Tree: " << tree->sampleIdentifier << ")." << endl;
       return validProducts;
     }
-    passEventFilters = eventFilter->passEventFilters();
+
+    bool passAtLeastOneHLTPath = false;
+    bool passEventFilters = eventFilter->passEventFilters();
     std::unordered_map<TString, bool> const* passingHLTPaths = &(eventFilter->getHLTProduct());
-    for (auto const& pair:(*passingHLTPaths)) product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second);
+    for (auto const& pair:(*passingHLTPaths)){ product.setNamedVal<bool>((TString("passHLTPath_")+pair.first), pair.second); passAtLeastOneHLTPath |= pair.second; }
     product.setNamedVal<bool>("passEventFilters", passEventFilters);
+    if (tree->isData() && !(passEventFilters && passAtLeastOneHLTPath)){
+      validProducts &= false;
+      return validProducts;
+    }
   }
 
 
@@ -599,10 +608,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
             MELAerr << "\t- ID+iso = " << tmp_SF_IdIso << " * (1 +- " << tmp_SFerr_IdIso << ")" << endl;
             MELAerr << "\t- ID+iso = " << tmp_SF_Reco << " * (1 +- " << tmp_SFerr_Reco << ")" << endl;
             MELAerr << "\t- ID+iso = " << tmp_SF_Gen << " * (1 +- " << tmp_SFerr_Gen << ")" << endl;
-
           }
           exit(1);
-
         }
         SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
         SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
@@ -682,6 +689,10 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<float> hOverE_full5x5;
     std::vector<long long> selectionBits;
 
+    float SF_IdIso=1;
+    float SF_IdIso_Up=1;
+    float SF_IdIso_Dn=1;
+
     for (PhotonObject const* photon:photons){
       if (!photon) continue;
       if (!HelperFunctions::test_bit(photon->selectionBits, PhotonSelectionHelpers::kGenPtEta)) continue;
@@ -701,6 +712,24 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       hOverE_full5x5.push_back(extras.hOverE_full5x5);
 
       selectionBits.push_back(photon->selectionBits);
+
+      if (photonSFHandler){
+        float tmp_SF_IdIso=1;
+        float tmp_SFerr_IdIso=0;
+
+        photonSFHandler->getIdIsoSFAndError(tmp_SF_IdIso, tmp_SFerr_IdIso, photon, tree->isFastSim());
+
+        if (!(isfinite(tmp_SF_IdIso) && isfinite(tmp_SFerr_IdIso))){
+          if (verbosity>=TVar::ERROR){
+            MELAerr << "GenericEventAnalyzer::runEvent: Some photon scale factors are not finite!" << endl;
+            MELAerr << "\t- ID+iso = " << tmp_SF_IdIso << " * (1 +- " << tmp_SFerr_IdIso << ")" << endl;
+          }
+          exit(1);
+        }
+        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
+        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
+        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
+      }
     }
     product.setNamedVal<std::vector<float>>("photons_pt", pt);
     product.setNamedVal<std::vector<float>>("photons_eta", eta);
@@ -715,6 +744,13 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal<std::vector<float>>("photons_hOverE_full5x5", hOverE_full5x5);
     }
     product.setNamedVal<std::vector<long long>>("photons_selectionBits", selectionBits);
+
+    float photonSF = SF_IdIso;
+    float photonSFUp = SF_IdIso_Up;
+    float photonSFDn = SF_IdIso_Dn;
+    product.setNamedVal<float>("weight_photons", photonSF);
+    product.setNamedVal<float>("weight_photons_SFUp", photonSFUp);
+    product.setNamedVal<float>("weight_photons_SFDn", photonSFDn);
   }
 
 

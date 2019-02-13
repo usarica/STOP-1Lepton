@@ -38,7 +38,7 @@ void doFullProduction(std::string stropts){
   ElectronHandler electronHandler;
   for (auto* tree:theSet.getFrameworkTreeList()) electronHandler.bookBranches(tree);
 
-  //PhotonScaleFactorHandler photonSFHandler;
+  PhotonScaleFactorHandler photonSFHandler;
   PhotonHandler photonHandler;
   for (auto* tree:theSet.getFrameworkTreeList()) photonHandler.bookBranches(tree);
 
@@ -72,7 +72,7 @@ void doFullProduction(std::string stropts){
   // SF handlers
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
-  //analyzer.addExternalScaleFactorHandler("PhotonSFHandler", &photonSFHandler);
+  analyzer.addExternalScaleFactorHandler("PhotonSFHandler", &photonSFHandler);
   // Register JetMET SF handlers so that they can be updated
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_noFS", &btagSFHandler_MC_noFS);
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_FS", &btagSFHandler_MC_FS);

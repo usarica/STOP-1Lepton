@@ -157,8 +157,7 @@ bool PhotonSelectionHelpers::testLooseCutBasedId(PhotonObject const& part){
 }
 bool PhotonSelectionHelpers::testLooseSelection(PhotonObject const& part){
   // Id+iso cut
-  if (!testLooseCutBasedId(part)) return false;
-  return true;
+  return testLooseCutBasedId(part);
 }
 
 bool PhotonSelectionHelpers::testMediumCutBasedId(PhotonObject const& part){
@@ -212,8 +211,7 @@ bool PhotonSelectionHelpers::testMediumCutBasedId(PhotonObject const& part){
 }
 bool PhotonSelectionHelpers::testMediumSelection(PhotonObject const& part){
   // Id+iso cut
-  if (!testMediumCutBasedId(part)) return false;
-  return true;
+  return testMediumCutBasedId(part);
 }
 
 bool PhotonSelectionHelpers::testTightCutBasedId(PhotonObject const& part){
@@ -267,8 +265,7 @@ bool PhotonSelectionHelpers::testTightCutBasedId(PhotonObject const& part){
 }
 bool PhotonSelectionHelpers::testTightSelection(PhotonObject const& part){
   // Id+iso cut
-  if (!testTightCutBasedId(part)) return false;
-  return true;
+  return testTightCutBasedId(part);
 }
 
 bool PhotonSelectionHelpers::testPtEtaGen(PhotonObject const& part){
@@ -300,11 +297,8 @@ bool PhotonSelectionHelpers::testPreselection(PhotonObject const& part){
 
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
-  if (testLooseCutBasedId(part)) part.setSelectionBit(kLooseID);
   if (testLooseSelection(part)) part.setSelectionBit(kLooseIDReco);
-  if (testMediumCutBasedId(part)) part.setSelectionBit(kMediumID);
   if (testMediumSelection(part)) part.setSelectionBit(kMediumIDReco);
-  if (testTightCutBasedId(part)) part.setSelectionBit(kTightID);
   if (testTightSelection(part)) part.setSelectionBit(kTightIDReco);
   if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
   if (testPreselection(part)) part.setSelectionBit(kPreselection);

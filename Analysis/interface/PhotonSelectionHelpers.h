@@ -18,17 +18,13 @@ namespace PhotonSelectionHelpers{
   // Veto, loose, medium, tight etc. selection bits
   enum SelectionBits{
     kGenPtEta,
-    kLooseID,
     kLooseIDReco,
-    kMediumID,
     kMediumIDReco,
-    kTightID,
     kTightIDReco,
     kSkimPtEta,
     kPreselection
   };
-  const SelectionBits bit_preselection_idiso = kMediumID;
-  const SelectionBits bit_preselection_idisoreco = kMediumIDReco;
+  const SelectionBits bit_preselection_idisoreco = kTightIDReco;
 
 
   float photonCHEffArea_DR0p3(PhotonObject const& part);
