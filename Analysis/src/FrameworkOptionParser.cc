@@ -28,13 +28,15 @@ FrameworkOptionParser::FrameworkOptionParser(int argc, char** argv) :
   isFastSimflag(false),
   exceptionalCases()
 {
-  if (argc>0) MELAout << "Executing " << argv[0] << " with " << (argc>1 ? "options" : "no options.");
-  for (int a=1; a<argc; a++){
-    string tmpArg(argv[a]);
-    rawOptions.push_back(tmpArg);
-    MELAout << ' ' << argv[a];
+  if (argc>0){
+    MELAout << "Executing " << argv[0] << " with " << (argc>1 ? "options" : "no options.");
+    if (argc>1) rawOptions.reserve(argc-1);
+    for (int a=1; a<argc; a++){
+      rawOptions.emplace_back(argv[a]);
+      MELAout << ' ' << argv[a];
+    }
+    MELAout << endl;
   }
-  if (argc>0) MELAout << endl;
   analyze();
 }
 FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
@@ -60,7 +62,7 @@ FrameworkOptionParser::FrameworkOptionParser(std::string opts) :
 void FrameworkOptionParser::analyze(){
   bool hasInvalidOption=false;
   bool redefinedOutputFile=false;
-  char rawdelimiter = '=';
+  const char rawdelimiter = '=';
   for (auto const& rawopt:rawOptions){
     string wish, value;
     splitOption(rawopt, wish, value, rawdelimiter);
