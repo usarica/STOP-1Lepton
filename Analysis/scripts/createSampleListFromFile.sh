@@ -4,7 +4,9 @@
 INLIST=$1
 OUTLIST=$2
 DATE=$3
-ISDATA=$4
+if [[ "$DATE" == "" ]];then
+  DATE=$(date +%y%m%d)
+fi
 tplline=""
 
 if [ -z $INLIST ] || [ -z $OUTLIST ];then
@@ -28,19 +30,33 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
       exit 1
     fi
     tplline=${tplline//"template "}
+    tplline=${tplline//".oO[DATE]Oo."/$DATE}
     echo "NEW TEMPLATE FOUND"
-    echo "\t=> ${tplline}"
+    echo "=> ${tplline}"
+
+    stropts=($(echo $tplline))
+    for stropt in ${stropts[*]}; do
+      if [[ "$stropt" == "condoroutdir="* ]];then
+        condoroutdir=${stropt//"condoroutdir="}
+        echo "Creating the directory ${condoroutdir}"
+        mkdir -p $condoroutdir
+      fi
+    done
   else
     arrIN=(${line//\// })
-    OUTFILE=${arrIN[0]}".root"
-    if [[ "$ISDATA" == "data" ]];then
+    OUTFILE=""
+    if [[ "$line" == *"MINIAODSIM"* ]];then
+      OUTFILE=${arrIN[0]}".root"
+    elif [[ "$line" == *"MINIAOD"* ]];then
       OUTFILE=${arrIN[1]}"_"${arrIN[0]}".root"
+    else
+      echo "Cannot determine if the sample is data or MC!"
+      exit 1
     fi
     SAMPLE=$line
     outline=$tplline
     outline=${outline//".oO[SAMPLE]Oo."/$SAMPLE}
     outline=${outline//".oO[OUTFILE]Oo."/$OUTFILE}
-    outline=${outline//".oO[DATE]Oo."/$DATE}
     #echo $outline |& tee -a $OUTLIST
 
     outline=${outline//\"}

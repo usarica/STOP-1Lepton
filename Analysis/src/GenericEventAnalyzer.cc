@@ -455,15 +455,15 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
           }
           exit(1);
         }
-        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
-        SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
-        SF_Gen *= std::min(1.f, std::max(0.f, tmp_SF_Gen));
-        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
-        SF_Reco_Up *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f + tmp_SFerr_Reco)));
-        SF_Gen_Up *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f + tmp_SFerr_Gen)));
-        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
-        SF_Reco_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f - tmp_SFerr_Reco)));
-        SF_Gen_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f - tmp_SFerr_Gen)));
+        SF_IdIso *= tmp_SF_IdIso;
+        SF_Reco *= tmp_SF_Reco;
+        SF_Gen *= tmp_SF_Gen;
+        SF_IdIso_Up *= tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso);
+        SF_Reco_Up *= tmp_SF_Reco * (1.f + tmp_SFerr_Reco);
+        SF_Gen_Up *= tmp_SF_Gen * (1.f + tmp_SFerr_Gen);
+        SF_IdIso_Dn *= tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso);
+        SF_Reco_Dn *= tmp_SF_Reco * (1.f - tmp_SFerr_Reco);
+        SF_Gen_Dn *= tmp_SF_Gen * (1.f - tmp_SFerr_Gen);
       }
     }
     product.setNamedVal<std::vector<int>>("muons_id", id);
@@ -613,15 +613,15 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
           }
           exit(1);
         }
-        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
-        SF_Reco *= std::min(1.f, std::max(0.f, tmp_SF_Reco));
-        SF_Gen *= std::min(1.f, std::max(0.f, tmp_SF_Gen));
-        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
-        SF_Reco_Up *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f + tmp_SFerr_Reco)));
-        SF_Gen_Up *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f + tmp_SFerr_Gen)));
-        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
-        SF_Reco_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Reco * (1.f - tmp_SFerr_Reco)));
-        SF_Gen_Dn *= std::min(1.f, std::max(0.f, tmp_SF_Gen * (1.f - tmp_SFerr_Gen)));
+        SF_IdIso *= tmp_SF_IdIso;
+        SF_Reco *= tmp_SF_Reco;
+        SF_Gen *= tmp_SF_Gen;
+        SF_IdIso_Up *= tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso);
+        SF_Reco_Up *= tmp_SF_Reco * (1.f + tmp_SFerr_Reco);
+        SF_Gen_Up *= tmp_SF_Gen * (1.f + tmp_SFerr_Gen);
+        SF_IdIso_Dn *= tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso);
+        SF_Reco_Dn *= tmp_SF_Reco * (1.f - tmp_SFerr_Reco);
+        SF_Gen_Dn *= tmp_SF_Gen * (1.f - tmp_SFerr_Gen);
       }
     }
     product.setNamedVal<std::vector<int>>("electrons_id", id);
@@ -730,9 +730,9 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
           }
           exit(1);
         }
-        SF_IdIso *= std::min(1.f, std::max(0.f, tmp_SF_IdIso));
-        SF_IdIso_Up *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso)));
-        SF_IdIso_Dn *= std::min(1.f, std::max(0.f, tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso)));
+        SF_IdIso *= tmp_SF_IdIso;
+        SF_IdIso_Up *= tmp_SF_IdIso * (1.f + tmp_SFerr_IdIso);
+        SF_IdIso_Dn *= tmp_SF_IdIso * (1.f - tmp_SFerr_IdIso);
       }
     }
     product.setNamedVal<std::vector<float>>("photons_pt", pt);

@@ -3,6 +3,8 @@
 #include "FileTransferHelpers.h"
 
 
+#define _DOPFCANDS_ false
+
 using namespace FileTransferHelpers;
 
 
@@ -11,8 +13,10 @@ void doFullProduction(std::string stropts){
 
   FrameworkOptionParser opts(stropts);
 
+  gSystem->Exec(Form("mkdir -p %s", opts.outputDir().c_str()));
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
   BaseTree* outtree = new BaseTree("test"); // The tree to record into the ROOT file
+  outtree->setAutoSave(0);
   curdir->cd();
 
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
@@ -28,7 +32,7 @@ void doFullProduction(std::string stropts){
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
 
   PFCandHandler pfcandHandler;
-  for (auto* tree:theSet.getFrameworkTreeList()) pfcandHandler.bookBranches(tree);
+  if (_DOPFCANDS_){ for (auto* tree:theSet.getFrameworkTreeList()) pfcandHandler.bookBranches(tree); }
 
   MuonScaleFactorHandler muonSFHandler;
   MuonHandler muonHandler;
@@ -60,11 +64,12 @@ void doFullProduction(std::string stropts){
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
   analyzer.setRecordEveryNEvents(opts.recordEveryNEvents());
   analyzer.setWriteSelectionVariables(false);
+  analyzer.setPFCandsFlag(_DOPFCANDS_);
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
   analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
-  analyzer.addExternalIvyObject("PFCandHandler", &pfcandHandler);
+  if (_DOPFCANDS_) analyzer.addExternalIvyObject("PFCandHandler", &pfcandHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("PhotonHandler", &photonHandler);
@@ -91,5 +96,5 @@ void doFullProduction(std::string stropts){
   foutput->Close();
   curdir->cd();
 
-  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir(), opts.outputFilename(), opts.condorSite(), opts.condorOutputDir());
+  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir().c_str(), opts.outputFilename().c_str(), opts.condorSite().c_str(), opts.condorOutputDir().c_str());
 }

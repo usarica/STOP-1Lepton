@@ -31,7 +31,19 @@ mkdir -p $LOGSDIR
 
 extLog=$FCN
 if [[ "$FCNARGS" != "" ]];then
-  fcnargname=${FCNARGS//" "/"_"}
+  fcnargname=""
+  fcnarglist=(${echo $FCNARGS})
+  for farg in ${fcnarglist[*]};do
+    if [[ "$farg" == "outfile="* ]];then
+      fcnargname=${fcnargname//"outfile="}
+      break
+    fi
+  done
+  if [[ "$fcnargname" == "" ]];then
+    fcnargname=${FCNARGS//" "/"_"}
+  fi
+  fcnargname=${fcnargname//"="/"_"}
+  fcnargname=${fcnargname//".root"}
   fcnargname=${fcnargname//\"}
   fcnargname=${fcnargname//\!}
   fcnargname=${fcnargname//\\}

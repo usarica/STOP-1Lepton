@@ -1,7 +1,8 @@
+#include <cassert>
 #include <algorithm>
 #include <utility>
 #include <iterator>
-#include <cassert>
+#include <chrono>
 #include "FrameworkVariables.hh"
 #include "FrameworkTreeLooperBase.h"
 #include "MELAStreamHelpers.hh"
@@ -112,6 +113,7 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     }
     assert(!doAbort);
   }
+  auto time_start = std::chrono::steady_clock::now();
   for (FrameworkTree*& tree:treeList){
     // Skip if maximum events are already reached
     if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
@@ -147,6 +149,7 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
       MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
       int ev=0;
       const int nevents = tree->getSelectedNEvents();
+      auto time_begin = std::chrono::steady_clock::now();
       while (tree->getSelectedEvent(ev)){
         if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
         SimpleEntry product;
@@ -173,12 +176,16 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
         // Record products to external tree if recordEveryNEvents>0 is specified
         if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
       }
+      auto time_end = std::chrono::steady_clock::now();
+      float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_begin)).count(); // In miliseconds
+      MELAout << "\t- Average rate of processing: " << float(ev)/duration << " kHz" << endl;
     }
     // Loop over failed events
     if (loopFailed){
       MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
       int ev=0;
       const int nevents = tree->getFailedNEvents();
+      auto time_begin = std::chrono::steady_clock::now();
       while (tree->getFailedEvent(ev)){
         if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
         SimpleEntry product;
@@ -195,16 +202,19 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecFailList)++;
-
-              // Record products to external tree if recordEveryNEvents>0 is specified
-              if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
             }
           }
         }
         HelperFunctions::progressbar(ev, nevents);
         ev++; ev_acc++;
         if (verbosity>=TVar::INFO) (*it_loopTotalFailList)++;
+
+        // Record products to external tree if recordEveryNEvents>0 is specified
+        if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
       }
+      auto time_end = std::chrono::steady_clock::now();
+      float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_begin)).count(); // In miliseconds
+      MELAout << "\t- Average rate of processing: " << float(ev)/duration << " kHz" << endl;
     }
 
     // Record products to external tree
@@ -218,6 +228,11 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     }
   } // End loop over the trees
   MELAout << "FrameworkTreeLooperBase::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
+  {
+    auto time_end = std::chrono::steady_clock::now();
+    float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start)).count(); // In miliseconds
+    MELAout << "\t- Average rate of processing: " << float(ev_acc)/duration << " kHz" << endl;
+  }
   if (verbosity>=TVar::INFO){
     for (unsigned int it=0; it<treeList.size(); it++){
       MELAout << "\t- FrameworkTreeLooperBase::loop: Total number of selected | failed products in tree " << it << ": "
