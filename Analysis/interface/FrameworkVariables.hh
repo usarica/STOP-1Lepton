@@ -171,6 +171,8 @@ typedef unsigned long long EventNumber_t;
 #define _ak4jets_bDiscriminators "pfjets_bDiscriminators"
 // vCMSLorentzVector
 #define _ak4jets_momentum_ "pfjets_p4"
+// vvvCMSLorentzVector
+#define _ak4jets_mucands_momentum_ "pfjets_pfcandmup4"
 // End ak4 jet variables
 
 
@@ -240,6 +242,8 @@ typedef unsigned long long EventNumber_t;
 #define _pfmetrawPhi_ "evt_pfmetPhi_raw"
 #define _pfmetraw_old_ "evt_old_pfmet_raw"
 #define _pfmetrawPhi_old_ "evt_old_pfmetPhi_raw"
+#define _pfmetraw_muegclean_ "evt_muegclean_pfmet_raw"
+#define _pfmetrawPhi_muegclean_ "evt_muegclean_pfmetPhi_raw"
 #define _pfmet_ "evt_pfmet"
 #define _pfmetPhi_ "evt_pfmetPhi"
 

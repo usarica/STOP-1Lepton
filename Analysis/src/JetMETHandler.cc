@@ -120,6 +120,8 @@ bool JetMETHandler::constructAK4Jets(){
 
   std::vector<CMSLorentzVector>* momentum = nullptr;
 
+  std::vector<std::vector<CMSLorentzVector>>* mucands_momentum = nullptr;
+
   // Beyond this point starts checks and selection
   bool allVariablesPresent = (
     this->getConsumedValue(_ak4jets_rho_, rho)
@@ -158,6 +160,8 @@ bool JetMETHandler::constructAK4Jets(){
     && this->getConsumedValue(_ak4jets_bDiscriminators, bDiscriminators)
 
     && this->getConsumedValue(_ak4jets_momentum_, momentum)
+
+    && this->getConsumedValue(_ak4jets_mucands_momentum_, mucands_momentum)
     );
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
@@ -206,6 +210,9 @@ bool JetMETHandler::constructAK4Jets(){
     obj->extras.photonE = photonE->at(ip);
     obj->extras.electronE = electronE->at(ip);
     obj->extras.muonE = muonE->at(ip);
+
+    obj->extras.momentum_nomus_uncor = obj->momentum*obj->extras.undoJEC;
+    for (CMSLorentzVector const& mom:mucands_momentum->at(ip)) obj->extras.momentum_nomus_uncor -= mom;
 
     static const TString strDeepFlavorPrefix = JetMETHandler::getAK4JetDeepFlavorPrefix(*bDiscriminatorNames);
 
@@ -320,27 +327,36 @@ bool JetMETHandler::constructAK8Jets(){
 bool JetMETHandler::constructMET(){
   if (!doMET) return true;
 
-  float met = 0;
-  float metPhi = 0;
+  FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
+  if (!fwktree) return false;
+
   float metraw = 0;
   float metrawPhi = 0;
 
   // Beyond this point starts checks and selection
-  bool allVariablesPresent = (
-    this->getConsumedValue(_pfmet_, met)
-    && this->getConsumedValue(_pfmetPhi_, metPhi)
-    );
-  if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X)
+  bool allVariablesPresent = false;
+  if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
+    // For 2017F data samples with this version, the EE noise issue is already fixed, so use the 'old' raw MET
     allVariablesPresent &= (
       this->getConsumedValue(_pfmetraw_old_, metraw)
       && this->getConsumedValue(_pfmetrawPhi_old_, metrawPhi)
       );
-  else
+  }
+  else if (SampleHelpers::theDataYear == 2016){
+    // For 2016 data, MuEG cleaning needs to be done
     allVariablesPresent &= (
+      this->getConsumedValue(_pfmetraw_muegclean_, metraw)
+      && this->getConsumedValue(_pfmetrawPhi_muegclean_, metrawPhi)
+      );
+  }
+  else{
+    // For 2017 and 2018, this variables corresponds to having all fixes applied. This is why 2017F version 09May2018 should NOT use this one.
+    // For 2016, this variable does not apply fixes, so the one above should be used instead.
+    allVariablesPresent = (
       this->getConsumedValue(_pfmetraw_, metraw)
       && this->getConsumedValue(_pfmetrawPhi_, metrawPhi)
       );
-
+  }
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
@@ -350,10 +366,8 @@ bool JetMETHandler::constructMET(){
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
   metobj = new METObject;
-  metobj->extras.met = metobj->extras.met_JEC = metobj->extras.met_JECup = metobj->extras.met_JECdn = met;
-  metobj->extras.phi = metobj->extras.phi_JEC = metobj->extras.phi_JECup = metobj->extras.phi_JECdn = metPhi;
-  metobj->extras.met_raw = metraw;
-  metobj->extras.phi_raw = metrawPhi;
+  metobj->extras.met = metobj->extras.met_JECup = metobj->extras.met_JECdn = metobj->extras.met_raw = metraw;
+  metobj->extras.phi = metobj->extras.phi_JECup = metobj->extras.phi_JECdn = metobj->extras.phi_raw = metrawPhi;
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
@@ -457,37 +471,51 @@ bool JetMETHandler::applyJEC(){
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(currentTree);
   if (!fwktree) return false;
 
-  bool const doCorrectAK4Jets = true;
+  bool const use2017EENoiseRecipe = (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && !fwktree->sampleIdentifier.Contains("09May2018"));
+  //bool const use2017SkipEENoiseRecipe = (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018"));
+  //bool const useMuEGCleanedMETRecipe = (SampleHelpers::theDataYear == 2016);
+
+  constexpr bool doCorrectAK4Jets = true;
   if (registeredJECSFHandler_ak4jets && doCorrectAK4Jets){
     for (AK4JetObject* jet:ak4jets) registeredJECSFHandler_ak4jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
-    if (metobj){ // MET is corrected based on the ak4chs jets
-      //CMSLorentzVector v_rawmet(metobj->extras.met_raw*cos(metobj->extras.phi_raw), metobj->extras.met_raw*sin(metobj->extras.phi_raw), 0, metobj->extras.met_raw);
-      CMSLorentzVector v_met(metobj->extras.met*cos(metobj->extras.phi), metobj->extras.met*sin(metobj->extras.phi), 0, metobj->extras.met);
-      CMSLorentzVector unshiftedSum(0, 0, 0, 0);
+    if (metobj){ // MET is corrected based on the ak4jets
+      CMSLorentzVector v_met(metobj->extras.met_raw*cos(metobj->extras.phi_raw), metobj->extras.met_raw*sin(metobj->extras.phi_raw), 0, metobj->extras.met_raw);
+      //CMSLorentzVector unshiftedSum(0, 0, 0, 0);
       CMSLorentzVector shiftedSum_nominal(0, 0, 0, 0);
+      CMSLorentzVector shiftedSum_L1only(0, 0, 0, 0);
       CMSLorentzVector shiftedSum_JECup(0, 0, 0, 0);
       CMSLorentzVector shiftedSum_JECdn(0, 0, 0, 0);
       for (AK4JetObject* jet:ak4jets){
         if ((jet->extras.chargedEmE + jet->extras.neutralEmE)/(jet->energy()*jet->extras.undoJEC)>0.9) continue;
         if (fabs(jet->eta())>9.9) continue;
-        if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && jet->pt() < 50.f && fabs(jet->eta()) >= 2.65 && fabs(jet->eta()) <= 3.139) continue;
-        unshiftedSum += jet->momentum; // With default JEC
-        shiftedSum_nominal += jet->getCorrectedMomentum(0); // New JEC
-        shiftedSum_JECup += jet->getCorrectedMomentum(+1); // New JEC
-        shiftedSum_JECdn += jet->getCorrectedMomentum(-1); // New JEC
+
+        CMSLorentzVector const& jet_p4_nomus_uncor = jet->extras.momentum_nomus_uncor;
+        CMSLorentzVector const jet_p4_nomus_cor = jet_p4_nomus_uncor*jet->extras.JEC_raw_nomus;
+
+        if (use2017EENoiseRecipe && jet_p4_nomus_uncor.pt() < 50. && abs(jet_p4_nomus_uncor.eta()) >= 2.65 && abs(jet_p4_nomus_uncor.eta()) <= 3.139) continue; // Cuts on uncorected momentum
+        if (jet_p4_nomus_cor.pt() <= 15.) continue; // Use corected momentum without muon contributions for the rest
+
+        //unshiftedSum += jet_p4_nomus_uncor;
+        shiftedSum_nominal += jet_p4_nomus_cor;
+        shiftedSum_L1only += jet_p4_nomus_uncor*jet->extras.JEC_L1_raw_nomus;
+        shiftedSum_JECup += jet_p4_nomus_cor*(1.f + jet->extras.JEC_raw_unc_nomus);
+        shiftedSum_JECdn += jet_p4_nomus_cor*(1.f - jet->extras.JEC_raw_unc_nomus);
       }
-      CMSLorentzVector v_met_JEC = v_met - shiftedSum_nominal + unshiftedSum;
-      CMSLorentzVector v_met_JECup = v_met - shiftedSum_JECup + unshiftedSum;
-      CMSLorentzVector v_met_JECdn = v_met - shiftedSum_JECdn + unshiftedSum;
-      metobj->extras.met_JEC = v_met_JEC.Pt();
-      metobj->extras.phi_JEC = v_met_JEC.Phi();
+      CMSLorentzVector v_met_JEC = v_met - shiftedSum_nominal + shiftedSum_L1only;
+      CMSLorentzVector v_met_JECup = v_met - shiftedSum_JECup + shiftedSum_L1only;
+      CMSLorentzVector v_met_JECdn = v_met - shiftedSum_JECdn + shiftedSum_L1only;
+      metobj->extras.met = v_met_JEC.Pt();
+      metobj->extras.phi = v_met_JEC.Phi();
       metobj->extras.met_JECup = v_met_JECup.Pt();
       metobj->extras.phi_JECup = v_met_JECup.Phi();
       metobj->extras.met_JECdn = v_met_JECdn.Pt();
       metobj->extras.phi_JECdn = v_met_JECdn.Phi();
-      if (this->verbosity>=TVar::DEBUG){
-        MELAout << "JetMETHandler::applyJEC: Original MET vector: " << v_met << " | shifted MET vector: " << v_met_JEC << " | shifted MET vector up: " << v_met_JECup << endl;
-      }
+      if (this->verbosity>=TVar::DEBUG) MELAout
+        << "JetMETHandler::applyJEC: Original MET vector: " << v_met
+        << " | shifted MET vector: " << v_met_JEC
+        << " | shifted MET vector up: " << v_met_JECup
+        << " | shifted MET vector dn: " << v_met_JECdn
+        << endl;
     }
   }
 
@@ -737,6 +765,8 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 
     this->addConsumed<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_);
 
+    this->addConsumed<std::vector<std::vector<CMSLorentzVector>>*>(_ak4jets_mucands_momentum_);
+
     fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);
 
     fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_npfcands_, nullptr);
@@ -773,6 +803,8 @@ void JetMETHandler::bookBranches(BaseTree* tree){
     fwktree->bookEDMBranch<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators, nullptr);
 
     fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_, nullptr);
+
+    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_mucands_momentum_, nullptr);
   }
 
   // ak8 jet variables
@@ -828,21 +860,29 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 
   // MET variables
   if (doMET){
-    this->addConsumed<float>(_pfmet_);
-    this->addConsumed<float>(_pfmetPhi_);
+    //this->addConsumed<float>(_pfmet_);
+    //this->addConsumed<float>(_pfmetPhi_);
     this->addConsumed<float>(_pfmetraw_);
     this->addConsumed<float>(_pfmetrawPhi_);
-    fwktree->bookEDMBranch<float>(_pfmet_, 0);
-    fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
+    //fwktree->bookEDMBranch<float>(_pfmet_, 0);
+    //fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
     fwktree->bookEDMBranch<float>(_pfmetraw_, 0);
     fwktree->bookEDMBranch<float>(_pfmetrawPhi_, 0);
-    if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X){
+    if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
       this->addConsumed<float>(_pfmetraw_old_);
       this->addConsumed<float>(_pfmetrawPhi_old_);
       this->defineConsumedSloppy(_pfmetraw_old_);
       this->defineConsumedSloppy(_pfmetrawPhi_old_);
       fwktree->bookEDMBranch<float>(_pfmetraw_old_, 0);
       fwktree->bookEDMBranch<float>(_pfmetrawPhi_old_, 0);
+    }
+    else if (SampleHelpers::theDataYear == 2016){
+      this->addConsumed<float>(_pfmetraw_muegclean_);
+      this->addConsumed<float>(_pfmetrawPhi_muegclean_);
+      this->defineConsumedSloppy(_pfmetraw_muegclean_);
+      this->defineConsumedSloppy(_pfmetrawPhi_muegclean_);
+      fwktree->bookEDMBranch<float>(_pfmetraw_muegclean_, 0);
+      fwktree->bookEDMBranch<float>(_pfmetrawPhi_muegclean_, 0);
     }
   }
 }

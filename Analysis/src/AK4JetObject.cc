@@ -45,10 +45,16 @@ AK4JetVariables::AK4JetVariables() :
   JECup(1),
   JECdn(1),
 
+  JEC_raw_nomus(1),
+  JEC_L1_raw_nomus(1),
+  JEC_raw_unc_nomus(0),
+
   estimatedPtResolution(0),
   JER(1),
   JERup(1),
-  JERdn(1)
+  JERdn(1),
+
+  momentum_nomus_uncor(0, 0, 0, 0)
 {}
 AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   rho(other.rho),
@@ -91,10 +97,16 @@ AK4JetVariables::AK4JetVariables(AK4JetVariables const& other) :
   JECup(other.JECup),
   JECdn(other.JECdn),
 
+  JEC_raw_nomus(other.JEC_raw_nomus),
+  JEC_L1_raw_nomus(other.JEC_L1_raw_nomus),
+  JEC_raw_unc_nomus(other.JEC_raw_unc_nomus),
+
   estimatedPtResolution(other.estimatedPtResolution),
   JER(other.JER),
   JERup(other.JERup),
-  JERdn(other.JERdn)
+  JERdn(other.JERdn),
+
+  momentum_nomus_uncor(other.momentum_nomus_uncor)
 {}
 void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(rho, other.rho);
@@ -137,10 +149,16 @@ void AK4JetVariables::swap(AK4JetVariables& other){
   std::swap(JECup, other.JECup);
   std::swap(JECdn, other.JECdn);
 
+  std::swap(JEC_raw_nomus, other.JEC_raw_nomus);
+  std::swap(JEC_L1_raw_nomus, other.JEC_L1_raw_nomus);
+  std::swap(JEC_raw_unc_nomus, other.JEC_raw_unc_nomus);
+
   std::swap(estimatedPtResolution, other.estimatedPtResolution);
   std::swap(JER, other.JER);
   std::swap(JERup, other.JERup);
   std::swap(JERdn, other.JERdn);
+
+  std::swap(momentum_nomus_uncor, other.momentum_nomus_uncor);
 }
 AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
   AK4JetVariables tmp(other);

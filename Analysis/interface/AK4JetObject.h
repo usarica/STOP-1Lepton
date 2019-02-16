@@ -47,10 +47,16 @@ public:
   float JECup;
   float JECdn;
 
+  float JEC_raw_nomus;
+  float JEC_L1_raw_nomus;
+  float JEC_raw_unc_nomus;
+
   float estimatedPtResolution;
   float JER;
   float JERup;
   float JERdn;
+
+  CMSLorentzVector momentum_nomus_uncor;
 
   AK4JetVariables();
   AK4JetVariables(AK4JetVariables const& other);
