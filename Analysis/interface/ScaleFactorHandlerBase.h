@@ -2,6 +2,8 @@
 #define SCALEFACTORHANDLERBASE_H
 
 #include "TFile.h"
+#include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TString.h"
 
@@ -12,7 +14,7 @@ public:
   virtual ~ScaleFactorHandlerBase(){}
 
   static void closeFile(TFile*& f);
-  static bool getHistogram(TH2F*& h, TFile*& f, TString s);
+  template<typename T> static bool getHistogram(T*& h, TFile*& f, TString s);
 
   virtual bool setup() = 0;
   virtual void reset() = 0;

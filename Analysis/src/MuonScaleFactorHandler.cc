@@ -39,7 +39,7 @@ MuonScaleFactorHandler::MuonScaleFactorHandler() :
   h_SF_FastSim_veto_ip(nullptr),
   h_SF_veto_eff(nullptr)
 {
-  setup();
+  this->setup();
 }
 
 MuonScaleFactorHandler::~MuonScaleFactorHandler(){ this->reset(); }
@@ -89,7 +89,7 @@ bool MuonScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_ip, finput_SF_FastSim_veto_ip, "histo2D")
       );
   }
-  else if (theDataYear == 2017 || theDataYear == 2018){
+  else if (theDataYear == 2017){
     // ID/Iso./IP and tracking SF files
     finput_SF_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2017/RunBCDEF_SF_ID.root", "read");
     finput_SF_iso = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2017/sf_mu_iso_susy_2017.root", "read");
@@ -127,9 +127,44 @@ bool MuonScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_ip, finput_SF_FastSim_veto_ip, "histo2D")
       );
   }
-  //else if (theDataYear == 2018){
-  // FIXME: To be implemented
-  //}
+  else if (theDataYear == 2018){
+    // ID/Iso./IP and tracking SF files
+    finput_SF_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/RunABCD_SF_ID.root", "read");
+    finput_SF_iso = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_iso_susy_2017.root", "read");
+    //finput_SF_ip = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/TnP_NUM_TightIP2D_DENOM_MediumID_VAR_map_pt_eta.root", "read");
+    //finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/Tracking_EfficienciesAndSF_BCDEFGH.root", "read");
+    // Veto SFs
+    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/lepeffs_tt2l_madgraph_mc2017.root", "read");
+    //finput_SF_veto_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/RunBCDEF_SF_ID.root", "read");
+    //finput_SF_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_iso_susy_2017.root", "read");
+    //finput_SF_veto_ip = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/TnP_NUM_MediumIP2D_DENOM_LooseID_VAR_map_pt_eta.root", "read");
+    // Fastsim/Fullsim SF files
+    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_mediumID.root", "read");
+    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_mediumID_mini02.root", "read");
+    finput_SF_FastSim_ip = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_mediumID_tightIP2D.root", "read");
+    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_looseID.root", "read");
+    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_looseID_mini02.root", "read");
+    finput_SF_FastSim_veto_ip = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2018/sf_mu_mediumID_looseIP2D.root", "read");
+
+    res = (
+      // FullSim SFs
+      getHistogram(h_SF_id, finput_SF_id, "NUM_MediumPromptID_DEN_genTracks_pt_abseta")
+      && getHistogram(h_SF_iso, finput_SF_iso, "TnP_MC_NUM_MiniIso02Cut_DEN_MediumID_PAR_pt_eta")
+      //&& getHistogram(h_SF_ip, finput_SF_ip, "SF")
+      //&& getHistogram(h_SF_tracking, finput_SF_tracking, hname_SF_tracking)
+      && getHistogram(h_SF_veto_eff, finput_SF_veto_eff, "heff17_lepeff_veto_mu")
+      && getHistogram(h_SF_veto_id, finput_SF_id/*finput_SF_veto_id*/, "NUM_LooseID_DEN_genTracks_pt_abseta")
+      && getHistogram(h_SF_veto_iso, finput_SF_iso/*finput_SF_veto_iso*/, "TnP_MC_NUM_MiniIso02Cut_DEN_LooseID_PAR_pt_eta")
+      //&& getHistogram(h_SF_veto_ip, finput_SF_veto_ip, "SF")
+      // FastSim/FullSim SFs
+      && getHistogram(h_SF_FastSim_id, finput_SF_FastSim_id, "histo2D")
+      && getHistogram(h_SF_FastSim_iso, finput_SF_FastSim_iso, "histo2D")
+      && getHistogram(h_SF_FastSim_ip, finput_SF_FastSim_ip, "histo2D")
+      && getHistogram(h_SF_FastSim_veto_id, finput_SF_FastSim_veto_id, "histo2D")
+      && getHistogram(h_SF_FastSim_veto_iso, finput_SF_FastSim_veto_iso, "histo2D")
+      && getHistogram(h_SF_FastSim_veto_ip, finput_SF_FastSim_veto_ip, "histo2D")
+      );
+  }
 
   return res;
 }
@@ -248,8 +283,8 @@ void MuonScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelErr, 
   if (!obj) return;
   if (!obj->testSelection(kGenPtEta)) return;
 
-  // FIXME: Histogram for 2017 might not use abs(eta) or be swapped.
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+  // FIME: Re-check for 2018
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true, true);
 
   if (theSF<1.){
     const float theSFtmp = theSF;

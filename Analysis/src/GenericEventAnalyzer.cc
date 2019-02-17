@@ -12,6 +12,7 @@
 #include "MuonScaleFactorHandler.h"
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
+#include "PUScaleFactorHandler.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
 #include "PhotonSelectionHelpers.h"
@@ -115,11 +116,13 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   MuonScaleFactorHandler* muonSFHandler=nullptr;
   ElectronScaleFactorHandler* eleSFHandler=nullptr;
   PhotonScaleFactorHandler* photonSFHandler=nullptr;
+  PUScaleFactorHandler* puSFHandler=nullptr;
   if (tree->isMC()){
     for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
       if (doMuons){ MuonScaleFactorHandler* tmp_sfs = dynamic_cast<MuonScaleFactorHandler*>(it->second); if (!muonSFHandler && tmp_sfs){ muonSFHandler = tmp_sfs; } }
       if (doElectrons){ ElectronScaleFactorHandler* tmp_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && tmp_sfs){ eleSFHandler = tmp_sfs; } }
       if (doPhotons){ PhotonScaleFactorHandler* tmp_sfs = dynamic_cast<PhotonScaleFactorHandler*>(it->second); if (!photonSFHandler && tmp_sfs){ photonSFHandler = tmp_sfs; } }
+      if (doVertexPUInfos){ PUScaleFactorHandler* tmp_ivy = dynamic_cast<PUScaleFactorHandler*>(it->second); if (!puSFHandler && tmp_ivy){ puSFHandler = tmp_ivy; } }
     }
   }
 
@@ -299,7 +302,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     if (vtxPUHandler->getVerticesFlag()){
       auto const& vertices = vtxPUHandler->getVertices();
 
-      bool passGoodVertex=false;
+      bool passGoodPrimaryVertex=false;
 
       std::vector<bool> vertices_isValid;
       std::vector<bool> vertices_isFake;
@@ -322,10 +325,15 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
         vertices_selectionBits.push_back(vtx->selectionBits);
 
-        passGoodVertex |= HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
+        passGoodPrimaryVertex |= HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
       }
 
-      product.setNamedVal("passGoodVertex", passGoodVertex);
+      if (tree->isData() && !passGoodPrimaryVertex){ // This acts like an event filter for data
+        validProducts &= false;
+        return validProducts;
+      }
+
+      product.setNamedVal("passGoodPrimaryVertex", passGoodPrimaryVertex);
       if (doWriteSelectionVariables){
         product.setNamedVal("vertices_isValid", vertices_isValid);
         product.setNamedVal("vertices_isFake", vertices_isFake);
@@ -359,6 +367,13 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("puinfos_bunchCrossing", puinfos_bunchCrossing);
         product.setNamedVal("puinfos_nPUVertices", puinfos_nPUVertices);
         product.setNamedVal("puinfos_nTrueVertices", puinfos_nTrueVertices);
+      }
+      if (puSFHandler){
+        float SF=1, SF_up=1, SF_dn=1;
+        puSFHandler->getPileUpWeight(SF, SF_up, SF_dn, nTrueVertices);
+        product.setNamedVal("weight_PU", SF);
+        product.setNamedVal("weight_PU_SFUp", SF_up);
+        product.setNamedVal("weight_PU_SFDn", SF_dn);
       }
     }
   }

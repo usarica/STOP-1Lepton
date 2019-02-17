@@ -31,6 +31,7 @@ void doFullProduction(std::string stropts){
   EventFilterHandler eventFilter;
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
 
+  PUScaleFactorHandler puSFHandler;
   VertexPUHandler vertexPUHandler;
   for (auto* tree:theSet.getFrameworkTreeList()) vertexPUHandler.bookBranches(tree);
 
@@ -82,6 +83,7 @@ void doFullProduction(std::string stropts){
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
   analyzer.addExternalScaleFactorHandler("PhotonSFHandler", &photonSFHandler);
+  analyzer.addExternalScaleFactorHandler("PileUpSFHandler", &puSFHandler);
   // Register JetMET SF handlers so that they can be updated
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_noFS", &btagSFHandler_MC_noFS);
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_FS", &btagSFHandler_MC_FS);

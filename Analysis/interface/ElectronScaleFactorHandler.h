@@ -14,6 +14,7 @@ class ElectronScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
   TFile* finput_SF;
   TFile* finput_SF_tracking;
+  TFile* finput_SF_tracking_lowpt;
   TFile* finput_SF_veto_eff;
 
   TFile* finput_SF_FastSim_id;
@@ -25,6 +26,7 @@ protected:
   TH2F* h_SF_id;
   TH2F* h_SF_iso;
   TH2F* h_SF_tracking;
+  TH2F* h_SF_tracking_lowpt;
   TH2F* h_SF_veto_id;
   TH2F* h_SF_veto_iso;
 

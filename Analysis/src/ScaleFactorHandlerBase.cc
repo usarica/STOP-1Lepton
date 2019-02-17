@@ -10,7 +10,7 @@ void ScaleFactorHandlerBase::closeFile(TFile*& f){
   f = nullptr;
 }
 
-bool ScaleFactorHandlerBase::getHistogram(TH2F*& h, TFile*& f, TString s){
+template<typename T> bool ScaleFactorHandlerBase::getHistogram(T*& h, TFile*& f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;
   if (!f) return false;
@@ -18,7 +18,10 @@ bool ScaleFactorHandlerBase::getHistogram(TH2F*& h, TFile*& f, TString s){
   if (f->IsZombie()) return false;
 
   f->cd();
-  h = (TH2F*) f->Get(s);
+  h = (T*) f->Get(s);
   curdir->cd();
   return (h!=nullptr);
 }
+template bool ScaleFactorHandlerBase::getHistogram<TH1F>(TH1F*& h, TFile*& f, TString s);
+template bool ScaleFactorHandlerBase::getHistogram<TH1D>(TH1D*& h, TFile*& f, TString s);
+template bool ScaleFactorHandlerBase::getHistogram<TH2F>(TH2F*& h, TFile*& f, TString s);

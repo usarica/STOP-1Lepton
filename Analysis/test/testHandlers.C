@@ -5,7 +5,8 @@ void testHandlers(){
   TDirectory* curdir = gDirectory;
 
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=1000 ismc=true";
+  //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=1000 ismc=true";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ outfile=GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8_0.root sample=/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM year=2017 maxevents=1000 ismc=true inputfiles=merged_ntuple_1.root";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2018 outdir=./ outfile=Run2018C-17Sep2018-v1_MET.root sample=/MET/Run2018C-17Sep2018-v1/MINIAOD inputfiles=merged_ntuple_1.root year=2018 maxevents=1000 ismc=false";
   FrameworkOptionParser opts(stropts);
 
@@ -20,13 +21,14 @@ void testHandlers(){
   for (auto* tree:theSet.getFrameworkTreeList()) wgtHandler.bookBranches(tree);
 
   GenInfoHandler genInfoHandler;
-  genInfoHandler.setVerbosity(TVar::DEBUG);
+  //genInfoHandler.setVerbosity(TVar::DEBUG);
   for (auto* tree:theSet.getFrameworkTreeList()) genInfoHandler.bookBranches(tree);
 
   EventFilterHandler eventFilter;
   //eventFilter.setVerbosity(TVar::DEBUG_VERBOSE);
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
 
+  PUScaleFactorHandler puSFHandler;
   VertexPUHandler vertexPUHandler;
   //vertexPUHandler.setVerbosity(TVar::DEBUG_VERBOSE);
   for (auto* tree:theSet.getFrameworkTreeList()) vertexPUHandler.bookBranches(tree);
@@ -80,6 +82,7 @@ void testHandlers(){
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
   analyzer.addExternalScaleFactorHandler("PhotonSFHandler", &photonSFHandler);
+  analyzer.addExternalScaleFactorHandler("PileUpSFHandler", &puSFHandler);
   // Register JetMET SF handlers so that they can be updated
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_noFS", &btagSFHandler_MC_noFS);
   analyzer.addExternalScaleFactorHandler("BTagSFHandler_MC_FS", &btagSFHandler_MC_FS);

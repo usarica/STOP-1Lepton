@@ -12,6 +12,7 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
   ScaleFactorHandlerBase(),
   finput_SF(nullptr),
   finput_SF_tracking(nullptr),
+  finput_SF_tracking_lowpt(nullptr),
   finput_SF_veto_eff(nullptr),
   finput_SF_FastSim_id(nullptr),
   finput_SF_FastSim_iso(nullptr),
@@ -20,6 +21,7 @@ ElectronScaleFactorHandler::ElectronScaleFactorHandler() :
   h_SF_id(nullptr),
   h_SF_iso(nullptr),
   h_SF_tracking(nullptr),
+  h_SF_tracking_lowpt(nullptr),
   h_SF_veto_id(nullptr),
   h_SF_veto_iso(nullptr),
   h_SF_FastSim_id(nullptr),
@@ -44,24 +46,26 @@ bool ElectronScaleFactorHandler::setup(){
   // More info: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations
   if (theDataYear == 2016){
     // ID/Iso. and tracking SF files
-    finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/scaleFactors.root", "read");
-    finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/egammaEffi.txt_EGM2D.root", "read");
+    finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/ElectronScaleFactors_Run2016.root", "read");
+    finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/EGM2D_BtoH_GT20GeV_RecoSF_Legacy2016.root", "read");
+    finput_SF_tracking_lowpt = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/EGM2D_BtoH_low_RecoSF_Legacy2016.root", "read");
     // FIXME: Only exists for 2016 at the moment
-    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/lepeff__moriond17__ttbar_powheg_pythia8_25ns.root", "read");
+    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/lepeff__moriond17__ttbar_powheg_pythia8_25ns.root", "read");
     // Fastsim/Fullsim SF files
-    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mediumCB.root", "read");
-    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mini01.root", "read");
-    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_vetoCB.root", "read");
-    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mini02.root", "read");
+    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/sf_el_mediumCB.root", "read");
+    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/sf_el_mini01.root", "read");
+    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/sf_el_vetoCB.root", "read");
+    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2016/sf_el_mini02.root", "read");
 
     res = (
       // FullSim SFs
-      getHistogram(h_SF_id, finput_SF, "GsfElectronToCutBasedSpring15M")
-      && getHistogram(h_SF_iso, finput_SF, "MVAVLooseElectronToMini")
+      getHistogram(h_SF_id, finput_SF, "Run2016_CutBasedMediumNoIso94XV2")
+      && getHistogram(h_SF_iso, finput_SF, "Run2016_Mini")
       && getHistogram(h_SF_tracking, finput_SF_tracking, "EGamma_SF2D")
+      && getHistogram(h_SF_tracking_lowpt, finput_SF_tracking_lowpt, "EGamma_SF2D")
       && getHistogram(h_SF_veto_eff, finput_SF_veto_eff, "h2_lepEff_vetoSel_Eff_el")
-      && getHistogram(h_SF_veto_id, finput_SF, "GsfElectronToCutBasedSpring15V")
-      && getHistogram(h_SF_veto_iso, finput_SF, "MVAVLooseElectronToMini2")
+      && getHistogram(h_SF_veto_id, finput_SF, "Run2016_CutBasedVetoNoIso94XV2")
+      && getHistogram(h_SF_veto_iso, finput_SF, "Run2016_Mini2")
       // FastSim/FullSim SFs
       && getHistogram(h_SF_FastSim_id, finput_SF_FastSim_id, "histo2D")
       && getHistogram(h_SF_FastSim_iso, finput_SF_FastSim_iso, "histo2D")
@@ -69,23 +73,25 @@ bool ElectronScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_iso, finput_SF_FastSim_veto_iso, "histo2D")
       );
   }
-  else if (theDataYear == 2017 || theDataYear == 2018){
+  else if (theDataYear == 2017){
     // ID/Iso. and tracking SF files
-    finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/ElectronScaleFactors_Run2017.root", "read");
-    finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root", "read");
-    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/lepeffs_tt2l_madgraph_mc2017.root", "read");
+    finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/ElectronScaleFactors_Run2017.root", "read");
+    finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root", "read");
+    finput_SF_tracking_lowpt = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO_lowEt.root", "read");
+    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/lepeffs_tt2l_madgraph_mc2017.root", "read");
     // Fastsim/Fullsim SF files
     // FIXME: Update for 2017: No fastsim sample for 2017, use 2016 files at the moment
-    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mediumCB.root", "read");
-    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mini01.root", "read");
-    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_vetoCB.root", "read");
-    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/sf_el_mini02.root", "read");
+    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/sf_el_mediumCB.root", "read");
+    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/sf_el_mini01.root", "read");
+    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/sf_el_vetoCB.root", "read");
+    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2017/sf_el_mini02.root", "read");
 
     res = (
       // FullSim SFs
       getHistogram(h_SF_id, finput_SF, "Run2017_CutBasedMediumNoIso94XV2")
       && getHistogram(h_SF_iso, finput_SF, "Run2017_MVAVLooseTightIP2DMini")
       && getHistogram(h_SF_tracking, finput_SF_tracking, "EGamma_SF2D")
+      && getHistogram(h_SF_tracking_lowpt, finput_SF_tracking_lowpt, "EGamma_SF2D")
       && getHistogram(h_SF_veto_eff, finput_SF_veto_eff, "heff17_lepeff_veto_el")
       && getHistogram(h_SF_veto_id, finput_SF, "Run2017_CutBasedVetoNoIso94XV2")
       && getHistogram(h_SF_veto_iso, finput_SF, "Run2017_MVAVLooseTightIP2DMini2")
@@ -96,9 +102,35 @@ bool ElectronScaleFactorHandler::setup(){
       && getHistogram(h_SF_FastSim_veto_iso, finput_SF_FastSim_veto_iso, "histo2D")
       );
   }
-  //else if (theDataYear == 2018){
-  // FIXME: To be implemented
-  //}
+  else if (theDataYear == 2018){
+    // ID/Iso. and tracking SF files
+    finput_SF = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/ElectronScaleFactors_Run2018.root", "read");
+    finput_SF_tracking = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/egammaEffi.txt_EGM2D.root", "read");
+    finput_SF_tracking_lowpt = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/egammaEffi.txt_EGM2D_low.root", "read");
+    finput_SF_veto_eff = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/lepeffs_tt2l_madgraph_mc2017.root", "read"); // FIXME: Needs to be updated
+    // Fastsim/Fullsim SF files
+    // FIXME: Update for 2018: No fastsim sample for 2018, use 2016 files at the moment
+    finput_SF_FastSim_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/sf_el_mediumCB.root", "read");
+    finput_SF_FastSim_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/sf_el_mini01.root", "read");
+    finput_SF_FastSim_veto_id = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/sf_el_vetoCB.root", "read");
+    finput_SF_FastSim_veto_iso = TFile::Open(STOP1LPKGDATAPATH+"EleSFs/2018/sf_el_mini02.root", "read");
+
+    res = (
+      // FullSim SFs
+      getHistogram(h_SF_id, finput_SF, "Run2018_CutBasedMediumNoIso94XV2")
+      && getHistogram(h_SF_iso, finput_SF, "Run2018_Mini")
+      && getHistogram(h_SF_tracking, finput_SF_tracking, "EGamma_SF2D")
+      && getHistogram(h_SF_tracking_lowpt, finput_SF_tracking_lowpt, "EGamma_SF2D")
+      && getHistogram(h_SF_veto_eff, finput_SF_veto_eff, "heff17_lepeff_veto_el")
+      && getHistogram(h_SF_veto_id, finput_SF, "Run2018_CutBasedVetoNoIso94XV2")
+      && getHistogram(h_SF_veto_iso, finput_SF, "Run2018_Mini2")
+      // FastSim/FullSim SFs
+      && getHistogram(h_SF_FastSim_id, finput_SF_FastSim_id, "histo2D")
+      && getHistogram(h_SF_FastSim_iso, finput_SF_FastSim_iso, "histo2D")
+      && getHistogram(h_SF_FastSim_veto_id, finput_SF_FastSim_veto_id, "histo2D")
+      && getHistogram(h_SF_FastSim_veto_iso, finput_SF_FastSim_veto_iso, "histo2D")
+      );
+  }
 
   curdir->cd();
 
@@ -107,6 +139,7 @@ bool ElectronScaleFactorHandler::setup(){
 void ElectronScaleFactorHandler::reset(){
   ScaleFactorHandlerBase::closeFile(finput_SF);
   ScaleFactorHandlerBase::closeFile(finput_SF_tracking);
+  ScaleFactorHandlerBase::closeFile(finput_SF_tracking_lowpt);
   ScaleFactorHandlerBase::closeFile(finput_SF_veto_eff);
   ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_id);
   ScaleFactorHandlerBase::closeFile(finput_SF_FastSim_iso);
@@ -116,6 +149,7 @@ void ElectronScaleFactorHandler::reset(){
   h_SF_id = nullptr;
   h_SF_iso = nullptr;
   h_SF_tracking = nullptr;
+  h_SF_tracking_lowpt = nullptr;
   h_SF_veto_id = nullptr;
   h_SF_veto_iso = nullptr;
   h_SF_FastSim_id = nullptr;
@@ -166,23 +200,23 @@ void ElectronScaleFactorHandler::getIdIsoSFAndError(float& theSF, float& theSFRe
 
   if (!useFastSim){
     if (passSel){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_id, (theDataYear == 2016), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_iso, (theDataYear == 2016), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_id, false, false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_iso, false, false);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_id, (theDataYear == 2016), false);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_iso, (theDataYear == 2016), false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_id, false, false);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_iso, false, false);
     }
   }
   else{
     // FIXME: Need to check axis inversion after 2017 hists are obtained
     if (passSel){
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_id, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_iso, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_id, true, true);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_iso, true, true);
     }
     else{
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_id, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
-      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_iso, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_id, true, true);
+      evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_FastSim_veto_iso, true, true);
     }
   }
 
@@ -198,7 +232,7 @@ void ElectronScaleFactorHandler::getRecoSFAndError(float& theSF, float& theSFRel
   //if (!passSel && !passVeto) return;
   if (!passSel) return;
 
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_tracking, false, false);
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, (obj->pt()>=20.f ? h_SF_tracking : h_SF_tracking_lowpt), false, false);
 }
 
 void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, float const& theIdIsoSF, float const& theIdIsoSFRelErr) const{
@@ -208,7 +242,7 @@ void ElectronScaleFactorHandler::getGenSFAndError(float& theSF, float& theSFRelE
   if (!obj->testSelection(kGenPtEta)) return;
 
   // FIXME: Histogram for 2017 might not use abs(eta) or be swapped.
-  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true/*(theDataYear == 2016)*/, true/*(theDataYear == 2016)*/);
+  evalScaleFactorFromHistogram(theSF, theSFRelErr, obj, h_SF_veto_eff, true, true);
 
   if (theSF<1.){
     const float theSFtmp = theSF;
