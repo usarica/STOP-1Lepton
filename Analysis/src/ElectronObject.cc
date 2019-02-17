@@ -76,7 +76,7 @@ ElectronObject::ElectronObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-ElectronObject::ElectronObject(int id_, CMSLorentzVector momentum_) :
+ElectronObject::ElectronObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

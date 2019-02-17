@@ -46,7 +46,7 @@ PhotonObject::PhotonObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-PhotonObject::PhotonObject(int id_, CMSLorentzVector momentum_) :
+PhotonObject::PhotonObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

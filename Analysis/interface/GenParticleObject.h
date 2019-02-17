@@ -41,7 +41,7 @@ public:
 
   GenParticleObject();
   GenParticleObject(int id_);
-  GenParticleObject(int id_, CMSLorentzVector mom_);
+  GenParticleObject(int id_, CMSLorentzVector const& mom_);
   GenParticleObject(const GenParticleObject& other);
   GenParticleObject& operator=(const GenParticleObject& other);
   ~GenParticleObject();

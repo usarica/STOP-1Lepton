@@ -102,7 +102,7 @@ AK8JetObject::AK8JetObject(int id_) :
   extras(),
   associatedGenJet(nullptr)
 {}
-AK8JetObject::AK8JetObject(int id_, CMSLorentzVector momentum_) :
+AK8JetObject::AK8JetObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras(),
   associatedGenJet(nullptr)

@@ -45,6 +45,28 @@ typedef unsigned long long EventNumber_t;
 // End event weight variables
 
 
+// Vertex variables
+// vint
+// Why are these int anyway?!
+#define _vtxs_isValid_ "vtxs_isValid"
+#define _vtxs_isFake_ "vtxs_isFake"
+// vfloat
+#define _vtxs_ndof_ "vtxs_ndof"
+// vCMSLorentzVector
+#define _vtxs_position_ "vtxs_position"
+// End vertex variables
+
+
+// Pile-up variables
+// vint
+#define _puinfos_bunchCrossing_ "puInfo_bunchCrossing"
+#define _puinfos_nPUVtxs_ "puInfo_nPUvertices"
+// vfloat
+// Why this is a vfloat is a big mystery (!)
+#define _puinfos_nTrueVtxs_ "puInfo_trueNumInteractions"
+// End pile-up variables
+
+
 // PF candidate variables
 // vbool
 #define _pfcands_trackHighPurity_ "pfcands_trackHighPurity"

@@ -88,7 +88,7 @@ MuonObject::MuonObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-MuonObject::MuonObject(int id_, CMSLorentzVector momentum_) :
+MuonObject::MuonObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

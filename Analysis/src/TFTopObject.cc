@@ -33,7 +33,7 @@ TFTopObject::TFTopObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-TFTopObject::TFTopObject(int id_, CMSLorentzVector momentum_) :
+TFTopObject::TFTopObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

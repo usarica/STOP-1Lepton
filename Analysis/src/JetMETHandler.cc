@@ -332,6 +332,8 @@ bool JetMETHandler::constructMET(){
 
   float metraw = 0;
   float metrawPhi = 0;
+  float metoriginal = 0;
+  float metoriginalPhi = 0;
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = false;
@@ -357,6 +359,10 @@ bool JetMETHandler::constructMET(){
       && this->getConsumedValue(_pfmetrawPhi_, metrawPhi)
       );
   }
+  allVariablesPresent &= (
+    this->getConsumedValue(_pfmet_, metoriginal)
+    && this->getConsumedValue(_pfmetPhi_, metoriginalPhi)
+    );
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
@@ -368,6 +374,8 @@ bool JetMETHandler::constructMET(){
   metobj = new METObject;
   metobj->extras.met = metobj->extras.met_JECup = metobj->extras.met_JECdn = metobj->extras.met_raw = metraw;
   metobj->extras.phi = metobj->extras.phi_JECup = metobj->extras.phi_JECdn = metobj->extras.phi_raw = metrawPhi;
+  metobj->extras.met_original = metoriginal;
+  metobj->extras.phi_original = metoriginalPhi;
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
@@ -804,7 +812,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 
     fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_, nullptr);
 
-    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_mucands_momentum_, nullptr);
+    fwktree->bookEDMBranch<std::vector<std::vector<CMSLorentzVector>>*>(_ak4jets_mucands_momentum_, nullptr);
   }
 
   // ak8 jet variables
@@ -860,12 +868,12 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 
   // MET variables
   if (doMET){
-    //this->addConsumed<float>(_pfmet_);
-    //this->addConsumed<float>(_pfmetPhi_);
+    this->addConsumed<float>(_pfmet_);
+    this->addConsumed<float>(_pfmetPhi_);
     this->addConsumed<float>(_pfmetraw_);
     this->addConsumed<float>(_pfmetrawPhi_);
-    //fwktree->bookEDMBranch<float>(_pfmet_, 0);
-    //fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
+    fwktree->bookEDMBranch<float>(_pfmet_, 0);
+    fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
     fwktree->bookEDMBranch<float>(_pfmetraw_, 0);
     fwktree->bookEDMBranch<float>(_pfmetrawPhi_, 0);
     if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){

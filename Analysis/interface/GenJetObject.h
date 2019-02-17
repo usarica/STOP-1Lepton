@@ -7,7 +7,7 @@
 class GenJetObject : public ParticleObject{
 public:
   GenJetObject();
-  GenJetObject(CMSLorentzVector mom_);
+  GenJetObject(CMSLorentzVector const& mom_);
   GenJetObject(const GenJetObject& other);
   GenJetObject& operator=(const GenJetObject& other);
   ~GenJetObject();

@@ -5,7 +5,7 @@
 
 GenJetObject::GenJetObject() : ParticleObject()
 {}
-GenJetObject::GenJetObject(CMSLorentzVector momentum_) : ParticleObject(0, momentum_)
+GenJetObject::GenJetObject(CMSLorentzVector const& momentum_) : ParticleObject(0, momentum_)
 {}
 GenJetObject::GenJetObject(const GenJetObject& other) :
   ParticleObject(other)

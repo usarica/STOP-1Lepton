@@ -22,6 +22,7 @@ Analysis/**/getKDConstant*.c
 Analysis/**/make*.c
 Analysis/**/plot*.c
 Analysis/**/*_one.c
+Analysis/**/*_copy.c
 Analysis/*.log
 Analysis/*.txt
 Analysis/test/Logs

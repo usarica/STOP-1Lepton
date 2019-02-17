@@ -48,7 +48,7 @@ PFCandObject::PFCandObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-PFCandObject::PFCandObject(int id_, CMSLorentzVector momentum_) :
+PFCandObject::PFCandObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

@@ -40,7 +40,7 @@ public:
 
   ElectronObject();
   ElectronObject(int id_);
-  ElectronObject(int id_, CMSLorentzVector mom_);
+  ElectronObject(int id_, CMSLorentzVector const& mom_);
   ElectronObject(const ElectronObject& other);
   ElectronObject& operator=(const ElectronObject& other);
   ~ElectronObject();

@@ -58,7 +58,7 @@ GenParticleObject::GenParticleObject(int id_) :
   ParticleObject(id_),
   extras()
 {}
-GenParticleObject::GenParticleObject(int id_, CMSLorentzVector momentum_) :
+GenParticleObject::GenParticleObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

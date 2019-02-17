@@ -42,7 +42,7 @@ public:
 
   MuonObject();
   MuonObject(int id_);
-  MuonObject(int id_, CMSLorentzVector mom_);
+  MuonObject(int id_, CMSLorentzVector const& mom_);
   MuonObject(const MuonObject& other);
   MuonObject& operator=(const MuonObject& other);
   ~MuonObject();

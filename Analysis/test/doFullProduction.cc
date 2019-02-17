@@ -31,6 +31,9 @@ void doFullProduction(std::string stropts){
   EventFilterHandler eventFilter;
   for (auto* tree:theSet.getFrameworkTreeList()) eventFilter.bookBranches(tree);
 
+  VertexPUHandler vertexPUHandler;
+  for (auto* tree:theSet.getFrameworkTreeList()) vertexPUHandler.bookBranches(tree);
+
   PFCandHandler pfcandHandler;
   if (_DOPFCANDS_){ for (auto* tree:theSet.getFrameworkTreeList()) pfcandHandler.bookBranches(tree); }
 
@@ -69,6 +72,7 @@ void doFullProduction(std::string stropts){
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
   analyzer.addExternalIvyObject("EventFilterHandler", &eventFilter);
+  analyzer.addExternalIvyObject("VertexPUHandler", &vertexPUHandler);
   if (_DOPFCANDS_) analyzer.addExternalIvyObject("PFCandHandler", &pfcandHandler);
   analyzer.addExternalIvyObject("MuonHandler", &muonHandler);
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);

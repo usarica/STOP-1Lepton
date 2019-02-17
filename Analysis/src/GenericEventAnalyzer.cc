@@ -2,21 +2,23 @@
 #include "HelperFunctions.h"
 #include "WeightsHandler.h"
 #include "GenInfoHandler.h"
+#include "EventFilterHandler.h"
+#include "VertexPUHandler.h"
 #include "PFCandHandler.h"
 #include "MuonHandler.h"
-#include "MuonSelectionHelpers.h"
-#include "MuonScaleFactorHandler.h"
 #include "ElectronHandler.h"
-#include "ElectronSelectionHelpers.h"
-#include "ElectronScaleFactorHandler.h"
 #include "PhotonHandler.h"
-#include "PhotonSelectionHelpers.h"
-#include "PhotonScaleFactorHandler.h"
 #include "JetMETHandler.h"
+#include "MuonScaleFactorHandler.h"
+#include "ElectronScaleFactorHandler.h"
+#include "PhotonScaleFactorHandler.h"
+#include "MuonSelectionHelpers.h"
+#include "ElectronSelectionHelpers.h"
+#include "PhotonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
+#include "VertexSelectionHelpers.h"
 #include "TopnessCalculator.h"
-#include "EventFilterHandler.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -30,6 +32,7 @@ GenericEventAnalyzer::GenericEventAnalyzer() :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doVertexPUInfos(true),
   doPFCands(true),
   doMuons(true),
   doElectrons(true),
@@ -43,6 +46,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doVertexPUInfos(true),
   doPFCands(true),
   doMuons(true),
   doElectrons(true),
@@ -56,6 +60,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& in
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doVertexPUInfos(true),
   doPFCands(true),
   doMuons(true),
   doElectrons(true),
@@ -69,6 +74,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
   doGenInfo(true),
   doGenParticles(true),
   doEventFilter(true),
+  doVertexPUInfos(true),
   doPFCands(true),
   doMuons(true),
   doElectrons(true),
@@ -85,15 +91,19 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   WeightsHandler* wgtHandler=nullptr;
   GenInfoHandler* genInfoHandler = nullptr;
   EventFilterHandler* eventFilter = nullptr;
+  VertexPUHandler* vtxPUHandler = nullptr;
   PFCandHandler* pfcandHandler=nullptr;
   MuonHandler* muonHandler=nullptr;
   ElectronHandler* eleHandler=nullptr;
   PhotonHandler* photonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
-    if (doWeights && tree->isMC()){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
-    if (doGenInfo && tree->isMC()){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
+    if (tree->isMC()){
+      if (doWeights){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
+      if (doGenInfo){ GenInfoHandler* tmp_ivy = dynamic_cast<GenInfoHandler*>(it->second); if (!genInfoHandler && tmp_ivy){ genInfoHandler = tmp_ivy; } }
+    }
     if (doEventFilter){ EventFilterHandler* tmp_ivy = dynamic_cast<EventFilterHandler*>(it->second); if (!eventFilter && tmp_ivy){ eventFilter = tmp_ivy; } }
+    if (doVertexPUInfos){ VertexPUHandler* tmp_ivy = dynamic_cast<VertexPUHandler*>(it->second); if (!vtxPUHandler && tmp_ivy){ vtxPUHandler = tmp_ivy; } }
     if (doPFCands){ PFCandHandler* tmp_ivy = dynamic_cast<PFCandHandler*>(it->second); if (!pfcandHandler && tmp_ivy){ pfcandHandler = tmp_ivy; } }
     if (doMuons){ MuonHandler* tmp_ivy = dynamic_cast<MuonHandler*>(it->second); if (!muonHandler && tmp_ivy){ muonHandler = tmp_ivy; } }
     if (doElectrons){ ElectronHandler* tmp_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && tmp_ivy){ eleHandler = tmp_ivy; } }
@@ -267,6 +277,89 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     if (tree->isData() && !(passEventFilters && passAtLeastOneHLTPath)){
       validProducts &= false;
       return validProducts;
+    }
+  }
+
+
+  /***********************/
+  /**  VERTEX/PU BLOCK  **/
+  /***********************/
+  validProducts &= (!doVertexPUInfos || vtxPUHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "GenericEventAnalyzer::runEvent: Vertex/PU info. handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (doVertexPUInfos){
+    validProducts &= vtxPUHandler->constructVertexPUInfos();
+    if (!validProducts){
+      MELAerr << "GenericEventAnalyzer::runEvent: Vertex and PU info products could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      return validProducts;
+    }
+
+    if (vtxPUHandler->getVerticesFlag()){
+      auto const& vertices = vtxPUHandler->getVertices();
+
+      bool passGoodVertex=false;
+
+      std::vector<bool> vertices_isValid;
+      std::vector<bool> vertices_isFake;
+      std::vector<float> vertices_ndof;
+
+      std::vector<float> vertices_rho;
+      std::vector<float> vertices_phi;
+      std::vector<float> vertices_z;
+
+      std::vector<long long> vertices_selectionBits;
+
+      for (auto const& vtx:vertices){
+        vertices_isValid.push_back(vtx->isValid);
+        vertices_isFake.push_back(vtx->isFake);
+        vertices_ndof.push_back(vtx->ndof);
+
+        vertices_rho.push_back(vtx->rho());
+        vertices_phi.push_back(vtx->phi());
+        vertices_z.push_back(vtx->z());
+
+        vertices_selectionBits.push_back(vtx->selectionBits);
+
+        passGoodVertex |= HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
+      }
+
+      product.setNamedVal("passGoodVertex", passGoodVertex);
+      if (doWriteSelectionVariables){
+        product.setNamedVal("vertices_isValid", vertices_isValid);
+        product.setNamedVal("vertices_isFake", vertices_isFake);
+        product.setNamedVal("vertices_ndof", vertices_ndof);
+
+        product.setNamedVal("vertices_rho", vertices_rho);
+        product.setNamedVal("vertices_phi", vertices_phi);
+        product.setNamedVal("vertices_z", vertices_z);
+
+        product.setNamedVal("vertices_selectionBits", vertices_selectionBits);
+      }
+    }
+
+    if (vtxPUHandler->getPUInfosFlag() && tree->isMC()){
+      auto const& puinfos = vtxPUHandler->getPUInfos();
+
+      float nTrueVertices = 0;
+      std::vector<int> puinfos_bunchCrossing;
+      std::vector<int> puinfos_nPUVertices;
+      std::vector<float> puinfos_nTrueVertices;
+
+      for (auto const& puinfo:puinfos){
+        puinfos_bunchCrossing.push_back(puinfo->bunchCrossing);
+        puinfos_nPUVertices.push_back(puinfo->nPUVertices);
+        puinfos_nTrueVertices.push_back(puinfo->nTrueVertices);
+      }
+      if (!puinfos_nTrueVertices.empty()) nTrueVertices = puinfos_nTrueVertices.front();
+
+      product.setNamedVal("nTrueVertices", nTrueVertices);
+      if (doWriteSelectionVariables){
+        product.setNamedVal("puinfos_bunchCrossing", puinfos_bunchCrossing);
+        product.setNamedVal("puinfos_nPUVertices", puinfos_nPUVertices);
+        product.setNamedVal("puinfos_nTrueVertices", puinfos_nTrueVertices);
+      }
     }
   }
 
@@ -782,10 +875,10 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
     METObject const* metobject = jetHandler->getMET();
     if (jetHandler->getMETFlag()){
-      product.setNamedVal("pfmet_original", metobject->extras.met);
-      product.setNamedVal("pfmetPhi_original", metobject->extras.phi);
-      product.setNamedVal("pfmet", metobject->extras.met_JEC);
-      product.setNamedVal("pfmetPhi", metobject->extras.phi_JEC);
+      product.setNamedVal("pfmet_original", metobject->extras.met_original);
+      product.setNamedVal("pfmetPhi_original", metobject->extras.phi_original);
+      product.setNamedVal("pfmet", metobject->extras.met);
+      product.setNamedVal("pfmetPhi", metobject->extras.phi);
       product.setNamedVal("pfmet_JECup", metobject->extras.met_JECup);
       product.setNamedVal("pfmetPhi_JECup", metobject->extras.phi_JECup);
       product.setNamedVal("pfmet_JECdn", metobject->extras.met_JECdn);

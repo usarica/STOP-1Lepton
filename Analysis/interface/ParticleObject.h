@@ -14,7 +14,7 @@ public:
 
   ParticleObject();
   ParticleObject(int id_);
-  ParticleObject(int id_, CMSLorentzVector mom_);
+  ParticleObject(int id_, CMSLorentzVector const& mom_);
   ParticleObject(const ParticleObject& other);
   virtual ~ParticleObject(){}
 

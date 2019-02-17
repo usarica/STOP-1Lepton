@@ -19,7 +19,7 @@ ParticleObject::ParticleObject(int id_) :
   selectionBits(0),
   momentum(0, 0, 0, 0)
 {}
-ParticleObject::ParticleObject(int id_, CMSLorentzVector momentum_) :
+ParticleObject::ParticleObject(int id_, CMSLorentzVector const& momentum_) :
   id(id_),
   selectionBits(0),
   momentum(momentum_)

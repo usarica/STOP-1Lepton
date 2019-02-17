@@ -10,6 +10,7 @@ protected:
   bool doGenInfo;
   bool doGenParticles;
   bool doEventFilter;
+  bool doVertexPUInfos;
   bool doPFCands;
   bool doMuons;
   bool doElectrons;
@@ -29,6 +30,7 @@ public:
   void setGenInfoFlag(bool flag){ doGenInfo = flag; }
   void setGenParticlesFlag(bool flag){ doGenParticles = flag; if (doGenParticles && !doGenInfo) doGenInfo=true; }
   void setEventFilterFlag(bool flag){ doEventFilter = flag; }
+  void setVertexPUInfoFlag(bool flag){ doVertexPUInfos = flag; }
   void setPFCandsFlag(bool flag){ doPFCands = flag; }
   void setMuonsFlag(bool flag){ doMuons = flag; }
   void setElectronsFlag(bool flag){ doElectrons = flag; }

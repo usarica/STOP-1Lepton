@@ -177,7 +177,7 @@ AK4JetObject::AK4JetObject(int id_) :
   extras(),
   associatedGenJet(nullptr)
 {}
-AK4JetObject::AK4JetObject(int id_, CMSLorentzVector momentum_) :
+AK4JetObject::AK4JetObject(int id_, CMSLorentzVector const& momentum_) :
   ParticleObject(id_, momentum_),
   extras(),
   associatedGenJet(nullptr)

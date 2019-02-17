@@ -25,7 +25,7 @@ public:
 
   TFTopObject();
   TFTopObject(int id_);
-  TFTopObject(int id_, CMSLorentzVector mom_);
+  TFTopObject(int id_, CMSLorentzVector const& mom_);
   TFTopObject(const TFTopObject& other);
   TFTopObject& operator=(const TFTopObject& other);
   ~TFTopObject();

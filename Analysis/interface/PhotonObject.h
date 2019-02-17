@@ -28,7 +28,7 @@ public:
 
   PhotonObject();
   PhotonObject(int id_);
-  PhotonObject(int id_, CMSLorentzVector mom_);
+  PhotonObject(int id_, CMSLorentzVector const& mom_);
   PhotonObject(const PhotonObject& other);
   PhotonObject& operator=(const PhotonObject& other);
   ~PhotonObject(){}

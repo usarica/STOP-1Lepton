@@ -29,7 +29,7 @@ public:
 
   PFCandObject();
   PFCandObject(int id_);
-  PFCandObject(int id_, CMSLorentzVector mom_);
+  PFCandObject(int id_, CMSLorentzVector const& mom_);
   PFCandObject(const PFCandObject& other);
   PFCandObject& operator=(const PFCandObject& other);
   ~PFCandObject();

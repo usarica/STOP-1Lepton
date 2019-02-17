@@ -49,7 +49,7 @@ public:
 
   AK8JetObject();
   AK8JetObject(int id_);
-  AK8JetObject(int id_, CMSLorentzVector mom_);
+  AK8JetObject(int id_, CMSLorentzVector const& mom_);
   AK8JetObject(const AK8JetObject& other);
   AK8JetObject& operator=(const AK8JetObject& other);
   ~AK8JetObject();

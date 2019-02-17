@@ -6,10 +6,10 @@ class METVariables{
 public:
   float met_raw;
   float phi_raw;
+  float met_original;
+  float phi_original;
   float met;
   float phi;
-  float met_JEC;
-  float phi_JEC;
   float met_JECup;
   float phi_JECup;
   float met_JECdn;

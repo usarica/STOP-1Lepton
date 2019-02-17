@@ -74,7 +74,7 @@ public:
 
   AK4JetObject();
   AK4JetObject(int id_);
-  AK4JetObject(int id_, CMSLorentzVector mom_);
+  AK4JetObject(int id_, CMSLorentzVector const& mom_);
   AK4JetObject(const AK4JetObject& other);
   AK4JetObject& operator=(const AK4JetObject& other);
   ~AK4JetObject();
