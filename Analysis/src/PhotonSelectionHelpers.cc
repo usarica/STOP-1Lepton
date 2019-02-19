@@ -297,8 +297,11 @@ bool PhotonSelectionHelpers::testPreselection(PhotonObject const& part){
 
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
+  //if (testLooseCutBasedId(part)) part.setSelectionBit(kLooseID); // Not needed at the moment, same as id+reco
   if (testLooseSelection(part)) part.setSelectionBit(kLooseIDReco);
+  //if (testMediumCutBasedId(part)) part.setSelectionBit(kMediumID); // Not needed at the moment, same as id+reco
   if (testMediumSelection(part)) part.setSelectionBit(kMediumIDReco);
+  //if (testTightCutBasedId(part)) part.setSelectionBit(kTightID); // Not needed at the moment, same as id+reco
   if (testTightSelection(part)) part.setSelectionBit(kTightIDReco);
   if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
   if (testPreselection(part)) part.setSelectionBit(kPreselection);

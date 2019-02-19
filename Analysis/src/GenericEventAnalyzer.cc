@@ -9,6 +9,8 @@
 #include "ElectronHandler.h"
 #include "PhotonHandler.h"
 #include "JetMETHandler.h"
+#include "IsoTrackHandler.h"
+#include "TauHandler.h"
 #include "MuonScaleFactorHandler.h"
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
@@ -18,6 +20,8 @@
 #include "PhotonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
+#include "IsoTrackSelectionHelpers.h"
+#include "TauSelectionHelpers.h"
 #include "VertexSelectionHelpers.h"
 #include "TopnessCalculator.h"
 #include "MELAStreamHelpers.hh"
@@ -39,6 +43,10 @@ GenericEventAnalyzer::GenericEventAnalyzer() :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doIsoTracks(true),
+  doTaus(true),
+  recordIsoTracks(true),
+  recordTaus(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
@@ -53,6 +61,10 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doIsoTracks(true),
+  doTaus(true),
+  recordIsoTracks(true),
+  recordTaus(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
@@ -67,6 +79,10 @@ GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& in
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doIsoTracks(true),
+  doTaus(true),
+  recordIsoTracks(true),
+  recordTaus(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
@@ -81,6 +97,10 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doIsoTracks(true),
+  doTaus(true),
+  recordIsoTracks(true),
+  recordTaus(true),
   doWriteSelectionVariables(true)
 {}
 
@@ -98,6 +118,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   ElectronHandler* eleHandler=nullptr;
   PhotonHandler* photonHandler=nullptr;
   JetMETHandler* jetHandler=nullptr;
+  IsoTrackHandler* isotrkHandler=nullptr;
+  TauHandler* tauHandler=nullptr;
   for (auto it=this->externalIvyObjects.begin(); it!=this->externalIvyObjects.end(); it++){
     if (tree->isMC()){
       if (doWeights){ WeightsHandler* tmp_ivy = dynamic_cast<WeightsHandler*>(it->second); if (!wgtHandler && tmp_ivy){ wgtHandler = tmp_ivy; } }
@@ -110,6 +132,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     if (doElectrons){ ElectronHandler* tmp_ivy = dynamic_cast<ElectronHandler*>(it->second); if (!eleHandler && tmp_ivy){ eleHandler = tmp_ivy; } }
     if (doPhotons){ PhotonHandler* tmp_ivy = dynamic_cast<PhotonHandler*>(it->second); if (!photonHandler && tmp_ivy){ photonHandler = tmp_ivy; } }
     if (doJetMET){ JetMETHandler* tmp_ivy = dynamic_cast<JetMETHandler*>(it->second); if (!jetHandler && tmp_ivy){ jetHandler = tmp_ivy; } }
+    if (doIsoTracks){ IsoTrackHandler* tmp_ivy = dynamic_cast<IsoTrackHandler*>(it->second); if (!isotrkHandler && tmp_ivy){ isotrkHandler = tmp_ivy; } }
+    if (doTaus){ TauHandler* tmp_ivy = dynamic_cast<TauHandler*>(it->second); if (!tauHandler && tmp_ivy){ tauHandler = tmp_ivy; } }
   }
 
   // SF handlers
@@ -769,6 +793,22 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   }
 
 
+  // We will need the leading-pT lepton later, so find out which lepton that is.
+  ParticleObject const* leadingPtVetoLepton=nullptr;
+  if (!muons.empty()){
+    for (auto const* part:muons){
+      if (!(part->testSelection(MuonSelectionHelpers::kVetoIDReco) && part->testSelection(MuonSelectionHelpers::kSkimPtEta))) continue;
+      if (!leadingPtVetoLepton || part->pt()>leadingPtVetoLepton->pt()){ leadingPtVetoLepton = part; break; }
+    }
+  }
+  if (!electrons.empty()){
+    for (auto const* part:electrons){
+      if (!(part->testSelection(ElectronSelectionHelpers::kVetoIDReco) && part->testSelection(ElectronSelectionHelpers::kSkimPtEta))) continue;
+      if (!leadingPtVetoLepton || part->pt()>leadingPtVetoLepton->pt()){ leadingPtVetoLepton = part; break; }
+    }
+  }
+
+
   /*********************/
   /**  PHOTONS BLOCK  **/
   /*********************/
@@ -1272,6 +1312,156 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal("tftops_selectionBits", tftops_selectionBits);
     }
   }
+
+
+  /*********************/
+  /**  ISOTRKS BLOCK  **/
+  /*********************/
+  std::vector<IsoTrackObject*> isotracks;
+  validProducts &= (!doIsoTracks || isotrkHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "GenericEventAnalyzer::runEvent: Iso. track handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (isotrkHandler){
+    isotrkHandler->registerParticles(&muons, &electrons);
+    validProducts &= isotrkHandler->constructIsoTracks();
+    if (!validProducts){
+      MELAerr << "GenericEventAnalyzer::runEvent: Iso. tracks could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+    isotracks = isotrkHandler->getProducts();
+
+    bool passSTOP_1LIsoTrackVeto = true;
+
+    std::vector<int> id;
+    std::vector<int> charge;
+
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
+    std::vector<bool> isPFCand;
+    std::vector<bool> hasLepOverlap;
+
+    std::vector<float> pfIso_ch;
+    std::vector<float> dz;
+
+    for (IsoTrackObject const* isotrack:isotracks){
+      if (!isotrack) continue;
+
+      auto const& extras = isotrack->extras;
+
+      id.push_back(isotrack->id);
+      charge.push_back(extras.charge);
+
+      pt.push_back(isotrack->pt());
+      eta.push_back(isotrack->eta());
+      phi.push_back(isotrack->phi());
+      mass.push_back(isotrack->m());
+
+      isPFCand.push_back(extras.isPFCand);
+      hasLepOverlap.push_back(extras.hasLepOverlap);
+
+      pfIso_ch.push_back(extras.pfIso_ch);
+      dz.push_back(extras.dz);
+
+      if (leadingPtVetoLepton) passSTOP_1LIsoTrackVeto &= !(extras.charge*leadingPtVetoLepton->charge()<0); // Veto the event if there is an iso. track with opposite charge to the lepton
+    }
+
+    product.setNamedVal("passSTOP_1LIsoTrackVeto", passSTOP_1LIsoTrackVeto);
+    if (recordIsoTracks){
+      product.setNamedVal("isotracks_id", id);
+      product.setNamedVal("isotracks_charge", charge);
+
+      product.setNamedVal("isotracks_pt", pt);
+      product.setNamedVal("isotracks_eta", eta);
+      product.setNamedVal("isotracks_phi", phi);
+      product.setNamedVal("isotracks_mass", mass);
+
+      if (doWriteSelectionVariables){
+        product.setNamedVal("isotracks_isPFCand", isPFCand);
+        product.setNamedVal("isotracks_hasLepOverlap", hasLepOverlap);
+
+        product.setNamedVal("isotracks_pfIso_ch", pfIso_ch);
+        product.setNamedVal("isotracks_dz", dz);
+      }
+    }
+  }
+
+
+  /******************/
+  /**  TAUS BLOCK  **/
+  /******************/
+  std::vector<TauObject*> taus;
+  validProducts &= (!doTaus || tauHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "GenericEventAnalyzer::runEvent: Tau handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
+  if (tauHandler){
+    tauHandler->registerParticles(&muons, &electrons);
+    validProducts &= tauHandler->constructTaus();
+    if (!validProducts){
+      MELAerr << "GenericEventAnalyzer::runEvent: Tau could not be constructed (Tree: " << tree->sampleIdentifier << ")." << endl;
+      tree->print();
+      exit(1);
+      return validProducts;
+    }
+    taus = tauHandler->getProducts();
+
+    bool passSTOP_1LTauVeto = true;
+
+    std::vector<int> id;
+    std::vector<int> charge;
+
+    std::vector<float> pt;
+    std::vector<float> eta;
+    std::vector<float> phi;
+    std::vector<float> mass;
+
+    std::vector<bool> pfDecayModeFinding;
+    std::vector<bool> pfIso;
+
+    for (TauObject const* tau:taus){
+      if (!tau) continue;
+
+      auto const& extras = tau->extras;
+
+      id.push_back(tau->id);
+      charge.push_back(extras.charge);
+
+      pt.push_back(tau->pt());
+      eta.push_back(tau->eta());
+      phi.push_back(tau->phi());
+      mass.push_back(tau->m());
+
+      pfDecayModeFinding.push_back(extras.pfDecayModeFinding);
+      pfIso.push_back(extras.pfIso);
+
+      if (leadingPtVetoLepton) passSTOP_1LTauVeto &= !(extras.charge*leadingPtVetoLepton->charge()<0); // Veto the event if there is an iso. track with opposite charge to the lepton
+    }
+
+    product.setNamedVal("passSTOP_1LTauVeto", passSTOP_1LTauVeto);
+    if (recordTaus){
+      product.setNamedVal("taus_id", id);
+      product.setNamedVal("taus_charge", charge);
+
+      product.setNamedVal("taus_pt", pt);
+      product.setNamedVal("taus_eta", eta);
+      product.setNamedVal("taus_phi", phi);
+      product.setNamedVal("taus_mass", mass);
+
+      if (doWriteSelectionVariables){
+        product.setNamedVal("taus_pfDecayModeFinding", pfDecayModeFinding);
+        product.setNamedVal("taus_pfIso", pfIso);
+      }
+    }
+  }
+
 
   return validProducts;
 }

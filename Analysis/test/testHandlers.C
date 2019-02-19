@@ -65,6 +65,14 @@ void testHandlers(){
   jetHandler.registerJERSFHandlers(&jerSFHandler_ak4, &jerSFHandler_ak8);
   for (auto* tree:theSet.getFrameworkTreeList()) jetHandler.bookBranches(tree);
 
+  IsoTrackHandler isotrkHandler;
+  //isotrkHandler.setVerbosity(TVar::DEBUG);
+  for (auto* tree:theSet.getFrameworkTreeList()) isotrkHandler.bookBranches(tree);
+
+  TauHandler tauHandler;
+  //tauHandler.setVerbosity(TVar::DEBUG);
+  for (auto* tree:theSet.getFrameworkTreeList()) tauHandler.bookBranches(tree);
+
   EventAnalyzer analyzer(&theSet);
   // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
@@ -78,6 +86,8 @@ void testHandlers(){
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("PhotonHandler", &photonHandler);
   analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
+  analyzer.addExternalIvyObject("IsoTrackHandler", &isotrkHandler);
+  analyzer.addExternalIvyObject("TauHandler", &tauHandler);
   // SF handlers
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);

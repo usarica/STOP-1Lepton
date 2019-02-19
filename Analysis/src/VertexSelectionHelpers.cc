@@ -1,5 +1,4 @@
 #include "VertexSelectionHelpers.h"
-#include "HelperFunctions.h"
 
 
 bool VertexSelectionHelpers::testGoodVertex(VertexObject const& vtx){
@@ -7,6 +6,5 @@ bool VertexSelectionHelpers::testGoodVertex(VertexObject const& vtx){
 }
 
 void VertexSelectionHelpers::setSelectionBits(VertexObject& vtx){
-  using namespace HelperFunctions;
-  if (testGoodVertex(vtx)) set_bit(vtx.selectionBits, kGoodVertex);
+  if (testGoodVertex(vtx)) vtx.setSelectionBit(kGoodVertex);
 }

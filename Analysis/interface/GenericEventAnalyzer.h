@@ -16,6 +16,10 @@ protected:
   bool doElectrons;
   bool doPhotons;
   bool doJetMET;
+  bool doIsoTracks;
+  bool doTaus;
+  bool recordIsoTracks;
+  bool recordTaus;
   bool doWriteSelectionVariables;
 
   bool runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product);
@@ -36,6 +40,10 @@ public:
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setPhotonsFlag(bool flag){ doPhotons = flag; }
   void setJetMETFlag(bool flag){ doJetMET = flag; }
+  void setIsoTracksFlag(bool flag){ doIsoTracks = flag; }
+  void setTausFlag(bool flag){ doTaus = flag; }
+  void setRecordIsoTracksFlag(bool flag){ recordIsoTracks = flag; }
+  void setRecordTausFlag(bool flag){ recordTaus = flag; }
   void setWriteSelectionVariables(bool flag){ doWriteSelectionVariables = flag; }
 
 };

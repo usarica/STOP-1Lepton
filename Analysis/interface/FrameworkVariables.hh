@@ -83,6 +83,33 @@ typedef unsigned long long EventNumber_t;
 // End PF candidate variables
 
 
+// Iso. tracks variables
+// vbool
+#define _isotracks_isPFCand_ "isotracks_isPFCand"
+#define _isotracks_hasLepOverlap_ "isotracks_lepOverlap"
+// vint
+#define _isotracks_charge_ "isotracks_charge"
+#define _isotracks_id_ "isotracks_particleId"
+// vfloat
+#define _isotracks_pfIso_ch_ "isotracks_pfIso_ch"
+#define _isotracks_dz_ "isotracks_dz"
+// vCMSLorentzVector
+#define _isotracks_momentum_ "isotracks_p4"
+// End iso. tracks variables
+
+
+// Tau variables
+// vint
+#define _taus_charge_ "taus_pf_charge"
+// vCMSLorentzVector
+#define _taus_momentum_ "taus_pf_p4"
+// vTString
+#define _taus_pfidnames_ "taus_pf_IDnames"
+// vvfloat -> Why are these floats?!
+#define _taus_pfids_ "taus_pf_IDs"
+// End tau variables
+
+
 // Electron variables
 // float
 #define _electrons_rho_ "evt_fixgridfastjet_all_rho"
@@ -193,7 +220,7 @@ typedef unsigned long long EventNumber_t;
 #define _ak4jets_bDiscriminators "pfjets_bDiscriminators"
 // vCMSLorentzVector
 #define _ak4jets_momentum_ "pfjets_p4"
-// vvvCMSLorentzVector
+// vvCMSLorentzVector
 #define _ak4jets_mucands_momentum_ "pfjets_pfcandmup4"
 // End ak4 jet variables
 

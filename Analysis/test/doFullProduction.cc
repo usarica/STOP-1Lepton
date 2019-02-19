@@ -62,13 +62,22 @@ void doFullProduction(std::string stropts){
   jetHandler.registerJERSFHandlers(&jerSFHandler_ak4, &jerSFHandler_ak8);
   for (auto* tree:theSet.getFrameworkTreeList()) jetHandler.bookBranches(tree);
 
+  IsoTrackHandler isotrkHandler;
+  for (auto* tree:theSet.getFrameworkTreeList()) isotrkHandler.bookBranches(tree);
+
+  TauHandler tauHandler;
+  for (auto* tree:theSet.getFrameworkTreeList()) tauHandler.bookBranches(tree);
+
   EventAnalyzer analyzer(&theSet);
 
   // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
   analyzer.setRecordEveryNEvents(opts.recordEveryNEvents());
-  analyzer.setWriteSelectionVariables(false);
   analyzer.setPFCandsFlag(_DOPFCANDS_);
+  // Control what is recorded
+  analyzer.setRecordIsoTracksFlag(false);
+  analyzer.setRecordTausFlag(false);
+  analyzer.setWriteSelectionVariables(false);
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);
@@ -79,6 +88,8 @@ void doFullProduction(std::string stropts){
   analyzer.addExternalIvyObject("ElectronHandler", &electronHandler);
   analyzer.addExternalIvyObject("PhotonHandler", &photonHandler);
   analyzer.addExternalIvyObject("JetMETHandler", &jetHandler);
+  analyzer.addExternalIvyObject("IsoTrackHandler", &isotrkHandler);
+  analyzer.addExternalIvyObject("TauHandler", &tauHandler);
   // SF handlers
   analyzer.addExternalScaleFactorHandler("MuonSFHandler", &muonSFHandler);
   analyzer.addExternalScaleFactorHandler("ElectronSFHandler", &electronSFHandler);
