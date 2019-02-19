@@ -69,6 +69,7 @@ void doFullProduction(std::string stropts){
   for (auto* tree:theSet.getFrameworkTreeList()) tauHandler.bookBranches(tree);
 
   EventAnalyzer analyzer(&theSet);
+  if (opts.isData()) analyzer.setSampleIdStorageOption(FrameworkTreeLooperBase::kStoreByRunAndEventNumber);
 
   // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
