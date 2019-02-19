@@ -52,6 +52,9 @@ class BatchManager:
          if not hasattr(self.opt, theOpt) or getattr(self.opt, theOpt) is None:
             sys.exit("Need to set --{} option".format(theOpt))
 
+      if self.opt.outdir.startswith("./"):
+         self.opt.outdir = self.opt.outdir.replace(".",os.getcwd(),1)
+
       if not os.path.isfile(self.opt.script):
          sys.exit("Script {} does not exist. Exiting...".format(self.opt.script))
 
@@ -125,7 +128,7 @@ queue
       scriptcontents = scriptcontents.format(**scriptargs)
 
       self.condorScriptName = "condor.sub"
-      condorScriptFile = open(self.condorScriptName,'w')
+      condorScriptFile = open(self.opt.outdir+"/"+self.condorScriptName,'w')
       condorScriptFile.write(scriptcontents)
       condorScriptFile.close()
 
@@ -133,7 +136,7 @@ queue
    def submitJobs(self):
       self.produceCondorScript()
 
-      jobcmd = "condor_submit {}".format(self.condorScriptName)
+      jobcmd = "cd {}; condor_submit {}; cd -".format(self.opt.outdir, self.condorScriptName)
       if self.opt.dryRun:
          jobcmd = "echo " + jobcmd
       ret = os.system( jobcmd )

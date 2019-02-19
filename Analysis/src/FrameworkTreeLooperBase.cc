@@ -74,7 +74,14 @@ void FrameworkTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
 
 void FrameworkTreeLooperBase::setRecordEveryNEvents(int n){ recordEveryNEvents=n; }
 
-void FrameworkTreeLooperBase::setSampleIdStorageOption(FrameworkTreeLooperBase::SampleIdStorageType opt){ sampleIdOpt=opt; }
+void FrameworkTreeLooperBase::setSampleIdStorageOption(FrameworkTreeLooperBase::SampleIdStorageType opt){
+  sampleIdOpt=opt;
+  if (sampleIdOpt==kStoreByRunAndEventNumber){
+    this->addConsumed<RunNumber_t>(_event_RunNumber_);
+    this->addConsumed<Lumisection_t>(_event_Lumisection_);
+    this->addConsumed<EventNumber_t>(_event_EventNumber_);
+  }
+}
 
 void FrameworkTreeLooperBase::addProduct(SimpleEntry& product, unsigned int* ev_rec){
   this->productListRef->push_back(product);
@@ -101,20 +108,15 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     loopRecFailList.assign(treeList.size(), 0); it_loopRecFailList=loopRecFailList.begin();
     loopTotalFailList.assign(treeList.size(), 0); it_loopTotalFailList=loopTotalFailList.begin();
   }
-  if (storeSampleIdByRunAndEventNumber){ // Check if RunNumber and EventNumber variables are consumed
-    bool doAbort=false;
-    if (valuints.find(_event_RunNumber_)==valuints.cend()){
-      MELAerr << "FrameworkTreeLooperBase::loop: RunNumber is not a consumed variable!" << endl;
-      doAbort=true;
-    }
-    if (valulonglongs.find(_event_EventNumber_)==valulonglongs.cend()){
-      MELAerr << "FrameworkTreeLooperBase::loop: EventNumber is not a consumed variable!" << endl;
-      doAbort=true;
-    }
-    assert(!doAbort);
-  }
+
   auto time_start = std::chrono::steady_clock::now();
   for (FrameworkTree*& tree:treeList){
+    if (storeSampleIdByRunAndEventNumber){
+      tree->bookEDMBranch<RunNumber_t>(_event_RunNumber_, 0);
+      tree->bookEDMBranch<Lumisection_t>(_event_Lumisection_, 0);
+      tree->bookEDMBranch<EventNumber_t>(_event_EventNumber_, 0);
+    }
+
     // Skip if maximum events are already reached
     if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
 
@@ -161,8 +163,22 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
                 product.setNamedVal("EventNumber", ev_acc);
               }
               else if (storeSampleIdByRunAndEventNumber){
-                product.setNamedVal("RunNumber", *(valuints[_event_RunNumber_]));
-                product.setNamedVal("EventNumber", *(valulonglongs[_event_EventNumber_]));
+                // Acquire run and event numbers, and the lumisection
+                RunNumber_t theRunNumberVal=0;
+                Lumisection_t theLumisectionVal=0;
+                EventNumber_t theEventNumberVal=0;
+                bool allSampleIdVariablesPresent = (
+                  this->getConsumedValue(_event_RunNumber_, theRunNumberVal)
+                  &&
+                  this->getConsumedValue(_event_Lumisection_, theLumisectionVal)
+                  &&
+                  this->getConsumedValue(_event_EventNumber_, theEventNumberVal)
+                  );
+                assert(allSampleIdVariablesPresent);
+
+                product.setNamedVal("RunNumber", theRunNumberVal);
+                product.setNamedVal("LumiSection", theLumisectionVal);
+                product.setNamedVal("EventNumber", theEventNumberVal);
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecSelList)++;
@@ -197,8 +213,22 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
                 product.setNamedVal("EventNumber", ev_acc);
               }
               else if (storeSampleIdByRunAndEventNumber){
-                product.setNamedVal("RunNumber", *(valuints[_event_RunNumber_]));
-                product.setNamedVal("EventNumber", *(valulonglongs[_event_EventNumber_]));
+                // Acquire run and event numbers, and the lumisection
+                RunNumber_t theRunNumberVal=0;
+                Lumisection_t theLumisectionVal=0;
+                EventNumber_t theEventNumberVal=0;
+                bool allSampleIdVariablesPresent = (
+                  this->getConsumedValue(_event_RunNumber_, theRunNumberVal)
+                  &&
+                  this->getConsumedValue(_event_Lumisection_, theLumisectionVal)
+                  &&
+                  this->getConsumedValue(_event_EventNumber_, theEventNumberVal)
+                  );
+                assert(allSampleIdVariablesPresent);
+
+                product.setNamedVal("RunNumber", theRunNumberVal);
+                product.setNamedVal("LumiSection", theLumisectionVal);
+                product.setNamedVal("EventNumber", theEventNumberVal);
               }
               this->addProduct(product, &ev_rec);
               if (verbosity>=TVar::INFO) (*it_loopRecFailList)++;

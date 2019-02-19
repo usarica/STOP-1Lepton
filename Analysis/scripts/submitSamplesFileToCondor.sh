@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 INFILE=$1
 SCRIPTNAME="doFullProduction.cc"
@@ -9,6 +9,28 @@ OUTDIR="./output/${DATE}"
 
 mkdir -p $OUTDIR
 
+TARFILE="stop_1lepton.tar"
+if [ ! -e ${OUTDIR}/${TARFILE} ];then
+  createSTOP1LTarball.sh
+  mv ${TARFILE} ${OUTDIR}/
+fi
+
+
 while IFS='' read -r line || [[ -n "$line" ]]; do
-  submitSTOP1LGenericJob.sh "$SCRIPTNAME" "$FCN" "$line" "$QUEUE" "$OUTDIR"
+  fcnarglist=($(echo $line))
+  fcnargname=""
+  for farg in "${fcnarglist[@]}";do
+    farg=${farg//"\""}
+    if [[ "$farg" == "outfile="* ]];then
+      fcnargname=$farg
+      fcnargname=${fcnargname//"outfile="}
+      fcnargname=${fcnargname//".root"}
+      break
+    fi
+  done
+  theOutdir="${OUTDIR}/${FCN}/${fcnargname}"
+  mkdir -p $theOutdir
+  ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
+
+  submitSTOP1LGenericJob.sh "$SCRIPTNAME" "$FCN" "$line" "$QUEUE" "$theOutdir"
 done < "$INFILE"

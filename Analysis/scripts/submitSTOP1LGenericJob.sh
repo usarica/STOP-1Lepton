@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SCRIPTNAME="$1"
 FCN="$2"
@@ -32,9 +32,11 @@ mkdir -p $LOGSDIR
 extLog=$FCN
 if [[ "$FCNARGS" != "" ]];then
   fcnargname=""
-  fcnarglist=(${echo $FCNARGS})
-  for farg in ${fcnarglist[*]};do
+  fcnarglist=($(echo $FCNARGS))
+  for farg in "${fcnarglist[@]}";do
+    farg=${farg//"\""}
     if [[ "$farg" == "outfile="* ]];then
+      fcnargname=$farg
       fcnargname=${fcnargname//"outfile="}
       break
     fi
