@@ -47,6 +47,7 @@ GenericEventAnalyzer::GenericEventAnalyzer() :
   doTaus(true),
   recordIsoTracks(true),
   recordTaus(true),
+  doWriteFailingObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
@@ -65,6 +66,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
   doTaus(true),
   recordIsoTracks(true),
   recordTaus(true),
+  doWriteFailingObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
@@ -83,6 +85,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& in
   doTaus(true),
   recordIsoTracks(true),
   recordTaus(true),
+  doWriteFailingObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
@@ -101,6 +104,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
   doTaus(true),
   recordIsoTracks(true),
   recordTaus(true),
+  doWriteFailingObjects(true),
   doWriteSelectionVariables(true)
 {}
 
@@ -339,17 +343,20 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       std::vector<long long> vertices_selectionBits;
 
       for (auto const& vtx:vertices){
-        vertices_isValid.push_back(vtx->isValid);
-        vertices_isFake.push_back(vtx->isFake);
-        vertices_ndof.push_back(vtx->ndof);
+        bool isGoodPV = HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
+        passGoodPrimaryVertex |= isGoodPV;
 
-        vertices_rho.push_back(vtx->rho());
-        vertices_phi.push_back(vtx->phi());
-        vertices_z.push_back(vtx->z());
+        if (doWriteFailingObjects || isGoodPV){
+          vertices_isValid.push_back(vtx->isValid);
+          vertices_isFake.push_back(vtx->isFake);
+          vertices_ndof.push_back(vtx->ndof);
 
-        vertices_selectionBits.push_back(vtx->selectionBits);
+          vertices_rho.push_back(vtx->rho());
+          vertices_phi.push_back(vtx->phi());
+          vertices_z.push_back(vtx->z());
 
-        passGoodPrimaryVertex |= HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
+          vertices_selectionBits.push_back(vtx->selectionBits);
+        }
       }
 
       if (tree->isData() && !passGoodPrimaryVertex){ // This acts like an event filter for data
@@ -533,38 +540,40 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (MuonObject const* muon:muons){
       if (!muon) continue;
-      if (!HelperFunctions::test_bit(muon->selectionBits, MuonSelectionHelpers::kGenPtEta)) continue;
+      if (!muon->testSelection(MuonSelectionHelpers::kGenPtEta)) continue;
 
-      MuonVariables const& extras = muon->extras;
+      if (doWriteFailingObjects || muon->testSelection(MuonSelectionHelpers::kSkimPtEta)){
+        MuonVariables const& extras = muon->extras;
 
-      id.push_back(muon->id);
-      pt.push_back(muon->pt());
-      eta.push_back(muon->eta());
-      phi.push_back(muon->phi());
-      mass.push_back(muon->m());
+        id.push_back(muon->id);
+        pt.push_back(muon->pt());
+        eta.push_back(muon->eta());
+        phi.push_back(muon->phi());
+        mass.push_back(muon->m());
 
-      isPFMuon.push_back(extras.isPFMuon);
+        isPFMuon.push_back(extras.isPFMuon);
 
-      POGSelectorBit.push_back(extras.POGSelectorBit);
+        POGSelectorBit.push_back(extras.POGSelectorBit);
 
-      type.push_back(extras.type);
-      validHits.push_back(extras.validHits);
-      lostHits.push_back(extras.lostHits);
-      expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
-      expectedMissingOuterHits.push_back(extras.expectedMissingOuterHits);
-      GlobalFit_Ndof.push_back(extras.GlobalFit_Ndof);
+        type.push_back(extras.type);
+        validHits.push_back(extras.validHits);
+        lostHits.push_back(extras.lostHits);
+        expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
+        expectedMissingOuterHits.push_back(extras.expectedMissingOuterHits);
+        GlobalFit_Ndof.push_back(extras.GlobalFit_Ndof);
 
-      GlobalFit_Chisq.push_back(extras.GlobalFit_Chisq);
-      LocalPos_Chisq.push_back(extras.LocalPos_Chisq);
-      TrkKink.push_back(extras.TrkKink);
-      SegComp.push_back(extras.SegComp);
-      dxyPV.push_back(extras.dxyPV);
-      dzPV.push_back(extras.dzPV);
-      miniIso_ch.push_back(extras.miniIso_ch);
-      miniIso_nh.push_back(extras.miniIso_nh);
-      miniIso_em.push_back(extras.miniIso_em);
+        GlobalFit_Chisq.push_back(extras.GlobalFit_Chisq);
+        LocalPos_Chisq.push_back(extras.LocalPos_Chisq);
+        TrkKink.push_back(extras.TrkKink);
+        SegComp.push_back(extras.SegComp);
+        dxyPV.push_back(extras.dxyPV);
+        dzPV.push_back(extras.dzPV);
+        miniIso_ch.push_back(extras.miniIso_ch);
+        miniIso_nh.push_back(extras.miniIso_nh);
+        miniIso_em.push_back(extras.miniIso_em);
 
-      selectionBits.push_back(muon->selectionBits);
+        selectionBits.push_back(muon->selectionBits);
+      }
 
       if (muonSFHandler){
         float tmp_SF_IdIso=1;
@@ -694,35 +703,37 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
-      if (!HelperFunctions::test_bit(electron->selectionBits, ElectronSelectionHelpers::kGenPtEta)) continue;
+      if (!electron->testSelection(ElectronSelectionHelpers::kGenPtEta)) continue;
 
-      ElectronVariables const& extras = electron->extras;
+      if (doWriteFailingObjects || electron->testSelection(ElectronSelectionHelpers::kSkimPtEta)){
+        ElectronVariables const& extras = electron->extras;
 
-      id.push_back(electron->id);
-      pt.push_back(electron->pt());
-      eta.push_back(electron->eta());
-      phi.push_back(electron->phi());
-      mass.push_back(electron->m());
+        id.push_back(electron->id);
+        pt.push_back(electron->pt());
+        eta.push_back(electron->eta());
+        phi.push_back(electron->phi());
+        mass.push_back(electron->m());
 
-      conv_vtx_flag.push_back(extras.conv_vtx_flag);
-      expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
-      energySC.push_back(extras.energySC);
-      etaSC.push_back(extras.etaSC);
-      etaSeedSC.push_back(extras.etaSeedSC);
-      rho.push_back(extras.rho);
-      sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
-      dEtaIn.push_back(extras.dEtaIn);
-      dPhiIn.push_back(extras.dPhiIn);
-      hOverE.push_back(extras.hOverE);
-      ecalEnergy.push_back(extras.ecalEnergy);
-      eOverPIn.push_back(extras.eOverPIn);
-      dxyPV.push_back(extras.dxyPV);
-      dzPV.push_back(extras.dzPV);
-      miniIso_ch.push_back(extras.miniIso_ch);
-      miniIso_nh.push_back(extras.miniIso_nh);
-      miniIso_em.push_back(extras.miniIso_em);
+        conv_vtx_flag.push_back(extras.conv_vtx_flag);
+        expectedMissingInnerHits.push_back(extras.expectedMissingInnerHits);
+        energySC.push_back(extras.energySC);
+        etaSC.push_back(extras.etaSC);
+        etaSeedSC.push_back(extras.etaSeedSC);
+        rho.push_back(extras.rho);
+        sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
+        dEtaIn.push_back(extras.dEtaIn);
+        dPhiIn.push_back(extras.dPhiIn);
+        hOverE.push_back(extras.hOverE);
+        ecalEnergy.push_back(extras.ecalEnergy);
+        eOverPIn.push_back(extras.eOverPIn);
+        dxyPV.push_back(extras.dxyPV);
+        dzPV.push_back(extras.dzPV);
+        miniIso_ch.push_back(extras.miniIso_ch);
+        miniIso_nh.push_back(extras.miniIso_nh);
+        miniIso_em.push_back(extras.miniIso_em);
 
-      selectionBits.push_back(electron->selectionBits);
+        selectionBits.push_back(electron->selectionBits);
+      }
 
       if (eleSFHandler){
         float tmp_SF_IdIso=1;
@@ -847,24 +858,25 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (PhotonObject const* photon:photons){
       if (!photon) continue;
-      if (!HelperFunctions::test_bit(photon->selectionBits, PhotonSelectionHelpers::kGenPtEta)) continue;
+      if (!photon->testSelection(PhotonSelectionHelpers::kGenPtEta)) continue;
 
-      PhotonVariables const& extras = photon->extras;
+      if (doWriteFailingObjects || photon->testSelection(PhotonSelectionHelpers::kSkimPtEta)){
+        PhotonVariables const& extras = photon->extras;
 
-      pt.push_back(photon->pt());
-      eta.push_back(photon->eta());
-      phi.push_back(photon->phi());
-      mass.push_back(photon->m());
+        pt.push_back(photon->pt());
+        eta.push_back(photon->eta());
+        phi.push_back(photon->phi());
+        mass.push_back(photon->m());
 
-      etaSC.push_back(extras.etaSC);
-      recoChargedHadronIso.push_back(extras.recoChargedHadronIso);
-      recoNeutralHadronIso.push_back(extras.recoNeutralHadronIso);
-      recoPhotonIso.push_back(extras.recoPhotonIso);
-      sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
-      hOverE_full5x5.push_back(extras.hOverE_full5x5);
+        etaSC.push_back(extras.etaSC);
+        recoChargedHadronIso.push_back(extras.recoChargedHadronIso);
+        recoNeutralHadronIso.push_back(extras.recoNeutralHadronIso);
+        recoPhotonIso.push_back(extras.recoPhotonIso);
+        sigmaIEtaIEta_full5x5.push_back(extras.sigmaIEtaIEta_full5x5);
+        hOverE_full5x5.push_back(extras.hOverE_full5x5);
 
-      selectionBits.push_back(photon->selectionBits);
-
+        selectionBits.push_back(photon->selectionBits);
+      }
       if (photonSFHandler){
         float tmp_SF_IdIso=1;
         float tmp_SFerr_IdIso=0;
@@ -1016,74 +1028,89 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (AK4JetObject const* jet:ak4jets){
       if (!jet) continue;
-      auto const& extras = jet->extras;
 
-      ak4jets_selectionBits.push_back(jet->selectionBits);
+      if (
+        doWriteFailingObjects
+        ||
+        jet->testSelection(AK4JetSelectionHelpers::kSkimPtEta)
+        ||
+        jet->testSelection(AK4JetSelectionHelpers::kSkimPtEta_JECUp)
+        ||
+        jet->testSelection(AK4JetSelectionHelpers::kSkimPtEta_JECDn)
+        ||
+        jet->testSelection(AK4JetSelectionHelpers::kSkimPtEta_JERUp)
+        ||
+        jet->testSelection(AK4JetSelectionHelpers::kSkimPtEta_JERDn)
+        ){
+        auto const& extras = jet->extras;
 
-      CMSLorentzVector finalMomentum = jet->getFinalMomentum();
-      ak4jets_pt.push_back(finalMomentum.Pt());
-      ak4jets_eta.push_back(finalMomentum.Eta());
-      ak4jets_phi.push_back(finalMomentum.Phi());
-      ak4jets_mass.push_back(finalMomentum.M());
+        ak4jets_selectionBits.push_back(jet->selectionBits);
 
-      ak4jets_npfcands.push_back(extras.npfcands);
-      ak4jets_parton_flavor.push_back(extras.parton_flavor);
-      ak4jets_hadron_flavor.push_back(extras.hadron_flavor);
-      ak4jets_chargedHadronMultiplicity.push_back(extras.chargedHadronMultiplicity);
-      ak4jets_neutralHadronMultiplicity.push_back(extras.neutralHadronMultiplicity);
-      ak4jets_photonMultiplicity.push_back(extras.photonMultiplicity);
-      ak4jets_electronMultiplicity.push_back(extras.electronMultiplicity);
-      ak4jets_muonMultiplicity.push_back(extras.muonMultiplicity);
-      ak4jets_chargedMultiplicity.push_back(extras.chargedMultiplicity);
-      ak4jets_neutralMultiplicity.push_back(extras.neutralMultiplicity);
-      ak4jets_totalMultiplicity.push_back(extras.totalMultiplicity);
+        CMSLorentzVector finalMomentum = jet->getFinalMomentum();
+        ak4jets_pt.push_back(finalMomentum.Pt());
+        ak4jets_eta.push_back(finalMomentum.Eta());
+        ak4jets_phi.push_back(finalMomentum.Phi());
+        ak4jets_mass.push_back(finalMomentum.M());
 
-      ak4jets_area.push_back(extras.area);
-      ak4jets_undoJEC.push_back(extras.undoJEC);
-      ak4jets_chargedHadronE.push_back(extras.chargedHadronE);
-      ak4jets_chargedEmE.push_back(extras.chargedEmE);
-      ak4jets_neutralHadronE.push_back(extras.neutralHadronE);
-      ak4jets_neutralEmE.push_back(extras.neutralEmE);
-      ak4jets_hfHadronE.push_back(extras.hfHadronE);
-      ak4jets_hfEmE.push_back(extras.hfEmE);
-      ak4jets_photonE.push_back(extras.photonE);
-      ak4jets_electronE.push_back(extras.electronE);
-      ak4jets_muonE.push_back(extras.muonE);
+        ak4jets_npfcands.push_back(extras.npfcands);
+        ak4jets_parton_flavor.push_back(extras.parton_flavor);
+        ak4jets_hadron_flavor.push_back(extras.hadron_flavor);
+        ak4jets_chargedHadronMultiplicity.push_back(extras.chargedHadronMultiplicity);
+        ak4jets_neutralHadronMultiplicity.push_back(extras.neutralHadronMultiplicity);
+        ak4jets_photonMultiplicity.push_back(extras.photonMultiplicity);
+        ak4jets_electronMultiplicity.push_back(extras.electronMultiplicity);
+        ak4jets_muonMultiplicity.push_back(extras.muonMultiplicity);
+        ak4jets_chargedMultiplicity.push_back(extras.chargedMultiplicity);
+        ak4jets_neutralMultiplicity.push_back(extras.neutralMultiplicity);
+        ak4jets_totalMultiplicity.push_back(extras.totalMultiplicity);
 
-      ak4jets_deepCSVb.push_back(extras.deepCSVb);
-      ak4jets_deepCSVc.push_back(extras.deepCSVc);
-      ak4jets_deepCSVl.push_back(extras.deepCSVl);
-      ak4jets_deepCSVbb.push_back(extras.deepCSVbb);
-      ak4jets_deepCSVcc.push_back(extras.deepCSVcc);
-      ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag.push_back(extras.pfCombinedInclusiveSecondaryVertexV2BJetTag);
-      ak4jets_ptDistribution.push_back(extras.ptDistribution);
-      ak4jets_axis1.push_back(extras.axis1);
-      ak4jets_axis2.push_back(extras.axis2);
+        ak4jets_area.push_back(extras.area);
+        ak4jets_undoJEC.push_back(extras.undoJEC);
+        ak4jets_chargedHadronE.push_back(extras.chargedHadronE);
+        ak4jets_chargedEmE.push_back(extras.chargedEmE);
+        ak4jets_neutralHadronE.push_back(extras.neutralHadronE);
+        ak4jets_neutralEmE.push_back(extras.neutralEmE);
+        ak4jets_hfHadronE.push_back(extras.hfHadronE);
+        ak4jets_hfEmE.push_back(extras.hfEmE);
+        ak4jets_photonE.push_back(extras.photonE);
+        ak4jets_electronE.push_back(extras.electronE);
+        ak4jets_muonE.push_back(extras.muonE);
 
-      ak4jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
+        ak4jets_deepCSVb.push_back(extras.deepCSVb);
+        ak4jets_deepCSVc.push_back(extras.deepCSVc);
+        ak4jets_deepCSVl.push_back(extras.deepCSVl);
+        ak4jets_deepCSVbb.push_back(extras.deepCSVbb);
+        ak4jets_deepCSVcc.push_back(extras.deepCSVcc);
+        ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag.push_back(extras.pfCombinedInclusiveSecondaryVertexV2BJetTag);
+        ak4jets_ptDistribution.push_back(extras.ptDistribution);
+        ak4jets_axis1.push_back(extras.axis1);
+        ak4jets_axis2.push_back(extras.axis2);
 
-      ak4jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
-      ak4jets_JER.push_back(extras.JER);
-      ak4jets_JECup.push_back(extras.JECup/extras.JEC);
-      ak4jets_JECdn.push_back(extras.JECdn/extras.JEC);
-      ak4jets_JERup.push_back(extras.JERup/extras.JER);
-      ak4jets_JERdn.push_back(extras.JERdn/extras.JER);
+        ak4jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
-      int genjetIndex=-1;
-      float genjetDeltaR=-1;
-      {
-        unsigned int igenjet=0;
-        for (GenJetObject const* tmp:genjets){
-          if (tmp==jet->associatedGenJet){
-            genjetIndex = igenjet;
-            genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
-            break;
+        ak4jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+        ak4jets_JER.push_back(extras.JER);
+        ak4jets_JECup.push_back(extras.JECup/extras.JEC);
+        ak4jets_JECdn.push_back(extras.JECdn/extras.JEC);
+        ak4jets_JERup.push_back(extras.JERup/extras.JER);
+        ak4jets_JERdn.push_back(extras.JERdn/extras.JER);
+
+        int genjetIndex=-1;
+        float genjetDeltaR=-1;
+        {
+          unsigned int igenjet=0;
+          for (GenJetObject const* tmp:genjets){
+            if (tmp==jet->associatedGenJet){
+              genjetIndex = igenjet;
+              genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
+              break;
+            }
+            igenjet++;
           }
-          igenjet++;
         }
+        ak4jets_genjetIndex.push_back(genjetIndex);
+        ak4jets_genjetDeltaR.push_back(genjetDeltaR);
       }
-      ak4jets_genjetIndex.push_back(genjetIndex);
-      ak4jets_genjetDeltaR.push_back(genjetDeltaR);
     }
     if (jetHandler->getAK4JetsFlag()){
       product.setNamedVal("ak4jets_pt", ak4jets_pt);
@@ -1180,55 +1207,70 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (AK8JetObject const* jet:ak8jets){
       if (!jet) continue;
-      auto const& extras = jet->extras;
 
-      ak8jets_selectionBits.push_back(jet->selectionBits);
+      if (
+        doWriteFailingObjects
+        ||
+        jet->testSelection(AK8JetSelectionHelpers::kSkimPtEta)
+        ||
+        jet->testSelection(AK8JetSelectionHelpers::kSkimPtEta_JECUp)
+        ||
+        jet->testSelection(AK8JetSelectionHelpers::kSkimPtEta_JECDn)
+        ||
+        jet->testSelection(AK8JetSelectionHelpers::kSkimPtEta_JERUp)
+        ||
+        jet->testSelection(AK8JetSelectionHelpers::kSkimPtEta_JERDn)
+        ){
+        auto const& extras = jet->extras;
 
-      CMSLorentzVector finalMomentum = jet->getFinalMomentum();
-      ak8jets_pt.push_back(finalMomentum.Pt());
-      ak8jets_eta.push_back(finalMomentum.Eta());
-      ak8jets_phi.push_back(finalMomentum.Phi());
-      ak8jets_mass.push_back(finalMomentum.M());
+        ak8jets_selectionBits.push_back(jet->selectionBits);
 
-      ak8jets_parton_flavor.push_back(extras.parton_flavor);
+        CMSLorentzVector finalMomentum = jet->getFinalMomentum();
+        ak8jets_pt.push_back(finalMomentum.Pt());
+        ak8jets_eta.push_back(finalMomentum.Eta());
+        ak8jets_phi.push_back(finalMomentum.Phi());
+        ak8jets_mass.push_back(finalMomentum.M());
 
-      ak8jets_area.push_back(extras.area);
-      ak8jets_undoJEC.push_back(extras.undoJEC);
-      ak8jets_tau1.push_back(extras.tau1);
-      ak8jets_tau2.push_back(extras.tau2);
-      ak8jets_tau3.push_back(extras.tau3);
-      ak8jets_deepdisc_qcd.push_back(extras.deepdisc_qcd);
-      ak8jets_deepdisc_top.push_back(extras.deepdisc_top);
-      ak8jets_deepdisc_w.push_back(extras.deepdisc_w);
-      ak8jets_deepdisc_z.push_back(extras.deepdisc_z);
-      ak8jets_deepdisc_zbb.push_back(extras.deepdisc_zbb);
-      ak8jets_deepdisc_hbb.push_back(extras.deepdisc_hbb);
-      ak8jets_deepdisc_h4q.push_back(extras.deepdisc_h4q);
+        ak8jets_parton_flavor.push_back(extras.parton_flavor);
 
-      ak8jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
+        ak8jets_area.push_back(extras.area);
+        ak8jets_undoJEC.push_back(extras.undoJEC);
+        ak8jets_tau1.push_back(extras.tau1);
+        ak8jets_tau2.push_back(extras.tau2);
+        ak8jets_tau3.push_back(extras.tau3);
+        ak8jets_deepdisc_qcd.push_back(extras.deepdisc_qcd);
+        ak8jets_deepdisc_top.push_back(extras.deepdisc_top);
+        ak8jets_deepdisc_w.push_back(extras.deepdisc_w);
+        ak8jets_deepdisc_z.push_back(extras.deepdisc_z);
+        ak8jets_deepdisc_zbb.push_back(extras.deepdisc_zbb);
+        ak8jets_deepdisc_hbb.push_back(extras.deepdisc_hbb);
+        ak8jets_deepdisc_h4q.push_back(extras.deepdisc_h4q);
 
-      ak8jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
-      ak8jets_JER.push_back(extras.JER);
-      ak8jets_JECup.push_back(extras.JECup/extras.JEC);
-      ak8jets_JECdn.push_back(extras.JECdn/extras.JEC);
-      ak8jets_JERup.push_back(extras.JERup/extras.JER);
-      ak8jets_JERdn.push_back(extras.JERdn/extras.JER);
+        ak8jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
-      int genjetIndex=-1;
-      float genjetDeltaR=-1;
-      {
-        unsigned int igenjet=0;
-        for (GenJetObject const* tmp:genjets){
-          if (tmp==jet->associatedGenJet){
-            genjetIndex = igenjet;
-            genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
-            break;
+        ak8jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+        ak8jets_JER.push_back(extras.JER);
+        ak8jets_JECup.push_back(extras.JECup/extras.JEC);
+        ak8jets_JECdn.push_back(extras.JECdn/extras.JEC);
+        ak8jets_JERup.push_back(extras.JERup/extras.JER);
+        ak8jets_JERdn.push_back(extras.JERdn/extras.JER);
+
+        int genjetIndex=-1;
+        float genjetDeltaR=-1;
+        {
+          unsigned int igenjet=0;
+          for (GenJetObject const* tmp:genjets){
+            if (tmp==jet->associatedGenJet){
+              genjetIndex = igenjet;
+              genjetDeltaR = reco::deltaR(finalMomentum, tmp->momentum);
+              break;
+            }
+            igenjet++;
           }
-          igenjet++;
         }
+        ak8jets_genjetIndex.push_back(genjetIndex);
+        ak8jets_genjetDeltaR.push_back(genjetDeltaR);
       }
-      ak8jets_genjetIndex.push_back(genjetIndex);
-      ak8jets_genjetDeltaR.push_back(genjetDeltaR);
     }
     if (jetHandler->getAK8JetsFlag()){
       product.setNamedVal("ak8jets_pt", ak8jets_pt);
@@ -1285,6 +1327,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (TFTopObject const* top:tftops){
       if (!top) continue;
+
       auto const& extras = top->extras;
 
       tftops_selectionBits.push_back(top->selectionBits);
@@ -1350,32 +1393,40 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<float> pfIso_ch;
     std::vector<float> dz;
 
+    std::vector<long long> selectionBits;
+
     for (IsoTrackObject const* isotrack:isotracks){
       if (!isotrack) continue;
 
       auto const& extras = isotrack->extras;
 
-      id.push_back(isotrack->id);
-      charge.push_back(extras.charge);
+      if (doWriteFailingObjects || isotrack->testSelection(IsoTrackSelectionHelpers::kSkimPtEta)){
+        id.push_back(isotrack->id);
+        charge.push_back(extras.charge);
 
-      pt.push_back(isotrack->pt());
-      eta.push_back(isotrack->eta());
-      phi.push_back(isotrack->phi());
-      mass.push_back(isotrack->m());
+        pt.push_back(isotrack->pt());
+        eta.push_back(isotrack->eta());
+        phi.push_back(isotrack->phi());
+        mass.push_back(isotrack->m());
 
-      isPFCand.push_back(extras.isPFCand);
-      hasLepOverlap.push_back(extras.hasLepOverlap);
+        isPFCand.push_back(extras.isPFCand);
+        hasLepOverlap.push_back(extras.hasLepOverlap);
 
-      pfIso_ch.push_back(extras.pfIso_ch);
-      dz.push_back(extras.dz);
+        pfIso_ch.push_back(extras.pfIso_ch);
+        dz.push_back(extras.dz);
 
-      if (leadingPtVetoLepton) passSTOP_1LIsoTrackVeto &= !(extras.charge*leadingPtVetoLepton->charge()<0); // Veto the event if there is an iso. track with opposite charge to the lepton
+        selectionBits.push_back(isotrack->selectionBits);
+      }
+
+      // Veto the event if there is an iso. track with opposite charge to the lepton
+      if (leadingPtVetoLepton) passSTOP_1LIsoTrackVeto &= !(isotrack->testSelection(IsoTrackSelectionHelpers::kVetoIDIso) && isotrack->testSelection(IsoTrackSelectionHelpers::kSkimPtEta) && extras.charge*leadingPtVetoLepton->charge()<0);
     }
 
     product.setNamedVal("passSTOP_1LIsoTrackVeto", passSTOP_1LIsoTrackVeto);
     if (recordIsoTracks){
       product.setNamedVal("isotracks_id", id);
       product.setNamedVal("isotracks_charge", charge);
+      product.setNamedVal("isotracks_selectionBits", selectionBits);
 
       product.setNamedVal("isotracks_pt", pt);
       product.setNamedVal("isotracks_eta", eta);
@@ -1431,18 +1482,20 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
       auto const& extras = tau->extras;
 
-      id.push_back(tau->id);
-      charge.push_back(extras.charge);
+      if (doWriteFailingObjects || tau->testSelection(TauSelectionHelpers::kSkimPtEta)){
+        id.push_back(tau->id);
+        charge.push_back(extras.charge);
 
-      pt.push_back(tau->pt());
-      eta.push_back(tau->eta());
-      phi.push_back(tau->phi());
-      mass.push_back(tau->m());
+        pt.push_back(tau->pt());
+        eta.push_back(tau->eta());
+        phi.push_back(tau->phi());
+        mass.push_back(tau->m());
 
-      pfDecayModeFinding.push_back(extras.pfDecayModeFinding);
-      pfIso.push_back(extras.pfIso);
+        pfDecayModeFinding.push_back(extras.pfDecayModeFinding);
+        pfIso.push_back(extras.pfIso);
+      }
 
-      if (leadingPtVetoLepton) passSTOP_1LTauVeto &= !(extras.charge*leadingPtVetoLepton->charge()<0); // Veto the event if there is an iso. track with opposite charge to the lepton
+      if (leadingPtVetoLepton) passSTOP_1LTauVeto &= !(tau->testSelection(TauSelectionHelpers::kVetoIDIso) && tau->testSelection(TauSelectionHelpers::kSkimPtEta) && extras.charge*leadingPtVetoLepton->charge()<0); // Veto the event if there is an iso. track with opposite charge to the lepton
     }
 
     product.setNamedVal("passSTOP_1LTauVeto", passSTOP_1LTauVeto);

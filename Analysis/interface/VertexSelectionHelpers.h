@@ -11,7 +11,9 @@ namespace VertexSelectionHelpers{
   constexpr float vtx_ndof_thr = 5.;
 
   enum SelectionBits{
-    kGoodVertex=0
+    kGoodVertex,
+
+    nSelectionBits
   };
 
   bool testGoodVertex(VertexObject const& vtx);

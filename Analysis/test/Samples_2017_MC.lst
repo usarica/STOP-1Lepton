@@ -1,6 +1,6 @@
 # FULLSIM SAMPLES
 # Sample template
-template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu condoroutdir=/hadoop/cms/store/user/usarica/STOP_1L/Samples_2017/.oO[DATE]Oo. indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ year=2017 maxevents=-1 ismc=true" 6
+template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu condoroutdir=/hadoop/cms/store/user/usarica/STOP_1L/Samples_2017/.oO[DATE]Oo. indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ year=2017 maxevents=-1 ismc=true" 3
 # Sample list
 /GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM
 /GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v2/MINIAODSIM
@@ -55,61 +55,3 @@ template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu c
 /WZTo3LNu_3Jets_MLL-4to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM
 /WZTo3LNu_3Jets_MLL-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM
 /WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM
-# DATA SAMPLES
-# Sample template
-template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu condoroutdir=/hadoop/cms/store/user/usarica/STOP_1L/Samples_2017/.oO[DATE]Oo. indir=/hadoop/cms/store/group/snt/run2_data2017 outdir=./ year=2017 maxevents=-1 ismc=false" 10
-# Sample list
-/DoubleEG/Run2017B-31Mar2018-v1/MINIAOD
-/DoubleEG/Run2017C-31Mar2018-v1/MINIAOD
-/DoubleEG/Run2017D-31Mar2018-v1/MINIAOD
-/DoubleEG/Run2017E-31Mar2018-v1/MINIAOD
-#/DoubleEG/Run2017F-09May2018-v1/MINIAOD
-/DoubleEG/Run2017F-31Mar2018-v1/MINIAOD
-/DoubleMuon/Run2017B-31Mar2018-v1/MINIAOD
-/DoubleMuon/Run2017C-31Mar2018-v1/MINIAOD
-/DoubleMuon/Run2017D-31Mar2018-v1/MINIAOD
-/DoubleMuon/Run2017E-31Mar2018-v1/MINIAOD
-#/DoubleMuon/Run2017F-09May2018-v1/MINIAOD
-/DoubleMuon/Run2017F-31Mar2018-v1/MINIAOD
-/HTMHT/Run2017B-31Mar2018-v1/MINIAOD
-/HTMHT/Run2017C-31Mar2018-v1/MINIAOD
-/HTMHT/Run2017D-31Mar2018-v1/MINIAOD
-/HTMHT/Run2017E-31Mar2018-v1/MINIAOD
-#/HTMHT/Run2017F-09May2018-v1/MINIAOD
-/HTMHT/Run2017F-31Mar2018-v1/MINIAOD
-/JetHT/Run2017B-31Mar2018-v1/MINIAOD
-/JetHT/Run2017C-31Mar2018-v1/MINIAOD
-/JetHT/Run2017D-31Mar2018-v1/MINIAOD
-/JetHT/Run2017E-31Mar2018-v1/MINIAOD
-#/JetHT/Run2017F-09May2018-v1/MINIAOD
-/JetHT/Run2017F-31Mar2018-v1/MINIAOD
-/MET/Run2017B-31Mar2018-v1/MINIAOD
-/MET/Run2017C-31Mar2018-v1/MINIAOD
-/MET/Run2017D-31Mar2018-v1/MINIAOD
-/MET/Run2017E-31Mar2018-v1/MINIAOD
-#/MET/Run2017F-09May2018-v1/MINIAOD
-/MET/Run2017F-31Mar2018-v1/MINIAOD
-/MuonEG/Run2017B-31Mar2018-v1/MINIAOD
-/MuonEG/Run2017C-31Mar2018-v1/MINIAOD
-/MuonEG/Run2017D-31Mar2018-v1/MINIAOD
-/MuonEG/Run2017E-31Mar2018-v1/MINIAOD
-#/MuonEG/Run2017F-09May2018-v1/MINIAOD
-/MuonEG/Run2017F-31Mar2018-v1/MINIAOD
-/SingleElectron/Run2017B-31Mar2018-v1/MINIAOD
-/SingleElectron/Run2017C-31Mar2018-v1/MINIAOD
-/SingleElectron/Run2017D-31Mar2018-v1/MINIAOD
-/SingleElectron/Run2017E-31Mar2018-v1/MINIAOD
-#/SingleElectron/Run2017F-09May2018-v1/MINIAOD
-/SingleElectron/Run2017F-31Mar2018-v1/MINIAOD
-/SingleMuon/Run2017B-31Mar2018-v1/MINIAOD
-/SingleMuon/Run2017C-31Mar2018-v1/MINIAOD
-/SingleMuon/Run2017D-31Mar2018-v1/MINIAOD
-/SingleMuon/Run2017E-31Mar2018-v1/MINIAOD
-#/SingleMuon/Run2017F-09May2018-v1/MINIAOD
-/SingleMuon/Run2017F-31Mar2018-v1/MINIAOD
-/SinglePhoton/Run2017B-31Mar2018-v1/MINIAOD
-/SinglePhoton/Run2017C-31Mar2018-v1/MINIAOD
-/SinglePhoton/Run2017D-31Mar2018-v1/MINIAOD
-/SinglePhoton/Run2017E-31Mar2018-v1/MINIAOD
-#/SinglePhoton/Run2017F-09May2018-v1/MINIAOD
-/SinglePhoton/Run2017F-31Mar2018-v1/MINIAOD

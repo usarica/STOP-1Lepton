@@ -22,7 +22,9 @@ namespace PhotonSelectionHelpers{
     kMediumIDReco,
     kTightIDReco,
     kSkimPtEta,
-    kPreselection
+    kPreselection,
+
+    nSelectionBits
   };
   const SelectionBits bit_preselection_idisoreco = kTightIDReco;
 

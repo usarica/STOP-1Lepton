@@ -32,6 +32,7 @@ src/STOP_1Lepton \
 --exclude=src/cmstas/CORE/*.o \
 --exclude=src/cmstas/CORE/*.so \
 --exclude=src/STOP_1Lepton/Analysis/test/output \
+--exclude=src/STOP_1Lepton/Analysis/test/*.root \
 --exclude={.git,.gitignore,*.tar,libmcfm*}
 
 mv stop_1lepton.tar $HERE/

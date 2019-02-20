@@ -147,6 +147,8 @@ bool AK4JetSelectionHelpers::testPreselection(AK4JetObject const& part, int icor
 }
 
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
+  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+
   if (testLooseId(part)) part.setSelectionBit(kLooseID);
   if (testTightId(part)) part.setSelectionBit(kTightID);
 

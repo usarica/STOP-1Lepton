@@ -78,6 +78,7 @@ void doFullProduction(std::string stropts){
   // Control what is recorded
   analyzer.setRecordIsoTracksFlag(false);
   analyzer.setRecordTausFlag(false);
+  analyzer.setWriteFailingObjects(false);
   analyzer.setWriteSelectionVariables(false);
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);

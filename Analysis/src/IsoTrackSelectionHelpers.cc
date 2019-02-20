@@ -14,10 +14,13 @@ bool IsoTrackSelectionHelpers::testVetoSelection(IsoTrackObject const& part){
   return (pfiso_ch < pfiso_ch_thr);
 }
 bool IsoTrackSelectionHelpers::testPtEtaSkim(IsoTrackObject const& part){
-  return (testVetoSelection(part) && part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+  if (testVetoSelection(part)) return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+  else return false;
 }
 
 void IsoTrackSelectionHelpers::setSelectionBits(IsoTrackObject& part){
+  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+
   if (testVetoId(part)) part.setSelectionBit(kVetoID);
   if (testVetoSelection(part)) part.setSelectionBit(kVetoIDIso);
   if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);

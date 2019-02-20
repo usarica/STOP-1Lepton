@@ -16,7 +16,9 @@ namespace TauSelectionHelpers{
   enum SelectionBits{
     kVetoID,
     kVetoIDIso,
-    kSkimPtEta
+    kSkimPtEta,
+
+    nSelectionBits
   };
   const SelectionBits bit_preselection = kVetoIDIso;
 

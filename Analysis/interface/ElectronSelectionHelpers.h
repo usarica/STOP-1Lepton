@@ -30,7 +30,9 @@ namespace ElectronSelectionHelpers{
     kTightIDReco,
     //kTrigger,
     kSkimPtEta,
-    kPreselection
+    kPreselection,
+
+    nSelectionBits
   };
   const SelectionBits bit_preselection_idiso = kMediumID;
   const SelectionBits bit_preselection_idisoreco = kMediumIDReco;

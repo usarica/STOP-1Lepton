@@ -28,7 +28,9 @@ namespace AK8JetSelectionHelpers{
     kPreselection_JERUp,
 
     kSkimPtEta_JERDn,
-    kPreselection_JERDn
+    kPreselection_JERDn,
+
+    nSelectionBits
   };
 
   bool testSkimPtEta(AK8JetObject const& part, int icorr);

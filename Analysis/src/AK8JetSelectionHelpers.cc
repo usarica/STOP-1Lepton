@@ -21,6 +21,8 @@ bool AK8JetSelectionHelpers::testPreselection(AK8JetObject const& part, int icor
 }
 
 void AK8JetSelectionHelpers::setSelectionBits(AK8JetObject& part){
+  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+
   if (testSkimPtEta(part, 0)) part.setSelectionBit(kSkimPtEta);
   if (testPreselection(part, 0)) part.setSelectionBit(kPreselection);
 

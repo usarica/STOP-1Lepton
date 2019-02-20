@@ -162,16 +162,11 @@ bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
 }
 bool MuonSelectionHelpers::testPtEtaSkim(MuonObject const& part){
   // pT and eta skim cut
-  if (
-    //(testTightSelection(part) && (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight))
-    //||
-    (testMediumSelection(part) && (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium))
-    ||
-    (testLooseSelection(part) && (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose))
-    ||
-    (testVetoSelection(part) && (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto))
-    ) return true;
-  return false;
+  /*if (testTightSelection(part)) return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+  else */if (testMediumSelection(part)) return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
+  else if (testLooseSelection(part)) return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+  else if (testVetoSelection(part)) return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+  else return false;
 }
 bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
   return (
@@ -188,6 +183,8 @@ bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
 }
 
 void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
+  static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
+
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
   if (testVetoCutBasedId(part)) part.setSelectionBit(kVetoID);
   if (testVetoSelection(part)) part.setSelectionBit(kVetoIDReco);

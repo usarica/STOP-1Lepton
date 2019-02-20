@@ -35,19 +35,23 @@ echo "tag: $(getjobad tag)"
 echo "taskname: $(getjobad taskname)"
 echo -e "\n--- end header output ---\n" #                       <----- section division
 
+echo -e "\n--- begin memory specifications ---\n" #                     <----- section division
+ulimit -a
+echo -e "\n--- end memory specifications ---\n" #                     <----- section division
+
 
 if [ -r "$OSGVO_CMSSW_Path"/cmsset_default.sh ]; then
-    echo "sourcing environment: source $OSGVO_CMSSW_Path/cmsset_default.sh"
-    source "$OSGVO_CMSSW_Path"/cmsset_default.sh
+  echo "sourcing environment: source $OSGVO_CMSSW_Path/cmsset_default.sh"
+  source "$OSGVO_CMSSW_Path"/cmsset_default.sh
 elif [ -r "$OSG_APP"/cmssoft/cms/cmsset_default.sh ]; then
-    echo "sourcing environment: source $OSG_APP/cmssoft/cms/cmsset_default.sh"
-    source "$OSG_APP"/cmssoft/cms/cmsset_default.sh
+  echo "sourcing environment: source $OSG_APP/cmssoft/cms/cmsset_default.sh"
+  source "$OSG_APP"/cmssoft/cms/cmsset_default.sh
 elif [ -r /cvmfs/cms.cern.ch/cmsset_default.sh ]; then
-    echo "sourcing environment: source /cvmfs/cms.cern.ch/cmsset_default.sh"
-    source /cvmfs/cms.cern.ch/cmsset_default.sh
+  echo "sourcing environment: source /cvmfs/cms.cern.ch/cmsset_default.sh"
+  source /cvmfs/cms.cern.ch/cmsset_default.sh
 else
-    echo "ERROR! Couldn't find $OSGVO_CMSSW_Path/cmsset_default.sh or /cvmfs/cms.cern.ch/cmsset_default.sh or $OSG_APP/cmssoft/cms/cmsset_default.sh"
-    exit 1
+  echo "ERROR! Couldn't find $OSGVO_CMSSW_Path/cmsset_default.sh or /cvmfs/cms.cern.ch/cmsset_default.sh or $OSG_APP/cmssoft/cms/cmsset_default.sh"
+  exit 1
 fi
 
 
@@ -55,17 +59,17 @@ fi
 # tarball made outside of the full CMSSW directory and must be handled
 # differently
 if [ ! -z $(tar -tf ${TARFILE} | head -n 1 | grep "^CMSSW") ]; then
-    echo "This is a full cmssw tar file."
-    tar xf ${TARFILE}
-    cd $CMSSWVERSION
-    echo "Current directory ${PWD} =? ${CMSSWVERSION}"
-    echo "Running ProjectRename"
-    scramv1 b ProjectRename
+  echo "This is a full cmssw tar file."
+  tar xf ${TARFILE}
+  cd $CMSSWVERSION
+  echo "Current directory ${PWD} =? ${CMSSWVERSION}"
+  echo "Running ProjectRename"
+  scramv1 b ProjectRename
 else
-    # Setup the CMSSW area
-    echo "This is a selective CMSSW tar file."
-    eval `scramv1 project CMSSW $CMSSWVERSION`
-    cd $CMSSWVERSION
+  # Setup the CMSSW area
+  echo "This is a selective CMSSW tar file."
+  eval `scramv1 project CMSSW $CMSSWVERSION`
+  cd $CMSSWVERSION
 fi
 
 # Setup the CMSSW environment
@@ -143,8 +147,8 @@ echo "Submission directory after running: ls -lrth"
 ls -lrth
 
 if [ $RUN_STATUS != 0 ]; then
-    echo "Run has crashed with exit code ${RUN_STATUS}"
-    exit 1
+  echo "Run has crashed with exit code ${RUN_STATUS}"
+  exit 1
 fi
 
 echo "time at end: $(date +%s)"

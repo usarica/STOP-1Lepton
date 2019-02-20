@@ -626,8 +626,11 @@ bool JetMETHandler::applyJER(){
   return true;
 }
 bool JetMETHandler::applySelections(){
-  for (auto* obj:ak4jets){ /*obj->resetSelectionBits();*/ AK4JetSelectionHelpers::setSelectionBits(*obj); }
-  for (auto* obj:ak8jets){ /*obj->resetSelectionBits();*/ AK8JetSelectionHelpers::setSelectionBits(*obj); }
+  for (auto* obj:ak4jets){
+    AK4JetSelectionHelpers::setSelectionBits(*obj);
+    if (metobj) AK4JetSelectionHelpers::isBadMuonJet(*obj, *metobj);
+  }
+  for (auto* obj:ak8jets) AK8JetSelectionHelpers::setSelectionBits(*obj);
   return true;
 }
 bool JetMETHandler::applyBtaggingAndSFs(){
@@ -662,6 +665,8 @@ bool JetMETHandler::applyBtaggingAndSFs(){
 
     bool isBtagged = (bTagger > bTaggerThreshold);
     bool isBtaggedWithSF   = isBtagged;
+    bool isBtaggedWithSF_JECUp   = isBtagged;
+    bool isBtaggedWithSF_JECDn   = isBtagged;
     bool isBtaggedWithSFUp = isBtagged;
     bool isBtaggedWithSFDn = isBtagged;
 
@@ -669,16 +674,22 @@ bool JetMETHandler::applyBtaggingAndSFs(){
       int const& flav = extras.hadron_flavor;
       CMSLorentzVector correctedMomentum = jet->getFinalMomentum();
       float jpt = correctedMomentum.Pt();
+      float jpt_jecup = jet->getCorrectedMomentum(+1).Pt();
+      float jpt_jecdn = jet->getCorrectedMomentum(-1).Pt();
       float jphi = correctedMomentum.Phi();
       float jeta = correctedMomentum.Eta();
       TRandom3 rand;
       rand.SetSeed(std::abs(static_cast<int>(sin(jphi)*100000)));
       float R = rand.Uniform();
       float SF   = theBTagSFHandler->getSF(0, flav, jpt, jeta);
+      float SF_JECUp   = theBTagSFHandler->getSF(0, flav, jpt_jecup, jeta);
+      float SF_JECDn   = theBTagSFHandler->getSF(0, flav, jpt_jecdn, jeta);
       float SFUp = theBTagSFHandler->getSF(1, flav, jpt, jeta);
       float SFDn = theBTagSFHandler->getSF(-1, flav, jpt, jeta);
       float bTagMCEff = theBTagSFHandler->getEff(flav, jpt, jeta);
       if (SF  <=1.f && isBtagged && R<1.f-SF) isBtaggedWithSF   = false;
+      if (SF_JECUp<=1.f && isBtagged && R<1.f-SF_JECUp) isBtaggedWithSF_JECUp = false;
+      if (SF_JECDn<=1.f && isBtagged && R<1.f-SF_JECDn) isBtaggedWithSF_JECDn = false;
       if (SFUp<=1.f && isBtagged && R<1.f-SFUp) isBtaggedWithSFUp = false;
       if (SFDn<=1.f && isBtagged && R<1.f-SFDn) isBtaggedWithSFDn = false;
       if (SF  >1.f && !isBtagged && R<(1.f-SF)/(1.f-1.f/bTagMCEff)) isBtaggedWithSF   = true;
@@ -686,6 +697,8 @@ bool JetMETHandler::applyBtaggingAndSFs(){
       if (SFDn>1.f && !isBtagged && R<(1.f-SFDn)/(1.f-1.f/bTagMCEff)) isBtaggedWithSFDn = true;
     }
     if (isBtaggedWithSF) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged);
+    if (isBtaggedWithSF_JECUp) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_JECUp);
+    if (isBtaggedWithSF_JECDn) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_JECDn);
     if (isBtaggedWithSFUp) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_SFUp);
     if (isBtaggedWithSFDn) jet->setSelectionBit(AK4JetSelectionHelpers::kIsBTagged_SFDn);
   }

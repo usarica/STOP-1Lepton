@@ -19,6 +19,7 @@ namespace AK4JetSelectionHelpers{
   enum SelectionBits{
     kLooseID,
     kTightID,
+
     kNotBadMuonJet,
 
     kSkimPtEta,
@@ -37,8 +38,12 @@ namespace AK4JetSelectionHelpers{
     kPreselection_JERDn,
 
     kIsBTagged,
+    kIsBTagged_JECUp,
+    kIsBTagged_JECDn,
     kIsBTagged_SFUp,
-    kIsBTagged_SFDn
+    kIsBTagged_SFDn,
+
+    nSelectionBits
   };
 
   bool isLooseAK4JetPOG(AK4JetObject const& part);
