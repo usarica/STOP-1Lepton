@@ -41,7 +41,9 @@ bool VertexPUHandler::constructVertices(){
     assert(0);
   }
 
-  for (size_t ivtx=0; ivtx<ndof->size(); ivtx++){
+  size_t nProducts = ndof->size();
+  vertices.reserve(nProducts);
+  for (size_t ivtx=0; ivtx<nProducts; ivtx++){
     if (this->verbosity>=TVar::DEBUG) MELAout << "VertexPUHandler::constructVertices: Attempting vertex " << ivtx << "..." << endl;
 
     vertices.push_back(new VertexObject(position->at(ivtx)));
@@ -79,7 +81,9 @@ bool VertexPUHandler::constructPUInfos(){
     assert(0);
   }
 
-  for (size_t ipuinfo=0; ipuinfo<nTrueVertices->size(); ipuinfo++){
+  size_t nProducts = nTrueVertices->size();
+  puinfos.reserve(nProducts);
+  for (size_t ipuinfo=0; ipuinfo<nProducts; ipuinfo++){
     if (this->verbosity>=TVar::DEBUG) MELAout << "VertexPUHandler::constructPUInfos: Attempting PU info " << ipuinfo << "..." << endl;
 
     puinfos.push_back(new PUInfoObject());

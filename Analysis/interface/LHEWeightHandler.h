@@ -56,9 +56,11 @@ protected:
     madgraph_1000offset
   };
 
+public:
   // Year of the MC
   const int year;
 
+protected:
   // These options influence which pdf sets/members are selected
   PDFChoice pdfChoice;
   QCDOrderChoice orderChoice;

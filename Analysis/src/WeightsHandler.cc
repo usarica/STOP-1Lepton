@@ -104,8 +104,14 @@ bool WeightsHandler::constructWeights(){
     if (first_event && verbosity>=TVar::INFO) MELAout << "WeightsHandler::constructWeights: Case hasNewWeights=false" << endl;
 
     int const& year = SampleHelpers::theDataYear;
-    if (!weightHandler_DefaultPDF) weightHandler_DefaultPDF = new LHEWeightHandler(year, LHEWeightHandler::keepDefaultPDF, LHEWeightHandler::keepDefaultQCDOrder);
-    if (year!=2016 && use2016Scheme && !weightHandler_2016) weightHandler_2016 = new LHEWeightHandler(year, LHEWeightHandler::tryNNPDF30, LHEWeightHandler::tryNLO);
+    if (!weightHandler_DefaultPDF || year!=weightHandler_DefaultPDF->year){
+      delete weightHandler_DefaultPDF;
+      weightHandler_DefaultPDF = new LHEWeightHandler(year, LHEWeightHandler::keepDefaultPDF, LHEWeightHandler::keepDefaultQCDOrder);
+    }
+    if (year!=2016 && use2016Scheme && (!weightHandler_2016 || year!=weightHandler_2016->year)){
+      delete weightHandler_2016;
+      weightHandler_2016 = new LHEWeightHandler(year, LHEWeightHandler::tryNNPDF30, LHEWeightHandler::tryNLO);
+    }
 
     float const* genHEPMCweight_old = valfloats[_genHEPMCweight_old_];
 
