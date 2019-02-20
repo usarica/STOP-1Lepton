@@ -76,7 +76,12 @@ TString BtagHelpers::getBtagEffFileName(BtagWPType /*type*/, bool isFastSim){
   }
   else{
     if (theDataYear == 2016) res += "btageff__ttbar_powheg_pythia8_25ns_Moriond17_deepCSV.root";
-    else if (theDataYear >= 2017) res += "btageff__ttbar_amc_94X_deepCSV.root";
+    else if (theDataYear == 2017) res += "btageff__ttbar_amc_94X_deepCSV.root";
+    else if (theDataYear == 2018) res += "btageff__ttbar_amc_102X_deepCSV.root";
+    else{
+      MELAerr << "BtagHelpers::getBtagEffFileName: No implementation for year " << theDataYear << ". Aborting..." << endl;
+      assert(0);
+    }
   }
 
   return res;

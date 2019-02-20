@@ -14,7 +14,7 @@ namespace ElectronSelectionHelpers{
 
 int ElectronSelectionHelpers::setEleEffAreaVersion(){
   // From CORE/Config.cc
-  if (SampleHelpers::theDataYear == 2016) return 4/*1*/;
+  if (SampleHelpers::theDataYear == 2016) return 1;
   else if (SampleHelpers::theDataYear == 2017) return 4;
   else if (SampleHelpers::theDataYear == 2018) return 4;
   else return -1;
