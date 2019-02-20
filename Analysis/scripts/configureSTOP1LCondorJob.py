@@ -106,7 +106,7 @@ Initialdir              = {outDir}
 output                  = {outLog}.$(ClusterId).$(ProcId).txt
 error                   = {errLog}.$(ClusterId).$(ProcId).err
 log                     = $(ClusterId).$(ProcId).log
-request_memory          = 4000M
+request_memory          = 8000M
 +JobFlavour             = "tomorrow"
 x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml

@@ -337,14 +337,15 @@ bool JetMETHandler::constructMET(){
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = false;
-  if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
+  // Nowhere should we use "old" MET
+  /*if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
     // For 2017F data samples with this version, the EE noise issue is already fixed, so use the 'old' raw MET
     allVariablesPresent &= (
       this->getConsumedValue(_pfmetraw_old_, metraw)
       && this->getConsumedValue(_pfmetrawPhi_old_, metrawPhi)
       );
   }
-  else if (SampleHelpers::theDataYear == 2016){
+  else */if (SampleHelpers::theDataYear == 2016){
     // For 2016 data, MuEG cleaning needs to be done
     allVariablesPresent &= (
       this->getConsumedValue(_pfmetraw_muegclean_, metraw)
@@ -889,7 +890,8 @@ void JetMETHandler::bookBranches(BaseTree* tree){
     fwktree->bookEDMBranch<float>(_pfmetPhi_, 0);
     fwktree->bookEDMBranch<float>(_pfmetraw_, 0);
     fwktree->bookEDMBranch<float>(_pfmetrawPhi_, 0);
-    if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
+    // Nowhere should we use "old" MET
+    /*if (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018")){
       this->addConsumed<float>(_pfmetraw_old_);
       this->addConsumed<float>(_pfmetrawPhi_old_);
       this->defineConsumedSloppy(_pfmetraw_old_);
@@ -897,7 +899,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
       fwktree->bookEDMBranch<float>(_pfmetraw_old_, 0);
       fwktree->bookEDMBranch<float>(_pfmetrawPhi_old_, 0);
     }
-    else if (SampleHelpers::theDataYear == 2016){
+    else */if (SampleHelpers::theDataYear == 2016){
       this->addConsumed<float>(_pfmetraw_muegclean_);
       this->addConsumed<float>(_pfmetrawPhi_muegclean_);
       this->defineConsumedSloppy(_pfmetraw_muegclean_);
