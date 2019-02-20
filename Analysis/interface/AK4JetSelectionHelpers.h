@@ -10,9 +10,10 @@
 namespace AK4JetSelectionHelpers{
   // Taken from StopBabyMaker/runBabyMaker.cc
   constexpr float ptThr_skim_preselection = 30.;
-  constexpr float ptThr_analysis = 30.;
-  constexpr float ptThr_analysis_btagged = 30.;
+  constexpr float ptThr_analysis = ptThr_skim_preselection;
+  constexpr float ptThr_analysis_btagged = ptThr_skim_preselection;
   constexpr float etaThr_skim_preselection = 2.4;
+  constexpr float etaThr_analysis = 2.4;
   constexpr BtagHelpers::BtagWPType AK4Jets_BTagWPType = BtagHelpers::kDeepCSV_Medium;
 
   // Veto, loose, medium, tight etc. selection bits

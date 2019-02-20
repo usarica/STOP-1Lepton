@@ -115,5 +115,7 @@ void doFullProduction(std::string stropts){
   foutput->Close();
   curdir->cd();
 
-  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir().c_str(), opts.outputFilename().c_str(), opts.condorSite().c_str(), opts.condorOutputDir().c_str());
+  MELAout << "doFullProduction: File generation was successful! Initiating copy..." << endl;
+
+  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir().c_str(), opts.outputFilename().c_str(), opts.condorSite().c_str(), opts.condorOutputDir().c_str(), 5);
 }

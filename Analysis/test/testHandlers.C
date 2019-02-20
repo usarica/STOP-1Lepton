@@ -77,6 +77,11 @@ void testHandlers(){
   if (opts.isData()) analyzer.setSampleIdStorageOption(FrameworkTreeLooperBase::kStoreByRunAndEventNumber);
   // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
+  // Control what is recorded
+  //analyzer.setRecordIsoTracksFlag(false);
+  //analyzer.setRecordTausFlag(false);
+  //analyzer.setWriteFailingObjects(false);
+  //analyzer.setWriteSelectionVariables(false);
   // Ivy handlers
   analyzer.addExternalIvyObject("WeightsHandler", &wgtHandler);
   analyzer.addExternalIvyObject("GenInfoHandler", &genInfoHandler);

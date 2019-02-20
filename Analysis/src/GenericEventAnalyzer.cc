@@ -1088,7 +1088,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
         ak4jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
-        ak4jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+        ak4jets_JEC.push_back(extras.JEC/extras.undoJEC); // Final momentum is used, so this value does not have much meaning
         ak4jets_JER.push_back(extras.JER);
         ak4jets_JECup.push_back(extras.JECup/extras.JEC);
         ak4jets_JECdn.push_back(extras.JECdn/extras.JEC);
@@ -1156,12 +1156,12 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal("ak4jets_undoJEC", ak4jets_undoJEC);
       product.setNamedVal("ak4jets_JEC", ak4jets_JEC);
       product.setNamedVal("ak4jets_estimatedPtResolution", ak4jets_estimatedPtResolution);
-      product.setNamedVal("ak4jets_JER", ak4jets_JER);
 
       if (tree->isMC()){
         product.setNamedVal("ak4jets_JECup", ak4jets_JECup);
         product.setNamedVal("ak4jets_JECdn", ak4jets_JECdn);
 
+        product.setNamedVal("ak4jets_JER", ak4jets_JER);
         product.setNamedVal("ak4jets_JERup", ak4jets_JERup);
         product.setNamedVal("ak4jets_JERdn", ak4jets_JERdn);
 
@@ -1248,7 +1248,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
         ak8jets_estimatedPtResolution.push_back(extras.estimatedPtResolution);
 
-        ak8jets_JEC.push_back((extras.JEC==extras.JECup && extras.JEC==extras.JECdn ? 1.f : extras.JEC/extras.undoJEC));
+        ak8jets_JEC.push_back(extras.JEC/extras.undoJEC);
         ak8jets_JER.push_back(extras.JER);
         ak8jets_JECup.push_back(extras.JECup/extras.JEC);
         ak8jets_JECdn.push_back(extras.JECdn/extras.JEC);
@@ -1299,12 +1299,12 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal("ak8jets_undoJEC", ak8jets_undoJEC);
       product.setNamedVal("ak8jets_JEC", ak8jets_JEC);
       product.setNamedVal("ak8jets_estimatedPtResolution", ak8jets_estimatedPtResolution);
-      product.setNamedVal("ak8jets_JER", ak8jets_JER);
 
       if (tree->isMC()){
         product.setNamedVal("ak8jets_JECup", ak8jets_JECup);
         product.setNamedVal("ak8jets_JECdn", ak8jets_JECdn);
 
+        product.setNamedVal("ak8jets_JER", ak8jets_JER);
         product.setNamedVal("ak8jets_JERup", ak8jets_JERup);
         product.setNamedVal("ak8jets_JERdn", ak8jets_JERdn);
 

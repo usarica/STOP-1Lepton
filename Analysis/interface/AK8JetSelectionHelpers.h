@@ -12,6 +12,7 @@ namespace AK8JetSelectionHelpers{
   constexpr float ptThr_analysis = ptThr_skim_preselection;
   constexpr float ptThr_analysis_btagged = ptThr_skim_preselection;
   constexpr float etaThr_skim_preselection = 2.4;
+  constexpr float etaThr_analysis = 2.4;
 
   // Veto, loose, medium, tight etc. selection bits
   enum SelectionBits{
