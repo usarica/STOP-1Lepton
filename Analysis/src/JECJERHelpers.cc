@@ -28,9 +28,9 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
     eraMap["MC_FS"] = "Spring16_FastSimV1";
   }
   else if (theDataYear == 2016 && theDataVersion == kCMSSW_9_4_X){
-    eraMap["2016B"] = eraMap["2016C"] = eraMap["2016D"] = "Summer16_07Aug2017BCD_V18_DATA";
-    eraMap["2016E"] = eraMap["2016F"] = "Summer16_07Aug2017EF_V18_DATA";
-    eraMap["2016G"] = eraMap["2016H"] = "Summer16_07Aug2017GH_V18_DATA";
+    eraMap["2016B"] = eraMap["2016C"] = eraMap["2016D"] = "Summer16_07Aug2017BCD_V11_DATA";
+    eraMap["2016E"] = eraMap["2016F"] = "Summer16_07Aug2017EF_V11_DATA";
+    eraMap["2016G"] = eraMap["2016H"] = "Summer16_07Aug2017GH_V11_DATA";
     eraMap["MC_noFS"] = "Summer16_07Aug2017_V11_MC";
     eraMap["MC_FS"] = "Spring16_FastSimV1";
   }
