@@ -1,11 +1,16 @@
 #!/bin/bash
 
 INFILE=$1
+OUTPUTDIR=$2
+if [[ "$OUTPUTDIR" == "" ]];then
+  OUTPUTDIR="./output"
+fi
 SCRIPTNAME="doFullProduction.cc"
 FCN="doFullProduction"
 QUEUE="default"
 DATE=$(date +%y%m%d)
-OUTDIR="./output/${DATE}"
+
+OUTDIR="${OUTPUTDIR}/${DATE}"
 
 mkdir -p $OUTDIR
 
