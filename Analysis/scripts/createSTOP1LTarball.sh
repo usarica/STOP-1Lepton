@@ -33,6 +33,11 @@ src/STOP_1Lepton \
 --exclude=src/cmstas/CORE/*.so \
 --exclude=src/STOP_1Lepton/Analysis/test/output \
 --exclude=src/STOP_1Lepton/Analysis/test/*.root \
+--exclude=src/STOP_1Lepton/Analysis/test/*.pcm \
+--exclude=src/STOP_1Lepton/Analysis/test/*.so \
+--exclude=src/STOP_1Lepton/Analysis/test/*.a \
+--exclude=src/STOP_1Lepton/Analysis/test/*.o \
+--exclude=src/STOP_1Lepton/Analysis/test/*.d \
 --exclude={.git,.gitignore,*.tar,libmcfm*}
 
 mv stop_1lepton.tar $HERE/

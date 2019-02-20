@@ -15,7 +15,7 @@ void doFullProduction(std::string stropts){
 
   gSystem->Exec(Form("mkdir -p %s", opts.outputDir().c_str()));
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
-  BaseTree* outtree = new BaseTree("test"); // The tree to record into the ROOT file
+  BaseTree* outtree = new BaseTree("SelectedTree"); // The tree to record into the ROOT file
   outtree->setAutoSave(0);
   curdir->cd();
 
@@ -117,5 +117,5 @@ void doFullProduction(std::string stropts){
 
   MELAout << "doFullProduction: File generation was successful! Initiating copy..." << endl;
 
-  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir().c_str(), opts.outputFilename().c_str(), opts.condorSite().c_str(), opts.condorOutputDir().c_str(), 5);
+  if (opts.condorOutputDir()!="") InitiateCondorFileTransfer(opts.outputDir().c_str(), opts.outputFilename().c_str(), opts.condorSite().c_str(), opts.condorOutputDir().c_str(), "", 5);
 }

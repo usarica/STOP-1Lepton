@@ -946,10 +946,12 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal("pfmetPhi_original", metobject->extras.phi_original);
       product.setNamedVal("pfmet", metobject->extras.met);
       product.setNamedVal("pfmetPhi", metobject->extras.phi);
-      product.setNamedVal("pfmet_JECup", metobject->extras.met_JECup);
-      product.setNamedVal("pfmetPhi_JECup", metobject->extras.phi_JECup);
-      product.setNamedVal("pfmet_JECdn", metobject->extras.met_JECdn);
-      product.setNamedVal("pfmetPhi_JECdn", metobject->extras.phi_JECdn);
+      if (tree->isMC()){
+        product.setNamedVal("pfmet_JECup", metobject->extras.met_JECup);
+        product.setNamedVal("pfmetPhi_JECup", metobject->extras.phi_JECup);
+        product.setNamedVal("pfmet_JECdn", metobject->extras.met_JECdn);
+        product.setNamedVal("pfmetPhi_JECdn", metobject->extras.phi_JECdn);
+      }
     }
 
     // GenJets

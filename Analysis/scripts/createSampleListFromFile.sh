@@ -38,8 +38,10 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     for stropt in ${stropts[*]}; do
       if [[ "$stropt" == "condoroutdir="* ]];then
         condoroutdir=${stropt//"condoroutdir="}
-        echo "Creating the directory ${condoroutdir}"
-        mkdir -p $condoroutdir
+        if [[ "$condoroutdir" != *".oO"* ]];then
+          echo "Creating the directory ${condoroutdir}"
+          mkdir -p $condoroutdir
+        fi
       fi
     done
   else
@@ -53,10 +55,13 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
       echo "Cannot determine if the sample is data or MC!"
       exit 1
     fi
+    OUTFILECORE=${OUTFILE%.*}
     SAMPLE=$line
+
     outline=$tplline
     outline=${outline//".oO[SAMPLE]Oo."/$SAMPLE}
     outline=${outline//".oO[OUTFILE]Oo."/$OUTFILE}
+    outline=${outline//".oO[OUTFILECORE]Oo."/$OUTFILECORE}
     #echo $outline |& tee -a $OUTLIST
 
     outline=${outline//\"}

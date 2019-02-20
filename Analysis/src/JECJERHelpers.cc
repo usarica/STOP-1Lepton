@@ -13,13 +13,14 @@ using namespace MELAStreamHelpers;
 
 TString JECJERHelpers::getJECJERTypeName(JECJERType type){
   if (type==kAK4) return "AK4PFchs";
-  else if (type==kAK8) return "AK8PFchs";
+  else if (type==kAK8 && theDataVersion == kCMSSW_8_0_X) return "AK8PFchs";
+  else if (type==kAK8) return "AK8PFPuppi";
   else{ MELAerr << "JECJERHelpers::getJECJERTypeName: JECJERType " << type << " is not implemented!" << endl; assert(0); return ""; }
 }
 
 TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFastSim){
   unordered_map<TString, TString> eraMap;
-  if (theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X){
+  if (theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X){ // Does not have AK8 corrections
     eraMap["2016B"] = eraMap["2016C"] = eraMap["2016D"] = "Summer16_23Sep2016BCDV4_DATA";
     eraMap["2016E"] = eraMap["2016F"] = "Summer16_23Sep2016EFV4_DATA";
     eraMap["2016G"] = "Summer16_23Sep2016GV4_DATA";
@@ -64,7 +65,7 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
 }
 std::vector<TString> JECJERHelpers::getJECFileNames(JECJERType type, bool isMC, bool isFastSim){
   std::vector<TString> res;
-  if (type == kAK8 && theDataYear >= 2017) return res;
+  if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
   if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);
@@ -81,7 +82,7 @@ std::vector<TString> JECJERHelpers::getJECFileNames(JECJERType type, bool isMC, 
 }
 TString JECJERHelpers::getJECUncertaintyFileName(JECJERType type, bool isMC, bool isFastSim){
   TString res;
-  if (type == kAK8 && theDataYear >= 2017) return res;
+  if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
   if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);

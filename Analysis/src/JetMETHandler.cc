@@ -527,7 +527,7 @@ bool JetMETHandler::applyJEC(){
     }
   }
 
-  bool const doCorrectAK8Jets = (SampleHelpers::theDataYear == 2016); // FIXME: Need the prescription for 2018 as well
+  bool const doCorrectAK8Jets = !(SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X);
   if (registeredJECSFHandler_ak8jets && doCorrectAK8Jets){
     for (AK8JetObject* jet:ak8jets) registeredJECSFHandler_ak8jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
   }
