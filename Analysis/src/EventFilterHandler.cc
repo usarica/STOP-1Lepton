@@ -110,13 +110,13 @@ bool EventFilterHandler::constructFilter(){
 
   // PV filter
   if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "EventFilterHandler::constructFilter: Checking valid PV..." << endl;
-  std::vector<int>* vertex_isFake = nullptr;
-  std::vector<float>* vertex_Ndof = nullptr;
-  std::vector<CMSLorentzVector>* vertex_positions = nullptr;
+  std::vector<int>::const_iterator itBegin_vertex_isFake;
+  std::vector<float>::const_iterator itBegin_vertex_Ndof;
+  std::vector<CMSLorentzVector>::const_iterator itBegin_vertex_positions, itEnd_vertex_positions;
   allVariablesPresent &= (
-    this->getConsumedValue(_vertex_isFake_, vertex_isFake)
-    && this->getConsumedValue(_vertex_Ndof_, vertex_Ndof)
-    && this->getConsumedValue(_vertex_positions_, vertex_positions)
+    this->getConsumedCIterators<std::vector<int>>(_vertex_isFake_, &itBegin_vertex_isFake)
+    && this->getConsumedCIterators<std::vector<float>>(_vertex_Ndof_, &itBegin_vertex_Ndof)
+    && this->getConsumedCIterators<std::vector<CMSLorentzVector>>(_vertex_positions_, &itBegin_vertex_positions, &itEnd_vertex_positions)
     );
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "EventFilterHandler::constructFilter: Not all vertex variables are consumed properly!" << endl;
@@ -124,10 +124,10 @@ bool EventFilterHandler::constructFilter(){
   }
   { // Test for at least one good vertex
     bool hasGoodVertex = false;
-    auto it_isFake = vertex_isFake->cbegin();
-    auto it_Ndof = vertex_Ndof->cbegin();
-    auto it_position = vertex_positions->cbegin();
-    while (it_position!=vertex_positions->cend()){
+    auto it_isFake = itBegin_vertex_isFake;
+    auto it_Ndof = itBegin_vertex_Ndof;
+    auto it_position = itBegin_vertex_positions;
+    while (it_position!=itEnd_vertex_positions){
       hasGoodVertex |= (
         !(*it_isFake)
         && (*it_Ndof > 4.)

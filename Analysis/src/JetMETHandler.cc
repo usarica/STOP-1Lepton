@@ -729,6 +729,9 @@ TString JetMETHandler::getAK4JetDeepFlavorPrefix(std::vector<TString> const& bDi
   return deepCSV_prefix;
 }
 float JetMETHandler::getBtagValueFromLists(std::vector<TString> const& bDiscriminatorNames, std::vector<std::vector<float>> const& btagvals, size_t ijet, TString btagname){
+  return JetMETHandler::getBtagValueFromLists(bDiscriminatorNames, btagvals.at(ijet), btagname);
+}
+float JetMETHandler::getBtagValueFromLists(std::vector<TString> const& bDiscriminatorNames, std::vector<float> const& btagvals, TString btagname){
   size_t index;
   std::vector<TString>::const_iterator begin_it = bDiscriminatorNames.begin();
   std::vector<TString>::const_iterator end_it = bDiscriminatorNames.end();
@@ -739,7 +742,7 @@ float JetMETHandler::getBtagValueFromLists(std::vector<TString> const& bDiscrimi
     MELAerr << "\t- Available tag names: " << bDiscriminatorNames << endl;
     exit(1);
   }
-  return btagvals.at(ijet).at(index);
+  return btagvals.at(index);
 }
 
 void JetMETHandler::bookBranches(BaseTree* tree){

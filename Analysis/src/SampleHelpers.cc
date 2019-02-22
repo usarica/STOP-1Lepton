@@ -66,7 +66,6 @@ void SampleHelpers::setDataVersion(TString s){
 void SampleHelpers::setInputDirectory(TString s){ theInputDirectory=s; }
 void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts, bool doForce){
   if (currentOpts != &opts || doForce){
-    // Call functions from Samples
     setDataPeriod(opts.dataPeriod().c_str());
     setDataVersion(opts.dataVersion().c_str());
     setInputDirectory(opts.inputDir().c_str());
@@ -76,6 +75,7 @@ void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts, bool do
     currentOpts = &opts;
   }
 }
+FrameworkOptionParser const* SampleHelpers::getCurrentOptions(){ return currentOpts; }
 void SampleHelpers::revertToPreviousOptions(){
   if (!prevOpts) return;
   setupUsingOptions(*prevOpts);

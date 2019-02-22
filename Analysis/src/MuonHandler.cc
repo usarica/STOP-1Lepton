@@ -46,71 +46,41 @@ bool MuonHandler::constructMuons(){
 
   float rho = 0;
 
-  std::vector<unsigned int>* POGSelectorBit = nullptr;
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<unsigned int>, POGSelectorBit) \
+\
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, charge) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, isPFMuon) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, type) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, validHits) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, lostHits) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, expectedMissingInnerHits) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, expectedMissingOuterHits) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, GlobalFit_Ndof) \
+\
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, GlobalFit_Chisq) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, LocalPos_Chisq) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, TrkKink) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, SegComp) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, dxyPV) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, dzPV) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_ch) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_nh) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_em) \
+\
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<CMSLorentzVector>, momentum)
 
-  std::vector<int>* charge = nullptr;
-  std::vector<int>* isPFMuon = nullptr;
-  std::vector<int>* type = nullptr;
-  std::vector<int>* validHits = nullptr;
-  std::vector<int>* lostHits = nullptr;
-  std::vector<int>* expectedMissingInnerHits = nullptr;
-  std::vector<int>* expectedMissingOuterHits = nullptr;
-  std::vector<int>* GlobalFit_Ndof = nullptr;
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) TYPE::const_iterator itBegin_##NAME, itEnd_##NAME;
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
 
-  std::vector<float>* GlobalFit_Chisq = nullptr;
-  std::vector<float>* LocalPos_Chisq = nullptr;
-  std::vector<float>* TrkKink = nullptr;
-  std::vector<float>* SegComp = nullptr;
-  std::vector<float>* dxyPV = nullptr;
-  std::vector<float>* dzPV = nullptr;
-  std::vector<float>* miniIso_ch = nullptr;
-  std::vector<float>* miniIso_nh = nullptr;
-  std::vector<float>* miniIso_em = nullptr;
-
-  std::vector<CMSLorentzVector>* momentum = nullptr;
-
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) && this->getConsumedCIterators<TYPE>(_muons_##NAME##_, &itBegin_##NAME, &itEnd_##NAME)
   // Beyond this point starts checks and selection
   bool allVariablesPresent = (
     this->getConsumedValue(_muons_rho_, rho)
-    &&
-    this->getConsumedValue(_muons_POGSelectorBit_, POGSelectorBit)
-    &&
-    this->getConsumedValue(_muons_charge_, charge)
-    &&
-    this->getConsumedValue(_muons_isPFMuon_, isPFMuon)
-    &&
-    this->getConsumedValue(_muons_type_, type)
-    &&
-    this->getConsumedValue(_muons_validHits_, validHits)
-    &&
-    this->getConsumedValue(_muons_lostHits_, lostHits)
-    &&
-    this->getConsumedValue(_muons_expectedMissingInnerHits_, expectedMissingInnerHits)
-    &&
-    this->getConsumedValue(_muons_expectedMissingOuterHits_, expectedMissingOuterHits)
-    &&
-    this->getConsumedValue(_muons_GlobalFit_Ndof_, GlobalFit_Ndof)
-    &&
-    this->getConsumedValue(_muons_GlobalFit_Chisq_, GlobalFit_Chisq)
-    &&
-    this->getConsumedValue(_muons_LocalPos_Chisq_, LocalPos_Chisq)
-    &&
-    this->getConsumedValue(_muons_TrkKink_, TrkKink)
-    &&
-    this->getConsumedValue(_muons_SegComp_, SegComp)
-    &&
-    this->getConsumedValue(_muons_dxyPV_, dxyPV)
-    &&
-    this->getConsumedValue(_muons_dzPV_, dzPV)
-    &&
-    this->getConsumedValue(_muons_miniIso_ch_, miniIso_ch)
-    &&
-    this->getConsumedValue(_muons_miniIso_nh_, miniIso_nh)
-    &&
-    this->getConsumedValue(_muons_miniIso_em_, miniIso_em)
-    &&
-    this->getConsumedValue(_muons_momentum_, momentum)
+    VECTOR_ITERATOR_HANDLER_DIRECTIVES
     );
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "MuonHandler::constructMuons: Not all variables are consumed properly!" << endl;
@@ -118,51 +88,59 @@ bool MuonHandler::constructMuons(){
   }
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: All variables are set up!" << endl;
-  if (!charge){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "MuonHandler::constructMuons: Muons could not be linked! Pointer to " << _muons_charge_ << " is null!" << endl;
-    return false;
-  }
 
-  if (charge->empty()) return true; // Construction is successful, it is just that no muons exist.
+  if (itBegin_charge == itEnd_charge) return true; // Construction is successful, it is just that no muons exist.
 
-  unsigned int nProducts = charge->size();
+  size_t nProducts = (itEnd_charge - itBegin_charge);
   productList.reserve(nProducts);
-  for (unsigned int ip=0; ip<nProducts; ip++){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting muon " << ip << "..." << endl;
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) auto it_##NAME = itBegin_##NAME;
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) it_##NAME++;
+  {
+    size_t ip=0;
+    while (it_charge != itEnd_charge){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting muon " << ip << "..." << endl;
 
-    productList.push_back(new MuonObject(-13*(charge->at(ip)>0 ? 1 : -1), momentum->at(ip)));
-    MuonObject*& obj = productList.back();
+      productList.push_back(new MuonObject(-13*(*it_charge>0 ? 1 : -1), *it_momentum));
+      MuonObject*& obj = productList.back();
 
-    obj->extras.rho = rho;
+      obj->extras.rho = rho;
 
-    obj->extras.POGSelectorBit = (long long) POGSelectorBit->at(ip);
+      obj->extras.POGSelectorBit = (long long) *it_POGSelectorBit;
 
-    obj->extras.isPFMuon = (bool) isPFMuon->at(ip);
-    obj->extras.type = type->at(ip);
-    obj->extras.validHits = validHits->at(ip);
-    obj->extras.lostHits = lostHits->at(ip);
-    obj->extras.expectedMissingInnerHits = expectedMissingInnerHits->at(ip);
-    obj->extras.expectedMissingOuterHits = expectedMissingOuterHits->at(ip);
-    obj->extras.GlobalFit_Ndof = GlobalFit_Ndof->at(ip);
+      obj->extras.isPFMuon = (bool) *it_isPFMuon;
+      obj->extras.type = *it_type;
+      obj->extras.validHits = *it_validHits;
+      obj->extras.lostHits = *it_lostHits;
+      obj->extras.expectedMissingInnerHits = *it_expectedMissingInnerHits;
+      obj->extras.expectedMissingOuterHits = *it_expectedMissingOuterHits;
+      obj->extras.GlobalFit_Ndof = *it_GlobalFit_Ndof;
 
-    obj->extras.GlobalFit_Chisq = GlobalFit_Chisq->at(ip);
-    obj->extras.LocalPos_Chisq = LocalPos_Chisq->at(ip);
-    obj->extras.TrkKink = TrkKink->at(ip);
-    obj->extras.SegComp = SegComp->at(ip);
-    obj->extras.dxyPV = dxyPV->at(ip);
-    obj->extras.dzPV = dzPV->at(ip);
-    obj->extras.miniIso_ch = miniIso_ch->at(ip);
-    obj->extras.miniIso_nh = miniIso_nh->at(ip);
-    obj->extras.miniIso_em = miniIso_em->at(ip);
+      obj->extras.GlobalFit_Chisq = *it_GlobalFit_Chisq;
+      obj->extras.LocalPos_Chisq = *it_LocalPos_Chisq;
+      obj->extras.TrkKink = *it_TrkKink;
+      obj->extras.SegComp = *it_SegComp;
+      obj->extras.dxyPV = *it_dxyPV;
+      obj->extras.dzPV = *it_dzPV;
+      obj->extras.miniIso_ch = *it_miniIso_ch;
+      obj->extras.miniIso_nh = *it_miniIso_nh;
+      obj->extras.miniIso_em = *it_miniIso_em;
 
-    // Set the selection bits
-    MuonSelectionHelpers::setSelectionBits(*obj);
+      // Set the selection bits
+      MuonSelectionHelpers::setSelectionBits(*obj);
 
-    if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+      VECTOR_ITERATOR_HANDLER_DIRECTIVES
+    }
   }
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVES
   return true;
 }
 

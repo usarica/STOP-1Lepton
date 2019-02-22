@@ -96,6 +96,7 @@ public:
   void bookBranches(BaseTree* tree);
   static TString getAK4JetDeepFlavorPrefix(std::vector<TString> const& bDiscriminatorNames);
   static float getBtagValueFromLists(std::vector<TString> const& bDiscriminatorNames, std::vector<std::vector<float>> const& btagvals, size_t ijet, TString btagname);
+  static float getBtagValueFromLists(std::vector<TString> const& bDiscriminatorNames, std::vector<float> const& btagvals, TString btagname);
 
 };
 

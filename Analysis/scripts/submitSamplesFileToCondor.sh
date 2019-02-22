@@ -2,13 +2,18 @@
 
 INFILE=$1
 OUTPUTDIR=$2
-if [[ "$OUTPUTDIR" == "" ]];then
-  OUTPUTDIR="./output"
-fi
+DATE=$3
+
 SCRIPTNAME="doFullProduction.cc"
 FCN="doFullProduction"
 QUEUE="default"
-DATE=$(date +%y%m%d)
+
+if [[ "$OUTPUTDIR" == "" ]];then
+  OUTPUTDIR="./output"
+fi
+if [[ "$DATE" == "" ]];then
+  DATE=$(date +%y%m%d)
+fi
 
 OUTDIR="${OUTPUTDIR}/${DATE}"
 

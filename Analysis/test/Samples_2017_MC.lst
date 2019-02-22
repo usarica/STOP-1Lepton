@@ -1,6 +1,6 @@
 # FULLSIM SAMPLES
 # Sample template
-template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu condoroutdir=/hadoop/cms/store/user/usarica/STOP_1L/Samples_2017/.oO[DATE]Oo./.oO[OUTFILECORE]Oo. indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ year=2017 maxevents=-1 ismc=true" 3
+template "outfile=.oO[OUTFILE]Oo. sample=.oO[SAMPLE]Oo. condorsite=t2.ucsd.edu condoroutdir=/hadoop/cms/store/user/usarica/STOP_1L/Samples_2017/.oO[DATE]Oo./.oO[OUTFILECORE]Oo. indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ year=2017 maxevents=-1 recordeveryn=25000 ismc=true" 3
 # Sample list
 /GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM
 /GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v2/MINIAODSIM

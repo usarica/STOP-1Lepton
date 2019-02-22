@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include "StdExtensions.h"
 #include "JECJERHelpers.h"
+#include "SampleHelpers.h"
 #include "HostHelpersCore.h"
 #include "MELAStreamHelpers.hh"
 
@@ -40,22 +41,50 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
     eraMap["2017C"] = "Fall17_17Nov2017C_V32_DATA";
     eraMap["2017D"] = eraMap["2017E"] = "Fall17_17Nov2017DE_V32_DATA";
     eraMap["2017F"] = "Fall17_17Nov2017F_V32_DATA";
+    eraMap["2017F-09May2018"] = "Fall17_09May2018F_V3_DATA";
     eraMap["MC_noFS"] = eraMap["MC_FS"] = "Fall17_17Nov2017_V32_MC";
   }
   else if (theDataYear == 2018 && theDataVersion == kCMSSW_10_X){ // FIXME: 2018 to be updated!
-    eraMap["2018A"] = eraMap["2018B"] = eraMap["2018C"] = eraMap["2018D"] = "Fall17_17Nov2017F_V32_DATA";
-    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Fall17_17Nov2017_V32_MC";
+    eraMap["2018A"] = eraMap["2018B"] = eraMap["2018C"] = eraMap["2018D"] = "Autumn18_V3_DATA";
+    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Autumn18_V3_MC";
   }
   else{
     MELAerr << "JECJERHelpers::getJECFilePath: Data year " << theDataYear << " and data version " << theDataVersion << " are not recognized. Aborting..." << endl;
     assert(0);
   }
-  if (isMC) return (isFastSim ? eraMap["MC_FS"] : eraMap["MC_noFS"]);
+
+  // Check for special data set handling
+  TString strKeyAppend="";
+  {
+    FrameworkOptionParser const* currentOptions = SampleHelpers::getCurrentOptions();
+    if (!currentOptions){
+      MELAerr << "JECJERHelpers::getJECFilePath: Could not retrieve the current options! Aborting..." << endl;
+      assert(0);
+    }
+    string const& sampleName = currentOptions->sampleName();
+
+    // Add more cases as appropriate
+    if (!isMC && theDataYear == 2017 && theDataVersion == kCMSSW_9_4_X && sampleName.find("09May2018")!=string::npos) strKeyAppend = "09May2018";
+
+    if (strKeyAppend != "") MELAout << "JECJERHelpers::getJECFilePath: New special key appendix " << strKeyAppend << endl;
+  }
+
+  if (isMC){
+    TString strKey = (isFastSim ? "MC_FS" : "MC_noFS");
+    if (strKeyAppend != "") strKey += Form("%s%s", "-", strKeyAppend.Data());
+    return eraMap[strKey];
+  }
   else{
-    unordered_map<TString, TString>::const_iterator it = eraMap.find(theDataPeriod);
+    TString strKey = theDataPeriod;
+    if (strKeyAppend != "") strKey += Form("%s%s", "-", strKeyAppend.Data());
+    unordered_map<TString, TString>::const_iterator it = eraMap.find(strKey);
     if (it==eraMap.cend()){
       if (SampleHelpers::testDataPeriodIsLikeData()){
-        MELAerr << "JECJERHelpers::getJECFilePath: Era map does not contain the data period " << theDataPeriod << " for year " << theDataYear << " and data version " << theDataVersion << ". Aborting..." << endl;
+        MELAerr << "JECJERHelpers::getJECFilePath: Era map does not contain the key " << strKey
+          << " for the data period " << theDataPeriod
+          << ", year " << theDataYear
+          << " and data version " << theDataVersion
+          << ". Aborting..." << endl;
         assert(0);
       }
       return "";
