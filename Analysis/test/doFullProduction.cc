@@ -16,7 +16,6 @@ void doFullProduction(std::string stropts){
   gSystem->Exec(Form("mkdir -p %s", opts.outputDir().c_str()));
   TFile* foutput = TFile::Open((opts.outputDir()+opts.outputFilename()).c_str(), "recreate");
   BaseTree* outtree = new BaseTree("SelectedTree"); // The tree to record into the ROOT file
-  outtree->setAutoSave(0);
   curdir->cd();
 
   FrameworkSet theSet(opts, CMS4_EVENTS_TREE_NAME);
@@ -74,6 +73,11 @@ void doFullProduction(std::string stropts){
   // Set maximum events to process
   analyzer.setMaximumEvents(opts.maxEventsToProcess());
   analyzer.setRecordEveryNEvents(opts.recordEveryNEvents());
+  if (opts.recordEveryNEvents()){
+    BaseTree::setRobustSaveWrite(true);
+    outtree->setAutoSave(0);
+    outtree->setAutoFlush(0);
+  }
   analyzer.setPFCandsFlag(_DOPFCANDS_);
   // Control what is recorded
   analyzer.setRecordIsoTracksFlag(false);

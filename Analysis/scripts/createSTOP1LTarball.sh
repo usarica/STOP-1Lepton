@@ -22,7 +22,7 @@ src/HiggsAnalysis \
 src/TopTagger \
 src/CMSDataTools \
 src/cmstas \
-src/cms-jet \
+src/cms-jet/JRDatabase \
 src/STOP_1Lepton \
 --exclude=lib/${SCRAM_ARCH}/* \
 --exclude=src/ZZMatrixElement/MELA/COLLIER/*.so \

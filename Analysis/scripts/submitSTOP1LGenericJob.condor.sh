@@ -142,6 +142,24 @@ RUN_STATUS=$?
 echo -e "\n--- End RUN ---\n"
 ##############
 
+##################
+# TRANSFER FILES #
+##################
+# In cases where transfer through the script fails
+if [[ -f "EXTERNAL_TRANSFER_CMD_LIST.LST" ]];then
+  echo -e "\n--- Begin EXTERNAL TRANSFER ---\n"
+  while IFS='' read -r line || [[ -n "$line" ]]; do
+    echo "Executing ${line} from the transfer file"
+    $line
+    TRANSFER_STATUS=$?
+    if [ $TRANSFER_STATUS != 0 ]; then
+      echo " - Transfer crashed with exit code ${TRANSFER_STATUS}"
+    fi
+  done < "EXTERNAL_TRANSFER_CMD_LIST.LST"
+  echo -e "\n--- End EXTERNAL TRANSFER ---\n"
+fi
+##############
+
 
 echo "Submission directory after running: ls -lrth"
 ls -lrth

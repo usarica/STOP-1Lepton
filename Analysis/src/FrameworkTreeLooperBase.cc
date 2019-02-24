@@ -12,10 +12,30 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-FrameworkTreeLooperBase::FrameworkTreeLooperBase() : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1), recordEveryNEvents(-1){ setExternalProductList(); setExternalProductTree(); }
-FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) : IvyBase(), sampleIdOpt(FrameworkTreeLooperBase::kNoStorage), maxNEvents(-1), recordEveryNEvents(-1) { this->addTree(inTree); setExternalProductList(); setExternalProductTree(); }
+FrameworkTreeLooperBase::FrameworkTreeLooperBase() :
+  IvyBase(),
+  
+  sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
+  maxNEvents(-1),
+  recordEveryNEvents(-1)
+{
+  setExternalProductList();
+  setExternalProductTree();
+}
+FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) :
+  IvyBase(),
+  
+  sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
+  maxNEvents(-1),
+  recordEveryNEvents(-1)
+{
+  this->addTree(inTree);
+  setExternalProductList();
+  setExternalProductTree();
+}
 FrameworkTreeLooperBase::FrameworkTreeLooperBase(std::vector<FrameworkTree*> const& inTreeList) :
   IvyBase(),
+
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeList),
   maxNEvents(-1),
@@ -26,6 +46,7 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase(std::vector<FrameworkTree*> con
 }
 FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkSet const* inTreeSet) :
   IvyBase(),
+
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeSet->getFrameworkTreeList()),
   maxNEvents(-1),
