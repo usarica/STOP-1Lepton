@@ -21,6 +21,63 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
+#define AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, npfcands) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, parton_flavor) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, hadron_flavor) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, chargedHadronMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, neutralHadronMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, photonMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, electronMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, muonMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, chargedMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, neutralMultiplicity) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, totalMultiplicity) \
+\
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, area) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, undoJEC) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, chargedHadronE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, chargedEmE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, neutralHadronE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, neutralEmE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, hfHadronE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, hfEmE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, photonE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, electronE) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, muonE) \
+\
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, pfCombinedInclusiveSecondaryVertexV2BJetTag) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, ptDistribution) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, axis1) \
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, axis2) \
+\
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<std::vector<float>>, bDiscriminators) \
+\
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<CMSLorentzVector>, momentum) \
+\
+AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<std::vector<CMSLorentzVector>>, mucands_momentum)
+// Note that (std::vector<TString>) bDiscriminatorNames is NOT part of this set of directive macros because its size is a fized size of names, not N_ak4jets
+
+
+#define AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<int>, parton_flavor) \
+\
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, area) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, undoJEC) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, tau1) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, tau2) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, tau3) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_qcd) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_top) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_w) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_z) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_zbb) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_hbb) \
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, deepdisc_h4q) \
+\
+AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<CMSLorentzVector>, momentum) \
+
+
 JetMETHandler::JetMETHandler() :
   IvyBase(),
 
@@ -83,153 +140,90 @@ bool JetMETHandler::constructGenJets(){
 bool JetMETHandler::constructAK4Jets(){
   if (!doAK4Jets) return true;
 
-  float rho = 0;
+  bool allVariablesPresent = true;
 
-  std::vector<int>* npfcands = nullptr;
-  std::vector<int>* parton_flavor = nullptr;
-  std::vector<int>* hadron_flavor = nullptr;
-  std::vector<int>* chargedHadronMultiplicity = nullptr;
-  std::vector<int>* neutralHadronMultiplicity = nullptr;
-  std::vector<int>* photonMultiplicity = nullptr;
-  std::vector<int>* electronMultiplicity = nullptr;
-  std::vector<int>* muonMultiplicity = nullptr;
-  std::vector<int>* chargedMultiplicity = nullptr;
-  std::vector<int>* neutralMultiplicity = nullptr;
-  std::vector<int>* totalMultiplicity = nullptr;
+  float rho = 0; allVariablesPresent &= this->getConsumedValue(_ak4jets_rho_, rho);
+  std::vector<TString>* bDiscriminatorNames = nullptr; allVariablesPresent &= this->getConsumedValue(_ak4jets_bDiscriminatorNames_, bDiscriminatorNames);
 
-  std::vector<float>* area = nullptr;
-  std::vector<float>* undoJEC = nullptr;
-  std::vector<float>* chargedHadronE = nullptr;
-  std::vector<float>* chargedEmE = nullptr;
-  std::vector<float>* neutralHadronE = nullptr;
-  std::vector<float>* neutralEmE = nullptr;
-  std::vector<float>* hfHadronE = nullptr;
-  std::vector<float>* hfEmE = nullptr;
-  std::vector<float>* photonE = nullptr;
-  std::vector<float>* electronE = nullptr;
-  std::vector<float>* muonE = nullptr;
-
-  std::vector<float>* pfCombinedInclusiveSecondaryVertexV2BJetTag = nullptr;
-  std::vector<float>* ptDistribution = nullptr;
-  std::vector<float>* axis1 = nullptr;
-  std::vector<float>* axis2 = nullptr;
-
-  std::vector<TString>* bDiscriminatorNames = nullptr;
-
-  std::vector<std::vector<float>>* bDiscriminators = nullptr;
-
-  std::vector<CMSLorentzVector>* momentum = nullptr;
-
-  std::vector<std::vector<CMSLorentzVector>>* mucands_momentum = nullptr;
-
-  // Beyond this point starts checks and selection
-  bool allVariablesPresent = (
-    this->getConsumedValue(_ak4jets_rho_, rho)
-
-    && this->getConsumedValue(_ak4jets_npfcands_, npfcands)
-    && this->getConsumedValue(_ak4jets_parton_flavor_, parton_flavor)
-    && this->getConsumedValue(_ak4jets_hadron_flavor_, hadron_flavor)
-    && this->getConsumedValue(_ak4jets_chargedHadronMultiplicity_, chargedHadronMultiplicity)
-    && this->getConsumedValue(_ak4jets_neutralHadronMultiplicity_, neutralHadronMultiplicity)
-    && this->getConsumedValue(_ak4jets_photonMultiplicity_, photonMultiplicity)
-    && this->getConsumedValue(_ak4jets_electronMultiplicity_, electronMultiplicity)
-    && this->getConsumedValue(_ak4jets_muonMultiplicity_, muonMultiplicity)
-    && this->getConsumedValue(_ak4jets_chargedMultiplicity_, chargedMultiplicity)
-    && this->getConsumedValue(_ak4jets_neutralMultiplicity_, neutralMultiplicity)
-    && this->getConsumedValue(_ak4jets_totalMultiplicity_, totalMultiplicity)
-
-    && this->getConsumedValue(_ak4jets_area_, area)
-    && this->getConsumedValue(_ak4jets_undoJEC_, undoJEC)
-    && this->getConsumedValue(_ak4jets_chargedHadronE_, chargedHadronE)
-    && this->getConsumedValue(_ak4jets_chargedEmE_, chargedEmE)
-    && this->getConsumedValue(_ak4jets_neutralHadronE_, neutralHadronE)
-    && this->getConsumedValue(_ak4jets_neutralEmE_, neutralEmE)
-    && this->getConsumedValue(_ak4jets_hfHadronE_, hfHadronE)
-    && this->getConsumedValue(_ak4jets_hfEmE_, hfEmE)
-    && this->getConsumedValue(_ak4jets_photonE_, photonE)
-    && this->getConsumedValue(_ak4jets_electronE_, electronE)
-    && this->getConsumedValue(_ak4jets_muonE_, muonE)
-
-    && this->getConsumedValue(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_, pfCombinedInclusiveSecondaryVertexV2BJetTag)
-    && this->getConsumedValue(_ak4jets_ptDistribution_, ptDistribution)
-    && this->getConsumedValue(_ak4jets_axis1_, axis1)
-    && this->getConsumedValue(_ak4jets_axis2_, axis2)
-
-    && this->getConsumedValue(_ak4jets_bDiscriminatorNames, bDiscriminatorNames)
-
-    && this->getConsumedValue(_ak4jets_bDiscriminators, bDiscriminators)
-
-    && this->getConsumedValue(_ak4jets_momentum_, momentum)
-
-    && this->getConsumedValue(_ak4jets_mucands_momentum_, mucands_momentum)
-    );
+#define AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) \
+TYPE::const_iterator itBegin_##NAME, itEnd_##NAME; \
+allVariablesPresent &= this->getConsumedCIterators<TYPE>(_ak4jets_##NAME##_, &itBegin_##NAME, &itEnd_##NAME);
+  AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructAK4Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
-
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: All variables are set up!" << endl;
-  if (!momentum){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK4Jets: Jets could not be linked! Pointer to " << _ak4jets_momentum_ << " is null!" << endl;
-    return false;
-  }
 
-  if (momentum->empty()) return true; // Construction is successful, it is just that no jets exist.
+  if (itBegin_momentum == itEnd_momentum) return true; // Construction is successful, it is just that no jets exist.
 
-  unsigned int nProducts = momentum->size();
+  size_t nProducts = (itEnd_momentum - itBegin_momentum);
   ak4jets.reserve(nProducts);
-  for (unsigned int ip=0; ip<nProducts; ip++){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: Attempting jet " << ip << "..." << endl;
+#define AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) auto it_##NAME = itBegin_##NAME;
+  AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
+#define AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) it_##NAME++;
+  {
+    size_t ip=0;
+    while (it_momentum != itEnd_momentum){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: Attempting jet " << ip << "..." << endl;
 
-    ak4jets.push_back(new AK4JetObject(0, momentum->at(ip)));
-    AK4JetObject*& obj = ak4jets.back();
+      ak4jets.push_back(new AK4JetObject(0, *it_momentum));
+      AK4JetObject*& obj = ak4jets.back();
 
-    obj->extras.rho = rho;
+      obj->extras.rho = rho;
 
-    obj->extras.npfcands = npfcands->at(ip);
-    obj->extras.parton_flavor = parton_flavor->at(ip);
-    obj->extras.hadron_flavor = hadron_flavor->at(ip);
-    obj->extras.chargedHadronMultiplicity = chargedHadronMultiplicity->at(ip);
-    obj->extras.neutralHadronMultiplicity = neutralHadronMultiplicity->at(ip);
-    obj->extras.photonMultiplicity = photonMultiplicity->at(ip);
-    obj->extras.electronMultiplicity = electronMultiplicity->at(ip);
-    obj->extras.muonMultiplicity = muonMultiplicity->at(ip);
-    obj->extras.chargedMultiplicity = chargedMultiplicity->at(ip);
-    obj->extras.neutralMultiplicity = neutralMultiplicity->at(ip);
-    obj->extras.totalMultiplicity = totalMultiplicity->at(ip);
+      obj->extras.npfcands = *it_npfcands;
+      obj->extras.parton_flavor = *it_parton_flavor;
+      obj->extras.hadron_flavor = *it_hadron_flavor;
+      obj->extras.chargedHadronMultiplicity = *it_chargedHadronMultiplicity;
+      obj->extras.neutralHadronMultiplicity = *it_neutralHadronMultiplicity;
+      obj->extras.photonMultiplicity = *it_photonMultiplicity;
+      obj->extras.electronMultiplicity = *it_electronMultiplicity;
+      obj->extras.muonMultiplicity = *it_muonMultiplicity;
+      obj->extras.chargedMultiplicity = *it_chargedMultiplicity;
+      obj->extras.neutralMultiplicity = *it_neutralMultiplicity;
+      obj->extras.totalMultiplicity = *it_totalMultiplicity;
 
-    obj->extras.area = area->at(ip);
-    obj->extras.undoJEC = undoJEC->at(ip);
-    obj->extras.chargedHadronE = chargedHadronE->at(ip);
-    obj->extras.chargedEmE = chargedEmE->at(ip);
-    obj->extras.neutralHadronE = neutralHadronE->at(ip);
-    obj->extras.neutralEmE = neutralEmE->at(ip);
-    obj->extras.hfHadronE = hfHadronE->at(ip);
-    obj->extras.hfEmE = hfEmE->at(ip);
-    obj->extras.photonE = photonE->at(ip);
-    obj->extras.electronE = electronE->at(ip);
-    obj->extras.muonE = muonE->at(ip);
+      obj->extras.area = *it_area;
+      obj->extras.undoJEC = *it_undoJEC;
+      obj->extras.chargedHadronE = *it_chargedHadronE;
+      obj->extras.chargedEmE = *it_chargedEmE;
+      obj->extras.neutralHadronE = *it_neutralHadronE;
+      obj->extras.neutralEmE = *it_neutralEmE;
+      obj->extras.hfHadronE = *it_hfHadronE;
+      obj->extras.hfEmE = *it_hfEmE;
+      obj->extras.photonE = *it_photonE;
+      obj->extras.electronE = *it_electronE;
+      obj->extras.muonE = *it_muonE;
 
-    obj->extras.momentum_nomus_uncor = obj->momentum*obj->extras.undoJEC;
-    for (CMSLorentzVector const& mom:mucands_momentum->at(ip)) obj->extras.momentum_nomus_uncor -= mom;
+      obj->extras.momentum_nomus_uncor = obj->momentum*obj->extras.undoJEC;
+      for (CMSLorentzVector const& mom:(*it_mucands_momentum)) obj->extras.momentum_nomus_uncor -= mom;
 
-    static const TString strDeepFlavorPrefix = JetMETHandler::getAK4JetDeepFlavorPrefix(*bDiscriminatorNames);
+      static const TString strDeepFlavorPrefix = JetMETHandler::getAK4JetDeepFlavorPrefix(*bDiscriminatorNames);
 
-    obj->extras.deepCSVb = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *bDiscriminators, ip, strDeepFlavorPrefix+"JetTags:probb");
-    obj->extras.deepCSVc = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *bDiscriminators, ip, strDeepFlavorPrefix+"JetTags:probc");
-    obj->extras.deepCSVl = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *bDiscriminators, ip, strDeepFlavorPrefix+"JetTags:probudsg");
-    obj->extras.deepCSVbb = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *bDiscriminators, ip, strDeepFlavorPrefix+"JetTags:probbb");
-    obj->extras.deepCSVcc = -9000;
-    obj->extras.pfCombinedInclusiveSecondaryVertexV2BJetTag = pfCombinedInclusiveSecondaryVertexV2BJetTag->at(ip);
-    obj->extras.ptDistribution = ptDistribution->at(ip);
-    obj->extras.axis1 = axis1->at(ip);
-    obj->extras.axis2 = axis2->at(ip);
+      obj->extras.deepCSVb = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *it_bDiscriminators, strDeepFlavorPrefix+"JetTags:probb");
+      obj->extras.deepCSVc = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *it_bDiscriminators, strDeepFlavorPrefix+"JetTags:probc");
+      obj->extras.deepCSVl = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *it_bDiscriminators, strDeepFlavorPrefix+"JetTags:probudsg");
+      obj->extras.deepCSVbb = JetMETHandler::getBtagValueFromLists(*bDiscriminatorNames, *it_bDiscriminators, strDeepFlavorPrefix+"JetTags:probbb");
+      obj->extras.deepCSVcc = -9000;
+      obj->extras.pfCombinedInclusiveSecondaryVertexV2BJetTag = *it_pfCombinedInclusiveSecondaryVertexV2BJetTag;
+      obj->extras.ptDistribution = *it_ptDistribution;
+      obj->extras.axis1 = *it_axis1;
+      obj->extras.axis2 = *it_axis2;
 
-    // DO NOT SET THE SELECTION BITS YET!
+      // DO NOT SET THE SELECTION BITS YET!
 
-    if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+      AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+    }
   }
+#undef AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
+  // Sorting is skipped intentionally here because JECs and JERs will be re-applied.
 
   return true;
 }
@@ -237,46 +231,15 @@ bool JetMETHandler::constructAK4Jets(){
 bool JetMETHandler::constructAK8Jets(){
   if (!doAK8Jets) return true;
 
-  float rho = 0;
+  bool allVariablesPresent = true;
 
-  std::vector<int>* parton_flavor = nullptr;
+  float rho = 0; allVariablesPresent &= this->getConsumedValue(_ak8jets_rho_, rho);
 
-  std::vector<float>* area = nullptr;
-  std::vector<float>* undoJEC = nullptr;
-  std::vector<float>* tau1 = nullptr;
-  std::vector<float>* tau2 = nullptr;
-  std::vector<float>* tau3 = nullptr;
-  std::vector<float>* deepdisc_qcd = nullptr;
-  std::vector<float>* deepdisc_top = nullptr;
-  std::vector<float>* deepdisc_w = nullptr;
-  std::vector<float>* deepdisc_z = nullptr;
-  std::vector<float>* deepdisc_zbb = nullptr;
-  std::vector<float>* deepdisc_hbb = nullptr;
-  std::vector<float>* deepdisc_h4q = nullptr;
-
-  std::vector<CMSLorentzVector>* momentum = nullptr;
-
-  // Beyond this point starts checks and selection
-  bool allVariablesPresent = (
-    this->getConsumedValue(_ak8jets_rho_, rho)
-
-    && this->getConsumedValue(_ak8jets_parton_flavor_, parton_flavor)
-
-    && this->getConsumedValue(_ak8jets_area_, area)
-    && this->getConsumedValue(_ak8jets_undoJEC_, undoJEC)
-    && this->getConsumedValue(_ak8jets_tau1_, tau1)
-    && this->getConsumedValue(_ak8jets_tau2_, tau2)
-    && this->getConsumedValue(_ak8jets_tau3_, tau3)
-    && this->getConsumedValue(_ak8jets_deepdisc_qcd_, deepdisc_qcd)
-    && this->getConsumedValue(_ak8jets_deepdisc_top_, deepdisc_top)
-    && this->getConsumedValue(_ak8jets_deepdisc_w_, deepdisc_w)
-    && this->getConsumedValue(_ak8jets_deepdisc_z_, deepdisc_z)
-    && this->getConsumedValue(_ak8jets_deepdisc_zbb_, deepdisc_zbb)
-    && this->getConsumedValue(_ak8jets_deepdisc_hbb_, deepdisc_hbb)
-    && this->getConsumedValue(_ak8jets_deepdisc_h4q_, deepdisc_h4q)
-
-    && this->getConsumedValue(_ak8jets_momentum_, momentum)
-    );
+#define AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) \
+TYPE::const_iterator itBegin_##NAME, itEnd_##NAME; \
+allVariablesPresent &= this->getConsumedCIterators<TYPE>(_ak8jets_##NAME##_, &itBegin_##NAME, &itEnd_##NAME);
+  AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructAK8Jets: Not all variables are consumed properly!" << endl;
@@ -284,42 +247,50 @@ bool JetMETHandler::constructAK8Jets(){
   }
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: All variables are set up!" << endl;
-  if (!momentum){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK8Jets: Jets could not be linked! Pointer to " << _ak8jets_momentum_ << " is null!" << endl;
-    return false;
-  }
 
-  if (momentum->empty()) return true; // Construction is successful, it is just that no jets exist.
+  if (itBegin_momentum == itEnd_momentum) return true; // Construction is successful, it is just that no jets exist.
 
-  unsigned int nProducts = momentum->size();
+  size_t nProducts = (itEnd_momentum - itBegin_momentum);
   ak8jets.reserve(nProducts);
-  for (unsigned int ip=0; ip<nProducts; ip++){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: Attempting jet " << ip << "..." << endl;
+#define AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) auto it_##NAME = itBegin_##NAME;
+  AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
+#define AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) it_##NAME++;
+  {
+    size_t ip=0;
+    while (it_momentum != itEnd_momentum){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: Attempting jet " << ip << "..." << endl;
 
-    ak8jets.push_back(new AK8JetObject(0, momentum->at(ip)));
-    AK8JetObject*& obj = ak8jets.back();
+      ak8jets.push_back(new AK8JetObject(0, *it_momentum));
+      AK8JetObject*& obj = ak8jets.back();
 
-    obj->extras.rho = rho;
+      obj->extras.rho = rho;
 
-    obj->extras.parton_flavor = parton_flavor->at(ip);
+      obj->extras.parton_flavor = *it_parton_flavor;
 
-    obj->extras.area = area->at(ip);
-    obj->extras.undoJEC = undoJEC->at(ip);
-    obj->extras.tau1 = tau1->at(ip);
-    obj->extras.tau2 = tau2->at(ip);
-    obj->extras.tau3 = tau3->at(ip);
-    obj->extras.deepdisc_qcd = deepdisc_qcd->at(ip);
-    obj->extras.deepdisc_top = deepdisc_top->at(ip);
-    obj->extras.deepdisc_w = deepdisc_w->at(ip);
-    obj->extras.deepdisc_z = deepdisc_z->at(ip);
-    obj->extras.deepdisc_zbb = deepdisc_zbb->at(ip);
-    obj->extras.deepdisc_hbb = deepdisc_hbb->at(ip);
-    obj->extras.deepdisc_h4q = deepdisc_h4q->at(ip);
+      obj->extras.area = *it_area;
+      obj->extras.undoJEC = *it_undoJEC;
+      obj->extras.tau1 = *it_tau1;
+      obj->extras.tau2 = *it_tau2;
+      obj->extras.tau3 = *it_tau3;
+      obj->extras.deepdisc_qcd = *it_deepdisc_qcd;
+      obj->extras.deepdisc_top = *it_deepdisc_top;
+      obj->extras.deepdisc_w = *it_deepdisc_w;
+      obj->extras.deepdisc_z = *it_deepdisc_z;
+      obj->extras.deepdisc_zbb = *it_deepdisc_zbb;
+      obj->extras.deepdisc_hbb = *it_deepdisc_hbb;
+      obj->extras.deepdisc_h4q = *it_deepdisc_h4q;
 
-    // DO NOT SET THE SELECTION BITS YET!
+      // DO NOT SET THE SELECTION BITS YET!
 
-    if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+      AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+    }
   }
+#undef AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
+  // Sorting is skipped intentionally here because JECs and JERs will be re-applied.
 
   return true;
 }
@@ -417,6 +388,7 @@ bool JetMETHandler::constructJetMET(){
 
   return res;
 }
+
 
 bool JetMETHandler::applyJetCleaning(){
   std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size());
@@ -754,123 +726,25 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   // ak4 jet variables
   if (doAK4Jets){
     this->addConsumed<float>(_ak4jets_rho_);
-
-    this->addConsumed<std::vector<int>*>(_ak4jets_npfcands_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_parton_flavor_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_hadron_flavor_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_photonMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_electronMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_muonMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_chargedMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_neutralMultiplicity_);
-    this->addConsumed<std::vector<int>*>(_ak4jets_totalMultiplicity_);
-
-    this->addConsumed<std::vector<float>*>(_ak4jets_area_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_undoJEC_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_chargedHadronE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_chargedEmE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_neutralHadronE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_neutralEmE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_hfHadronE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_hfEmE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_photonE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_electronE_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_muonE_);
-
-    this->addConsumed<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_ptDistribution_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_axis1_);
-    this->addConsumed<std::vector<float>*>(_ak4jets_axis2_);
-
-    this->addConsumed<std::vector<TString>*>(_ak4jets_bDiscriminatorNames);
-
-    this->addConsumed<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators);
-
-    this->addConsumed<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_);
-
-    this->addConsumed<std::vector<std::vector<CMSLorentzVector>>*>(_ak4jets_mucands_momentum_);
-
     fwktree->bookEDMBranch<float>(_ak4jets_rho_, 0);
 
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_npfcands_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_parton_flavor_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_hadron_flavor_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedHadronMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralHadronMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_photonMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_electronMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_muonMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_chargedMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_neutralMultiplicity_, nullptr);
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak4jets_totalMultiplicity_, nullptr);
+    // This variable is special, jsut like rho
+    this->addConsumed<std::vector<TString>*>(_ak4jets_bDiscriminatorNames_);
+    fwktree->bookEDMBranch<std::vector<TString>*>(_ak4jets_bDiscriminatorNames_, nullptr);
 
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_area_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_undoJEC_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedHadronE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_chargedEmE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralHadronE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_neutralEmE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfHadronE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_hfEmE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_photonE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_electronE_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_muonE_, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_pfCombinedInclusiveSecondaryVertexV2BJetTag_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_ptDistribution_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis1_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak4jets_axis2_, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<TString>*>(_ak4jets_bDiscriminatorNames, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<std::vector<float>>*>(_ak4jets_bDiscriminators, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak4jets_momentum_, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<std::vector<CMSLorentzVector>>*>(_ak4jets_mucands_momentum_, nullptr);
+#define AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) this->addConsumed<TYPE*>(_ak4jets_##NAME##_); fwktree->bookEDMBranch<TYPE*>(_ak4jets_##NAME##_, nullptr);
+    AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
   }
 
   // ak8 jet variables
   if (doAK8Jets){
     this->addConsumed<float>(_ak8jets_rho_);
-
-    this->addConsumed<std::vector<int>*>(_ak8jets_parton_flavor_);
-
-    this->addConsumed<std::vector<float>*>(_ak8jets_area_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_undoJEC_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_tau1_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_tau2_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_tau3_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_qcd_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_top_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_w_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_z_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_zbb_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_hbb_);
-    this->addConsumed<std::vector<float>*>(_ak8jets_deepdisc_h4q_);
-
-    this->addConsumed<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_);
-
     if (std::string(_ak4jets_rho_)!=std::string(_ak8jets_rho_)) fwktree->bookEDMBranch<float>(_ak8jets_rho_, 0);
 
-    fwktree->bookEDMBranch<std::vector<int>*>(_ak8jets_parton_flavor_, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_area_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_undoJEC_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau1_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau2_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_tau3_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_qcd_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_top_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_w_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_z_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_zbb_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_hbb_, nullptr);
-    fwktree->bookEDMBranch<std::vector<float>*>(_ak8jets_deepdisc_h4q_, nullptr);
-
-    fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_ak8jets_momentum_, nullptr);
+#define AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) this->addConsumed<TYPE*>(_ak8jets_##NAME##_); fwktree->bookEDMBranch<TYPE*>(_ak8jets_##NAME##_, nullptr);
+    AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVE
   }
 
   // Gen. jet variables
@@ -912,3 +786,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
     }
   }
 }
+
+
+#undef AK4JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef AK8JETS_VECTOR_ITERATOR_HANDLER_DIRECTIVES

@@ -11,41 +11,6 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-MuonHandler::MuonHandler() : IvyBase()
-{
-  this->addConsumed<float>(_muons_rho_);
-
-  this->addConsumed<std::vector<unsigned int>*>(_muons_POGSelectorBit_);
-
-  this->addConsumed<std::vector<int>*>(_muons_charge_);
-  this->addConsumed<std::vector<int>*>(_muons_isPFMuon_);
-  this->addConsumed<std::vector<int>*>(_muons_type_);
-  this->addConsumed<std::vector<int>*>(_muons_validHits_);
-  this->addConsumed<std::vector<int>*>(_muons_lostHits_);
-  this->addConsumed<std::vector<int>*>(_muons_expectedMissingInnerHits_);
-  this->addConsumed<std::vector<int>*>(_muons_expectedMissingOuterHits_);
-  this->addConsumed<std::vector<int>*>(_muons_GlobalFit_Ndof_);
-
-  this->addConsumed<std::vector<float>*>(_muons_GlobalFit_Chisq_);
-  this->addConsumed<std::vector<float>*>(_muons_LocalPos_Chisq_);
-  this->addConsumed<std::vector<float>*>(_muons_TrkKink_);
-  this->addConsumed<std::vector<float>*>(_muons_SegComp_);
-  this->addConsumed<std::vector<float>*>(_muons_dxyPV_);
-  this->addConsumed<std::vector<float>*>(_muons_dzPV_);
-  this->addConsumed<std::vector<float>*>(_muons_miniIso_ch_);
-  this->addConsumed<std::vector<float>*>(_muons_miniIso_nh_);
-  this->addConsumed<std::vector<float>*>(_muons_miniIso_em_);
-
-  this->addConsumed<std::vector<CMSLorentzVector>*>(_muons_momentum_);
-}
-
-
-bool MuonHandler::constructMuons(){
-  clear();
-  if (!currentTree) return false;
-
-  float rho = 0;
-
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<unsigned int>, POGSelectorBit) \
 \
@@ -69,6 +34,23 @@ VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_nh) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_em) \
 \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<CMSLorentzVector>, momentum)
+
+
+MuonHandler::MuonHandler() : IvyBase()
+{
+  this->addConsumed<float>(_muons_rho_);
+
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) this->addConsumed<TYPE*>(_muons_##NAME##_);
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
+}
+
+
+bool MuonHandler::constructMuons(){
+  clear();
+  if (!currentTree) return false;
+
+  float rho = 0;
 
 #define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) TYPE::const_iterator itBegin_##NAME, itEnd_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES
@@ -140,7 +122,6 @@ VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<CMSLorentzVector>, momentum)
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
-#undef VECTOR_ITERATOR_HANDLER_DIRECTIVES
   return true;
 }
 
@@ -152,27 +133,11 @@ void MuonHandler::bookBranches(BaseTree* tree){
 
   fwktree->bookEDMBranch<float>(_muons_rho_, 0);
 
-  fwktree->bookEDMBranch<std::vector<unsigned int>*>(_muons_POGSelectorBit_, nullptr);
-
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_charge_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_isPFMuon_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_type_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_validHits_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_lostHits_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_expectedMissingInnerHits_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_expectedMissingOuterHits_, nullptr);
-  fwktree->bookEDMBranch<std::vector<int>*>(_muons_GlobalFit_Ndof_, nullptr);
-
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_GlobalFit_Chisq_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_LocalPos_Chisq_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_TrkKink_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_SegComp_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_dxyPV_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_dzPV_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_miniIso_ch_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_miniIso_nh_, nullptr);
-  fwktree->bookEDMBranch<std::vector<float>*>(_muons_miniIso_em_, nullptr);
-
-  fwktree->bookEDMBranch<std::vector<CMSLorentzVector>*>(_muons_momentum_, nullptr);
+#define VECTOR_ITERATOR_HANDLER_DIRECTIVE(TYPE, NAME) fwktree->bookEDMBranch<TYPE*>(_muons_##NAME##_, nullptr);
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVE
 }
+
+
+#undef VECTOR_ITERATOR_HANDLER_DIRECTIVES
 

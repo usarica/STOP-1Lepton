@@ -215,9 +215,9 @@ typedef unsigned long long EventNumber_t;
 #define _ak4jets_axis1_ "pfjets_axis1"
 #define _ak4jets_axis2_ "pfjets_axis2"
 // vtstring
-#define _ak4jets_bDiscriminatorNames "pfjets_bDiscriminatorNames"
+#define _ak4jets_bDiscriminatorNames_ "pfjets_bDiscriminatorNames"
 // vvfloat
-#define _ak4jets_bDiscriminators "pfjets_bDiscriminators"
+#define _ak4jets_bDiscriminators_ "pfjets_bDiscriminators"
 // vCMSLorentzVector
 #define _ak4jets_momentum_ "pfjets_p4"
 // vvCMSLorentzVector
