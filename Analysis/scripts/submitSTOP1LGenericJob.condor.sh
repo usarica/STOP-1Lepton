@@ -135,10 +135,23 @@ ls -lrth
 ##############
 # ACTUAL RUN #
 ##############
-# Transfer needs to be done through the script run.
+# Transfer needs to be done through the script.
+# Script is actually run through bash to eliminate the extra processor consumption by python
 echo -e "\n--- Begin RUN ---\n"
-runGenericROOTCommand.py --loadlib="loadLib.C" --script="$RUNFILE" --function="$FCN" --command="$FCNARGS" --recompile # Must force recompilation
-RUN_STATUS=$?
+RUN_CMD=$(runGenericROOTCommand.py --loadlib="loadLib.C" --script="$RUNFILE" --function="$FCN" --command="$FCNARGS" --recompile --dry) # Must force recompilation
+if [[ "$RUN_CMD" == "Running "* ]];then
+  echo "$RUN_CMD"
+  RUN_CMD=${RUN_CMD//"Running "}
+  eval "$RUN_CMD"
+  RUN_STATUS=$?
+  if [ $RUN_STATUS != 0 ]; then
+    echo "Run has crashed with exit code ${RUN_STATUS}"
+    exit 1
+  fi
+else
+  echo "Run command ${RUN_CMD} is invalid."
+  exit 1
+fi
 echo -e "\n--- End RUN ---\n"
 ##############
 
@@ -163,10 +176,5 @@ fi
 
 echo "Submission directory after running: ls -lrth"
 ls -lrth
-
-if [ $RUN_STATUS != 0 ]; then
-  echo "Run has crashed with exit code ${RUN_STATUS}"
-  exit 1
-fi
 
 echo "time at end: $(date +%s)"
