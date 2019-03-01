@@ -33,6 +33,7 @@
 #include "IsoTrackSelectionHelpers.h"
 #include "TauSelectionHelpers.h"
 #include "VertexSelectionHelpers.h"
+#include "DuplicateEventHandler.h"
 #include "TopnessCalculator.h"
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"
