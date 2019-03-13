@@ -43,6 +43,7 @@ namespace SampleHelpers{
   extern TString theInputDirectory;
 
   bool testDataPeriodIsLikeData();
+  float getIntegratedLuminosity(TString const& period);
 
 }
 

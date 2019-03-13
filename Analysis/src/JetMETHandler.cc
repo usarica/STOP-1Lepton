@@ -344,8 +344,18 @@ bool JetMETHandler::constructMET(){
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
   metobj = new METObject;
-  metobj->extras.met = metobj->extras.met_JECup = metobj->extras.met_JECdn = metobj->extras.met_raw = metraw;
-  metobj->extras.phi = metobj->extras.phi_JECup = metobj->extras.phi_JECdn = metobj->extras.phi_raw = metrawPhi;
+  metobj->extras.met
+    = metobj->extras.met_METup = metobj->extras.met_METdn
+    = metobj->extras.met_JECup = metobj->extras.met_JECdn
+    = metobj->extras.met_JERup = metobj->extras.met_JERdn
+    = metobj->extras.met_PUup = metobj->extras.met_PUdn
+    = metobj->extras.met_raw = metraw;
+  metobj->extras.phi
+    = metobj->extras.phi_METup = metobj->extras.phi_METdn
+    = metobj->extras.phi_JECup = metobj->extras.phi_JECdn
+    = metobj->extras.phi_JERup = metobj->extras.phi_JERdn
+    = metobj->extras.phi_PUup = metobj->extras.phi_PUdn
+    = metobj->extras.phi_raw = metrawPhi;
   metobj->extras.met_original = metoriginal;
   metobj->extras.phi_original = metoriginalPhi;
 
@@ -485,8 +495,15 @@ bool JetMETHandler::applyJEC(){
       CMSLorentzVector v_met_JEC = v_met - shiftedSum_nominal + shiftedSum_L1only;
       CMSLorentzVector v_met_JECup = v_met - shiftedSum_JECup + shiftedSum_L1only;
       CMSLorentzVector v_met_JECdn = v_met - shiftedSum_JECdn + shiftedSum_L1only;
-      metobj->extras.met = v_met_JEC.Pt();
-      metobj->extras.phi = v_met_JEC.Phi();
+      metobj->extras.met
+        = metobj->extras.met_METup = metobj->extras.met_METdn
+        = metobj->extras.met_JERup = metobj->extras.met_JERdn
+        = metobj->extras.met_PUup = metobj->extras.met_PUdn
+        = v_met_JEC.Pt();
+      metobj->extras.phi
+        = metobj->extras.phi_JERup = metobj->extras.phi_JERdn
+        = metobj->extras.phi_PUup = metobj->extras.phi_PUdn
+        = v_met_JEC.Phi();
       metobj->extras.met_JECup = v_met_JECup.Pt();
       metobj->extras.phi_JECup = v_met_JECup.Phi();
       metobj->extras.met_JECdn = v_met_JECdn.Pt();

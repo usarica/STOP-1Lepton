@@ -16,6 +16,7 @@ protected:
   bool doElectrons;
   bool doPhotons;
   bool doJetMET;
+  bool doCorrectedMET;
   bool doIsoTracks;
   bool doTaus;
   bool recordIsoTracks;
@@ -41,6 +42,7 @@ public:
   void setElectronsFlag(bool flag){ doElectrons = flag; }
   void setPhotonsFlag(bool flag){ doPhotons = flag; }
   void setJetMETFlag(bool flag){ doJetMET = flag; }
+  void setCorrectedMETFlag(bool flag){ doCorrectedMET = flag; }
   void setIsoTracksFlag(bool flag){ doIsoTracks = flag; }
   void setTausFlag(bool flag){ doTaus = flag; }
   void setRecordIsoTracksFlag(bool flag){ recordIsoTracks = flag; }

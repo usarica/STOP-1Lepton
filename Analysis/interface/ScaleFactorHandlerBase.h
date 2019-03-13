@@ -6,11 +6,15 @@
 #include "TH1D.h"
 #include "TH2F.h"
 #include "TString.h"
+#include "TVar.hh"
 
 
 class ScaleFactorHandlerBase{
+protected:
+  TVar::VerbosityLevel verbosity;
+
 public:
-  ScaleFactorHandlerBase(){}
+  ScaleFactorHandlerBase() : verbosity(TVar::ERROR){}
   virtual ~ScaleFactorHandlerBase(){}
 
   static void closeFile(TFile*& f);
@@ -18,6 +22,10 @@ public:
 
   virtual bool setup() = 0;
   virtual void reset() = 0;
+
+  // Verbosity
+  void setVerbosity(TVar::VerbosityLevel flag){ verbosity=flag; }
+  TVar::VerbosityLevel getVerbosity() const{ return verbosity; }
 
 };
 

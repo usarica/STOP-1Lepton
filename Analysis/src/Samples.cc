@@ -2,6 +2,8 @@
 #include <string>
 #include <stdexcept>
 #include "Samples.h"
+#include "MELAStreamHelpers.hh"
+
 
 namespace SampleHelpers{
   int theDataYear=2016;
@@ -9,6 +11,11 @@ namespace SampleHelpers{
   TString theDataPeriod="2016"; // Initialize the extern here to 2016
   TString theInputDirectory=""; // Initialize the extern here to empty string
 }
+
+
+using namespace std;
+using namespace MELAStreamHelpers;
+
 
 bool SampleHelpers::testDataPeriodIsLikeData(){
   int try_year=-1;
@@ -31,3 +38,32 @@ bool SampleHelpers::testDataPeriodIsLikeData(){
   else return false;
 }
 
+float SampleHelpers::getIntegratedLuminosity(TString const& period){
+  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
+  if (period == "2016") return 35.882515397;
+  else if (period == "2016B") return 5.711130443;
+  else if (period == "2016C") return 2.572903492;
+  else if (period == "2016D") return 4.242291558;
+  else if (period == "2016E") return 4.025228139;
+  else if (period == "2016F") return 3.104509131;
+  else if (period == "2016G") return 7.575824256;
+  else if (period == "2016H") return 8.650628378;
+  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt
+  else if (period == "2017") return 41.529152052;
+  else if (period == "2017B") return 4.793969901;
+  else if (period == "2017C") return 9.632746391;
+  else if (period == "2017D") return 4.247792713;
+  else if (period == "2017E") return 9.314581018;
+  else if (period == "2017F") return 13.540062029;
+  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PREAPPROVED.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt
+  else if (period == "2018") return 59.709428875;
+  else if (period == "2018A") return 13.977900815;
+  else if (period == "2018B") return 7.063759976;
+  else if (period == "2018C") return 6.920186210;
+  else if (period == "2018D") return 31.747581874;
+  else{
+    MELAerr << "SampleHelpers::getIntegratedLuminosity(" << period << "): Period is not defined." << endl;
+    assert(0);
+    return -1;
+  }
+}

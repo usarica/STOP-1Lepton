@@ -14,6 +14,7 @@
 #include "MuonScaleFactorHandler.h"
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
+#include "METCorrectionHandler.h"
 #include "PUScaleFactorHandler.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
@@ -43,6 +44,7 @@ GenericEventAnalyzer::GenericEventAnalyzer() :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doCorrectedMET(true),
   doIsoTracks(true),
   doTaus(true),
   recordIsoTracks(true),
@@ -62,6 +64,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doCorrectedMET(true),
   doIsoTracks(true),
   doTaus(true),
   recordIsoTracks(true),
@@ -81,6 +84,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& in
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doCorrectedMET(true),
   doIsoTracks(true),
   doTaus(true),
   recordIsoTracks(true),
@@ -100,6 +104,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
   doElectrons(true),
   doPhotons(true),
   doJetMET(true),
+  doCorrectedMET(true),
   doIsoTracks(true),
   doTaus(true),
   recordIsoTracks(true),
@@ -145,12 +150,14 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   ElectronScaleFactorHandler* eleSFHandler=nullptr;
   PhotonScaleFactorHandler* photonSFHandler=nullptr;
   PUScaleFactorHandler* puSFHandler=nullptr;
+  METCorrectionHandler* metCorrHandler=nullptr;
   if (tree->isMC()){
     for (auto it=this->externalScaleFactorHandlers.begin(); it!=this->externalScaleFactorHandlers.end(); it++){
       if (doMuons){ MuonScaleFactorHandler* tmp_sfs = dynamic_cast<MuonScaleFactorHandler*>(it->second); if (!muonSFHandler && tmp_sfs){ muonSFHandler = tmp_sfs; } }
       if (doElectrons){ ElectronScaleFactorHandler* tmp_sfs = dynamic_cast<ElectronScaleFactorHandler*>(it->second); if (!eleSFHandler && tmp_sfs){ eleSFHandler = tmp_sfs; } }
       if (doPhotons){ PhotonScaleFactorHandler* tmp_sfs = dynamic_cast<PhotonScaleFactorHandler*>(it->second); if (!photonSFHandler && tmp_sfs){ photonSFHandler = tmp_sfs; } }
-      if (doVertexPUInfos){ PUScaleFactorHandler* tmp_ivy = dynamic_cast<PUScaleFactorHandler*>(it->second); if (!puSFHandler && tmp_ivy){ puSFHandler = tmp_ivy; } }
+      if (doVertexPUInfos){ PUScaleFactorHandler* tmp_sfs = dynamic_cast<PUScaleFactorHandler*>(it->second); if (!puSFHandler && tmp_sfs){ puSFHandler = tmp_sfs; } }
+      if (doJetMET && doCorrectedMET){ METCorrectionHandler* tmp_sfs = dynamic_cast<METCorrectionHandler*>(it->second); if (!metCorrHandler && tmp_sfs){ metCorrHandler = tmp_sfs; } }
     }
   }
 
@@ -192,6 +199,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     MELAerr << "GenericEventAnalyzer::runEvent: Weight handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
     return validProducts;
   }
+  GenEventInfo const* genInfo = nullptr;
   if (genInfoHandler && tree->isMC()){
     validProducts &= genInfoHandler->constructGenInfo();
     if (!validProducts){
@@ -199,7 +207,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       return validProducts;
     }
 
-    GenEventInfo const* genInfo = genInfoHandler->getGenInfo();
+    genInfo = genInfoHandler->getGenInfo();
     if (genInfo){
       product.setNamedVal("pid", genInfo->processID);
       product.setNamedVal("qScale", genInfo->qscale);
@@ -928,6 +936,11 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     MELAerr << "GenericEventAnalyzer::runEvent: JetMET handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
     return validProducts;
   }
+  validProducts &= (!jetHandler || tree->isData() || !doCorrectedMET || metCorrHandler!=nullptr);
+  if (!validProducts){
+    MELAerr << "GenericEventAnalyzer::runEvent: MET correction is enabled in the MC, but there is no MET corrector (Tree: " << tree->sampleIdentifier << ")." << endl;
+    return validProducts;
+  }
   if (jetHandler){
     jetHandler->registerParticles(&muons, &electrons, &photons);
     validProducts &= jetHandler->constructJetMET();
@@ -940,10 +953,12 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<AK4JetObject*> const& ak4jets = jetHandler->getAK4Jets();
     std::vector<AK8JetObject*> const& ak8jets = jetHandler->getAK8Jets();
     std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
-    METObject const* metobject = jetHandler->getMET();
+    METObject* metobject = jetHandler->getMET();
     if (jetHandler->getMETFlag()){
       product.setNamedVal("pfmet_original", metobject->extras.met_original);
       product.setNamedVal("pfmetPhi_original", metobject->extras.phi_original);
+      product.setNamedVal("pfmet_raw", metobject->extras.met_raw);
+      product.setNamedVal("pfmetPhi_raw", metobject->extras.phi_raw);
       product.setNamedVal("pfmet", metobject->extras.met);
       product.setNamedVal("pfmetPhi", metobject->extras.phi);
       if (tree->isMC()){
@@ -952,6 +967,37 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("pfmet_JECdn", metobject->extras.met_JECdn);
         product.setNamedVal("pfmetPhi_JECdn", metobject->extras.phi_JECdn);
       }
+      if (doCorrectedMET){
+        if (metCorrHandler){
+          if (genInfo) metCorrHandler->correctMET(genInfo->genMET, genInfo->genMETPhi, metobject, tree->isFastSim());
+          else{
+            MELAerr << "GenericEventAnalyzer::runEvent: Cannot correct the MC MET because the genInfo object is missing! Either disable MET correction or add the gen. info. handler." << endl;
+            validProducts &= (genInfo!=nullptr);
+            return validProducts;
+          }
+        }
+        // Correction overwrites the variables, so the same variables should be used as reference with a different variable name.
+        product.setNamedVal("pfmet_corrected", metobject->extras.met);
+        product.setNamedVal("pfmetPhi_corrected", metobject->extras.phi);
+        if (tree->isMC()){
+          product.setNamedVal("pfmet_corrected_METup", metobject->extras.met_METup);
+          product.setNamedVal("pfmetPhi_corrected_METup", metobject->extras.phi_METup);
+          product.setNamedVal("pfmet_corrected_METdn", metobject->extras.met_METdn);
+          product.setNamedVal("pfmetPhi_corrected_METdn", metobject->extras.phi_METdn);
+          product.setNamedVal("pfmet_corrected_JECup", metobject->extras.met_JECup);
+          product.setNamedVal("pfmetPhi_corrected_JECup", metobject->extras.phi_JECup);
+          product.setNamedVal("pfmet_corrected_JECdn", metobject->extras.met_JECdn);
+          product.setNamedVal("pfmetPhi_corrected_JECdn", metobject->extras.phi_JECdn);
+          product.setNamedVal("pfmet_corrected_JERup", metobject->extras.met_JERup);
+          product.setNamedVal("pfmetPhi_corrected_JERup", metobject->extras.phi_JERup);
+          product.setNamedVal("pfmet_corrected_JERdn", metobject->extras.met_JERdn);
+          product.setNamedVal("pfmetPhi_corrected_JERdn", metobject->extras.phi_JERdn);
+          product.setNamedVal("pfmet_corrected_PUup", metobject->extras.met_PUup);
+          product.setNamedVal("pfmetPhi_corrected_PUup", metobject->extras.phi_PUup);
+          product.setNamedVal("pfmet_corrected_PUdn", metobject->extras.met_PUdn);
+          product.setNamedVal("pfmetPhi_corrected_PUdn", metobject->extras.phi_PUdn);
+        }
+      }
     }
 
     // GenJets
@@ -959,19 +1005,21 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<float> genjets_eta;
     std::vector<float> genjets_phi;
     std::vector<float> genjets_mass;
-    for (GenJetObject const* jet:genjets){
-      if (!jet) continue;
-      CMSLorentzVector const& momentum = jet->momentum;
-      genjets_pt.push_back(momentum.Pt());
-      genjets_eta.push_back(momentum.Eta());
-      genjets_phi.push_back(momentum.Phi());
-      genjets_mass.push_back(momentum.M());
-    }
-    if (jetHandler->getGenJetsFlag() && tree->isMC()){
-      product.setNamedVal("genjets_pt", genjets_pt);
-      product.setNamedVal("genjets_eta", genjets_eta);
-      product.setNamedVal("genjets_phi", genjets_phi);
-      product.setNamedVal("genjets_mass", genjets_mass);
+    if (tree->isMC()){
+      for (GenJetObject const* jet:genjets){
+        if (!jet) continue;
+        CMSLorentzVector const& momentum = jet->momentum;
+        genjets_pt.push_back(momentum.Pt());
+        genjets_eta.push_back(momentum.Eta());
+        genjets_phi.push_back(momentum.Phi());
+        genjets_mass.push_back(momentum.M());
+      }
+      if (jetHandler->getGenJetsFlag()){
+        product.setNamedVal("genjets_pt", genjets_pt);
+        product.setNamedVal("genjets_eta", genjets_eta);
+        product.setNamedVal("genjets_phi", genjets_phi);
+        product.setNamedVal("genjets_mass", genjets_mass);
+      }
     }
 
     // AK4Jets

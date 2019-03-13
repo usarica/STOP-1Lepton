@@ -10,10 +10,22 @@ public:
   float phi_original;
   float met;
   float phi;
+  float met_METup;
+  float phi_METup;
+  float met_METdn;
+  float phi_METdn;
   float met_JECup;
   float phi_JECup;
   float met_JECdn;
   float phi_JECdn;
+  float met_JERup;
+  float phi_JERup;
+  float met_JERdn;
+  float phi_JERdn;
+  float met_PUup;
+  float phi_PUup;
+  float met_PUdn;
+  float phi_PUdn;
 
   METVariables();
   METVariables(METVariables const& other);

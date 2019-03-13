@@ -25,6 +25,7 @@
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
 #include "PUScaleFactorHandler.h"
+#include "METCorrectionHandler.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
 #include "PhotonSelectionHelpers.h"

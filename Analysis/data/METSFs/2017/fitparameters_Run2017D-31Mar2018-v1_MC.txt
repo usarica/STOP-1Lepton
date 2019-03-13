@@ -1,0 +1,66 @@
+****************************
+Final fitted parameters for systematic Nominal in data:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 0.0221299
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 31.6078 +- 0.196346
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 71.1154 +- 1.66401
+****************************
+****************************
+Final fitted parameters for systematic Nominal in MC:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 1.31619e-05
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 33.0088 +- 0.193352
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 62.5188 +- 4.17957
+****************************
+****************************
+Final fitted parameters for systematic JECup in MC:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 1.36292e-07
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 33.8482 +- 0.362115
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 62.8733 +- 7.41984
+****************************
+****************************
+Final fitted parameters for systematic JECdn in MC:
+	- Mean 1: 0
+	- Sigma 1: 19.9874 +- 0.0516348
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 32.3244 +- 0.558268
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 62.3469 +- 10.2698
+****************************
+****************************
+Final fitted parameters for systematic JERup in MC:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 2.40647e-06
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 32.9056 +- 0.201673
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 62.0603 +- 4.2349
+****************************
+****************************
+Final fitted parameters for systematic JERdn in MC:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 5.02614e-06
+	- Frac 1: 0.454436 +- 0.0100304
+	- Mean 2: 0
+	- Sigma 2: 33.1298 +- 0.416057
+	- Frac 2: 0.975934 +- 0.00203298
+	- Mean 3: 0
+	- Sigma 3: 62.4032 +- 8.21628
+****************************
