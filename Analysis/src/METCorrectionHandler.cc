@@ -7,8 +7,6 @@
 #include "TDirectory.h"
 #include "TRandom3.h"
 
-//#define INCLUDE_PU_SYST
-
 
 using namespace std;
 using namespace SampleHelpers;
@@ -73,10 +71,7 @@ void METCorrectionHandler::readFile(TString const& strinput){
 
   // Notice that the systematics list does not contain eMETUp and eMETDn. This is because MET up and down variations involve varying the nominal values by the given errors.
   std::vector<SystematicVariationTypes> const validSysts={
-    sNominal, eJECUp, eJECDn, eJERUp, eJERDn
-#ifdef INCLUDE_PU_SYST
-    , ePUUp, ePUDn
-#endif
+    sNominal, eJECUp, eJECDn, eJERUp, eJERDn, ePUUp, ePUDn
   };
   const size_t nCopies = validSysts.size()+1;
   vector<pair<float, float>> value_error_S1; value_error_S1.reserve(nCopies);
@@ -142,10 +137,7 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
   if (!obj) return;
 
   std::vector<SystematicVariationTypes> const validSysts={
-    sNominal, eMETDn, eMETUp, eJECDn, eJECUp, eJERDn, eJERUp
-#ifdef INCLUDE_PU_SYST
-    , ePUDn, ePUUp
-#endif
+    sNominal, eMETDn, eMETUp, eJECDn, eJECUp, eJERDn, eJERUp, ePUDn, ePUUp
   };
   const TLorentzVector v_genMET(genMET*cos(genMETPhi), genMET*sin(genMETPhi), 0, genMET);
 
@@ -269,10 +261,7 @@ void METCorrectionHandler::printParameters() const{
   }
 
   std::vector<SystematicVariationTypes> const validSysts={
-    sNominal, eJECDn, eJECUp, eJERDn, eJERUp
-#ifdef INCLUDE_PU_SYST
-    , ePUDn, ePUUp
-#endif
+    sNominal, eJECDn, eJECUp, eJERDn, eJERUp, ePUDn, ePUUp
   };
   for (auto const& syst:validSysts){
     i_era=0;

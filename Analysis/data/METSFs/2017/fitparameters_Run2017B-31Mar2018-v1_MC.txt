@@ -1,5 +1,6 @@
 ****************************
 Final fitted parameters for systematic Nominal in data:
+	- Nevents: 702174
 	- Mean 1: 0
 	- Sigma 1: 20 +- 0.0513626
 	- Frac 1: 0.425558 +- 0.0156119
@@ -12,10 +13,10 @@ Final fitted parameters for systematic Nominal in data:
 ****************************
 Final fitted parameters for systematic Nominal in MC:
 	- Mean 1: 0
-	- Sigma 1: 19.8846 +- 0.462777
+	- Sigma 1: 19.8846 +- 0.462772
 	- Frac 1: 0.425558 +- 0.0156119
 	- Mean 2: 0
-	- Sigma 2: 32.3636 +- 0.842056
+	- Sigma 2: 32.3636 +- 0.84205
 	- Frac 2: 0.969632 +- 0.00277681
 	- Mean 3: 0
 	- Sigma 3: 59.9135 +- 10.5004
@@ -23,7 +24,7 @@ Final fitted parameters for systematic Nominal in MC:
 ****************************
 Final fitted parameters for systematic JECup in MC:
 	- Mean 1: 0
-	- Sigma 1: 20 +- 4.04294e-05
+	- Sigma 1: 20 +- 4.03687e-05
 	- Frac 1: 0.425558 +- 0.0156119
 	- Mean 2: 0
 	- Sigma 2: 33.134 +- 0.813539
@@ -56,11 +57,33 @@ Final fitted parameters for systematic JERup in MC:
 ****************************
 Final fitted parameters for systematic JERdn in MC:
 	- Mean 1: 0
-	- Sigma 1: 19.9501 +- 0.357782
+	- Sigma 1: 19.9501 +- 0.357778
 	- Frac 1: 0.425558 +- 0.0156119
 	- Mean 2: 0
-	- Sigma 2: 32.4517 +- 0.661225
+	- Sigma 2: 32.4517 +- 0.661222
 	- Frac 2: 0.969632 +- 0.00277681
 	- Mean 3: 0
-	- Sigma 3: 59.9532 +- 7.88586
+	- Sigma 3: 59.9532 +- 7.88585
+****************************
+****************************
+Final fitted parameters for systematic PUup in MC:
+	- Mean 1: 0
+	- Sigma 1: 20 +- 6.32977e-07
+	- Frac 1: 0.425558 +- 0.0156119
+	- Mean 2: 0
+	- Sigma 2: 33.2298 +- 0.466583
+	- Frac 2: 0.969632 +- 0.00277681
+	- Mean 3: 0
+	- Sigma 3: 59.9635 +- 6.82826
+****************************
+****************************
+Final fitted parameters for systematic PUdn in MC:
+	- Mean 1: 0
+	- Sigma 1: 19.4155 +- 0.67622
+	- Frac 1: 0.425558 +- 0.0156119
+	- Mean 2: 0
+	- Sigma 2: 31.6208 +- 1.21844
+	- Frac 2: 0.969632 +- 0.00277681
+	- Mean 3: 0
+	- Sigma 3: 59.0484 +- 14.3509
 ****************************
