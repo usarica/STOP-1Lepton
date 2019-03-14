@@ -32,6 +32,10 @@ bool METCorrectionHandler::setup(){
   this->reset();
 
   TString strdatacore = Form("%s%s/%i/", STOP1LPKGDATAPATH.Data(), "METSFs", theDataYear);
+  if (theDataPeriod == ""){
+    MELAerr << "METCorrectionHandler::setup: Need to have a valid data period set." << endl;
+    assert(0);
+  }
   if (theDataYear == 2017){
     applyCorrection = true;
     // 5 here corresponds to the number of data eras, not the number of parameters, which is also 5 coincidentally.
@@ -45,11 +49,16 @@ bool METCorrectionHandler::setup(){
     values_MC_map[eJERUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERUp].reserve(5);
     values_MC_map[ePUDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUDn].reserve(5);
     values_MC_map[ePUUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUUp].reserve(5);
-    this->readFile(strdatacore+"fitparameters_Run2017B-31Mar2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017B"));
-    this->readFile(strdatacore+"fitparameters_Run2017C-31Mar2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017C"));
-    this->readFile(strdatacore+"fitparameters_Run2017D-31Mar2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017D"));
-    this->readFile(strdatacore+"fitparameters_Run2017E-31Mar2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017E"));
-    this->readFile(strdatacore+"fitparameters_Run2017F-31Mar2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017F"));
+    for (TString const& period:getValidDataPeriods()){
+      if (theDataPeriod == "2017" || theDataPeriod == period){
+        if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period " << period << "..." << endl;
+        this->readFile(strdatacore+Form("fitparameters_Run%s-31Mar2018-v1_MC.txt", period.Data())); lumilist.push_back(getIntegratedLuminosity(period));
+      }
+    }
+    if (theDataPeriod == "2017F-09May2018"){
+      if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period Run2017F-09May2018..." << endl;
+      this->readFile(strdatacore+"fitparameters_Run2017F-09May2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017F"));
+    }
     // Accumulate integrated luminosity and divide by the last one
     for (unsigned int il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
     for (unsigned int il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
@@ -151,7 +160,11 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
     i_era++;
     if (era_x<=lumi_era) break;
   }
-  if (i_era>=(int) values_data_map.size()){
+  if (i_era<0){
+    MELAerr << "METCorrectionHandler::correctMET: i_era = " << i_era << " < 0." << endl;
+    assert(0);
+  }
+  else if (i_era>=(int) values_data_map.size()){
     MELAerr << "METCorrectionHandler::correctMET: i_era = " << i_era << " >= size of eras = " << values_data_map.size() << endl;
     assert(0);
   }
@@ -164,6 +177,7 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
 
   if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The i_era and i_frac random numbers: " << i_era << ", " << i_frac << endl;
 
+  bool correctUpperError=false;
   float* met_value=nullptr;
   float* phi_value=nullptr;
   for (auto& syst:validSysts){
@@ -222,6 +236,7 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
     if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The old MET vector: " << v_MET << endl;
 
     v_MET = v_MET - v_genMET;
+    //v_MET = v_MET - TLorentzVector(genMET*cos(*phi_value), genMET*sin(*phi_value), 0, genMET);
     if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The MET difference vector: " << v_MET << endl;
 
     auto const& mc_values = values_MC_map.find(systEff)->second;
@@ -235,7 +250,11 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
       data_sigma += data_values.at(i_frac).second;
       mc_sigma -= mc_values.at(i_era).at(i_frac).second;
     }
+
     float scale = data_sigma/mc_sigma;
+    if (syst == sNominal) correctUpperError = (scale<1.f);
+    if (correctUpperError && syst == eMETUp && scale<1.f) scale = 1.f;
+
     if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The MET scale for systematic " << syst << ": " << data_sigma << " / " << mc_sigma << " = " << scale << endl;
 
     v_MET *= scale;

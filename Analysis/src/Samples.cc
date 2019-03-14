@@ -38,6 +38,18 @@ bool SampleHelpers::testDataPeriodIsLikeData(){
   else return false;
 }
 
+std::vector<TString> SampleHelpers::getValidDataPeriods(){
+  std::vector<TString> res;
+  if (theDataYear == 2016) res = std::vector<TString>{ "2016B", "2016C", "2016D", "2016E", "2016F", "2016G", "2016H" };
+  else if (theDataYear == 2017) res = std::vector<TString>{ "2017B", "2017C", "2017D", "2017E", "2017F" };
+  else if (theDataYear == 2018) res = std::vector<TString>{ "2018A", "2018B", "2018C", "2018D" };
+  else{
+    MELAerr << "SampleHelpers::getValidDataPeriods: Data periods for year " << theDataYear << " are undefined." << endl;
+    assert(0);
+  }
+  return res;
+}
+
 float SampleHelpers::getIntegratedLuminosity(TString const& period){
   // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
   if (period == "2016") return 35.882515397;

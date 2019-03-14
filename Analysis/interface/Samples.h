@@ -3,6 +3,7 @@
 
 #include "HostHelpersCore.h"
 #include <string>
+#include <vector>
 
 // Package directory
 #ifndef xstr_lit
@@ -42,9 +43,9 @@ namespace SampleHelpers{
   extern TString theDataPeriod;
   extern TString theInputDirectory;
 
+  std::vector<TString> getValidDataPeriods();
   bool testDataPeriodIsLikeData();
   float getIntegratedLuminosity(TString const& period);
-
 }
 
 #endif

@@ -1593,12 +1593,12 @@ void getMCHistograms_1D(
   TString const& strinputcore, std::vector<TString> const& sampleList_MC, std::vector<Variable>& varlist, std::vector<std::vector<std::vector<TH1F>>>& hMClist,
   std::vector<TH3F*>* hscale=nullptr,
   std::vector<TH3F*>* hresscale=nullptr,
-  TTree* tin=nullptr
+  TTree* tin=nullptr,
+  METCorrectionHandler* metCorrector=nullptr
 ){
   const size_t nSysts = 7;
-  if (hscale){
-    assert(hscale.size()==nSysts+1);
-  }
+  if (hscale) assert(hscale.size()==nSysts+1);
+  if (hresscale) assert(hresscale.size()==nSysts+1);
   hMClist = std::vector<std::vector<std::vector<TH1F>>>(sampleList_MC.size(), vector<vector<TH1F>>(nSysts, vector<TH1F>()));
 
   for (size_t is=0; is<sampleList_MC.size(); is++){
@@ -1663,6 +1663,9 @@ void getMCHistograms_1D(
     DATA_SIMPLE(float, weight_PU_SFUp);
     DATA_SIMPLE(float, weight_PU_SFDn);
 
+    DATA_SIMPLE(float, genMET);
+    DATA_SIMPLE(float, genMETPhi);
+
     DATA_SIMPLE(float, photon_pt);
 
     DATA_SIMPLE(unsigned int, nak4jets_preselected);
@@ -1684,6 +1687,7 @@ void getMCHistograms_1D(
     DATA_SIMPLE(float, jetHT_JERdn);
 
     DATA_SIMPLE(float, pfmet); DATA_SIMPLE(float, pfmet_JECup); DATA_SIMPLE(float, pfmet_JECdn);
+    DATA_SIMPLE(float, pfmetPhi); DATA_SIMPLE(float, pfmetPhi_JECup); DATA_SIMPLE(float, pfmetPhi_JECdn);
     DATA_SIMPLE(float, MET_Parallel); DATA_SIMPLE(float, MET_Perp);
     DATA_SIMPLE(float, MET_Parallel_JECup); DATA_SIMPLE(float, MET_Perp_JECup);
     DATA_SIMPLE(float, MET_Parallel_JECdn); DATA_SIMPLE(float, MET_Perp_JECdn);
@@ -1722,6 +1726,26 @@ void getMCHistograms_1D(
       tree->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
 
+      float photon_phi = pfmetPhi - atan2(MET_Perp, MET_Parallel);
+
+      // If a corrector is available, correct the MET before looping over systematics
+      METObject metobj;
+      metobj.extras.met
+        = metobj.extras.met_METup = metobj.extras.met_METdn
+        = metobj.extras.met_JERup = metobj.extras.met_JERdn
+        = metobj.extras.met_PUup = metobj.extras.met_PUdn
+        = pfmet;
+      metobj.extras.met_JECup = pfmet_JECup;
+      metobj.extras.met_JECdn = pfmet_JECdn;
+      metobj.extras.phi
+        = metobj.extras.phi_METup = metobj.extras.phi_METdn
+        = metobj.extras.phi_JERup = metobj.extras.phi_JERdn
+        = metobj.extras.phi_PUup = metobj.extras.phi_PUdn
+        = pfmetPhi;
+      metobj.extras.phi_JECup = pfmetPhi_JECup;
+      metobj.extras.phi_JECdn = pfmetPhi_JECdn;
+      if (metCorrector) metCorrector->correctMET(genMET, genMETPhi, &metobj, false);
+
       for (unsigned int isyst=0; isyst<nSysts; isyst++){
         float totwgt = genweights.at(0)*weight_photons*xsec*overallWeight.at(isyst);
         if (isyst<5) totwgt *= weight_PU;
@@ -1734,6 +1758,8 @@ void getMCHistograms_1D(
         float* uPerp_ptr = &uPerp;
         float* jetHT_ptr = &jetHT;
         float* pfmet_ptr = &pfmet;
+        float* pfmet_corrected_ptr = &metobj.extras.met;
+        float* pfmetPhi_corrected_ptr = &metobj.extras.phi;
         float* MET_Parallel_ptr = &MET_Parallel;
         float* MET_Perp_ptr = &MET_Perp;
         switch (isyst){
@@ -1743,6 +1769,8 @@ void getMCHistograms_1D(
           uPerp_ptr = &uPerp_JECup;
           jetHT_ptr = &jetHT_JECup;
           pfmet_ptr = &pfmet_JECup;
+          pfmet_corrected_ptr = &metobj.extras.met_JECup;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_JECup;
           MET_Parallel_ptr = &MET_Parallel_JECup;
           MET_Perp_ptr = &MET_Perp_JECup;
           break;
@@ -1752,6 +1780,8 @@ void getMCHistograms_1D(
           uPerp_ptr = &uPerp_JECdn;
           jetHT_ptr = &jetHT_JECdn;
           pfmet_ptr = &pfmet_JECdn;
+          pfmet_corrected_ptr = &metobj.extras.met_JECdn;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_JECdn;
           MET_Parallel_ptr = &MET_Parallel_JECdn;
           MET_Perp_ptr = &MET_Perp_JECdn;
           break;
@@ -1760,14 +1790,34 @@ void getMCHistograms_1D(
           uParallel_ptr = &uParallel_JERup;
           uPerp_ptr = &uPerp_JERup;
           jetHT_ptr = &jetHT_JERup;
+          pfmet_corrected_ptr = &metobj.extras.met_JERup;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_JERup;
           break;
         case 4:
           nak4jets_preselected_ptr = &nak4jets_preselected_JERdn;
           uParallel_ptr = &uParallel_JERdn;
           uPerp_ptr = &uPerp_JERdn;
           jetHT_ptr = &jetHT_JERdn;
+          pfmet_corrected_ptr = &metobj.extras.met_JERdn;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_JERdn;
+          break;
+        case 5:
+          pfmet_corrected_ptr = &metobj.extras.met_PUup;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_PUup;
+          break;
+        case 6:
+          pfmet_corrected_ptr = &metobj.extras.met_PUdn;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_PUdn;
           break;
         }
+
+        float MET_Perp_corrected=0;
+        float MET_Parallel_corrected=0;
+        get2DParallelAndPerpendicularComponents(
+          TVector3(photon_pt*cos(photon_phi), photon_pt*sin(photon_phi), 0),
+          TVector3((*pfmet_corrected_ptr)*cos(*pfmetPhi_corrected_ptr), (*pfmet_corrected_ptr)*sin(*pfmetPhi_corrected_ptr), 0),
+          MET_Parallel_corrected, MET_Perp_corrected
+        );
 
         if (hscale){
           int bx_MC = hscale->at(isyst)->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
@@ -1853,8 +1903,11 @@ void getMCHistograms_1D(
             else{
               if (photon_pt<130.f) continue;
               if (var.name == "pfmet") var.setVal(*pfmet_ptr, 1);
+              else if (var.name == "pfmet_corrected") var.setVal(*pfmet_corrected_ptr, 1);
               else if (var.name == "MET_Parallel") var.setVal(*MET_Parallel_ptr, 1);
               else if (var.name == "MET_Perp") var.setVal(*MET_Perp_ptr, 1);
+              else if (var.name == "MET_Parallel_corrected") var.setVal(MET_Parallel_corrected, 1);
+              else if (var.name == "MET_Perp_corrected") var.setVal(MET_Perp_corrected, 1);
               else if (var.name == "uParallel") var.setVal(*uParallel_ptr, 1);
               else if (var.name == "uPerp") var.setVal(*uPerp_ptr, 1);
               else if (var.name == "uT") var.setVal(sqrt(pow(*uPerp_ptr, 2)+pow(*uParallel_ptr, 2)), 1);
@@ -2473,7 +2526,7 @@ void fitFinalGammaTrees(){
           RooCmdArg initialhesseArg = RooFit::InitialHesse(true);// cmdList.Add((TObject*) &initialhesseArg);
           RooCmdArg minosArg = RooFit::Minos(true);// cmdList.Add((TObject*) &minosArg);
           //RooCmdArg minimizerArg = RooFit::Minimizer("Minuit", "migrad"); cmdList.Add((TObject*)&minimizerArg);
-          RooCmdArg minimizerStrategyArg = RooFit::Strategy(1); cmdList.Add((TObject*) &minimizerStrategyArg);
+          RooCmdArg minimizerStrategyArg = RooFit::Strategy((it==0 ? 2 : 1)); cmdList.Add((TObject*) &minimizerStrategyArg);
           RooCmdArg cpuArg = RooFit::NumCPU(4, 0); cmdList.Add((TObject*) &cpuArg);
           // Misc. options
           RooCmdArg timerArg = RooFit::Timer(true); cmdList.Add((TObject*) &timerArg);
@@ -2676,4 +2729,159 @@ void fitFinalGammaTrees(){
     }
     finput->Close();
   }
+}
+
+void checkCorrectedMETDistributions(){
+  std::vector<TString> sampleList_Data={
+    "Run2017B-31Mar2018-v1",
+    "Run2017C-31Mar2018-v1",
+    "Run2017D-31Mar2018-v1",
+    "Run2017E-31Mar2018-v1",
+    "Run2017F-31Mar2018-v1",
+    "Run2017F-09May2018-v1"
+  };
+  std::vector<TString> sampleList_MC={
+    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
+    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
+    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
+    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
+    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+
+    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
+    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
+
+    "TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
+    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
+    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
+    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
+    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
+    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
+
+    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
+    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
+
+    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
+    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
+    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
+    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
+    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
+    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
+    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
+  };
+
+  SampleHelpers::theDataYear=2017;
+  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+
+  METCorrectionHandler metCorrector;
+
+  std::vector<Variable> varlist={
+    Variable("pfmet", "E_{T}^{miss} (GeV)", 100, 0, 200),
+    Variable("MET_Parallel", "E_{T,//}^{miss} (GeV)", 150, -300, 300),
+    Variable("MET_Perp", "E_{T,perp}^{miss} (GeV)", 100, -200, 200),
+
+    Variable("pfmet_corrected", "E_{T}^{miss} (GeV)", 100, 0, 200),
+    Variable("MET_Parallel_corrected", "E_{T,//}^{miss} (GeV)", 150, -300, 300),
+    Variable("MET_Perp_corrected", "E_{T,perp}^{miss} (GeV)", 100, -200, 200),
+  };
+
+  TString const strinputcore = Form("output/GammaTrees/%i/[OUTFILECORE].root", SampleHelpers::theDataYear);
+  TString const strinputdatahistcore = Form("output/GammaTrees/%i/plots/compare_scaled_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
+  TString const strinputscalecore = Form("output/GammaTrees/%i/plots/scale_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
+  TString const strinputresscalecore = Form("output/GammaTrees/%i/plots/scale_residual_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
+  TString const stroutputcore = Form("output/GammaTrees/%i/plots/checkCorrectedMET_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
+
+  for (auto const& sample_data:sampleList_Data){
+    for (TString const& period:SampleHelpers::getValidDataPeriods()){
+      if (sample_data.Contains(period)) SampleHelpers::theDataPeriod = period;
+    }
+    if (sample_data.Contains("09May2018")) SampleHelpers::theDataPeriod += "-09May2018";
+    MELAout << "Data period is " << SampleHelpers::theDataPeriod << endl;
+    metCorrector.setVerbosity(TVar::DEBUG);
+    metCorrector.setup();
+    metCorrector.setVerbosity(TVar::ERROR);
+
+    TString stroutput = stroutputcore;
+    HelperFunctions::replaceString<TString, const TString>(stroutput, "[OUTFILECORE]", sample_data);
+    MELAout << "Creating output file " << stroutput << endl;
+    TFile* foutput = TFile::Open(stroutput, "recreate");
+
+    TString strinputdatahist = strinputdatahistcore;
+    HelperFunctions::replaceString<TString, const TString>(strinputdatahist, "[OUTFILECORE]", sample_data);
+    TFile* finput_datahist = TFile::Open(strinputdatahist, "read");
+    vector<TH1F*> hdatalist; hdatalist.reserve(varlist.size()/2); // Corrected or uncorrected in data are just the same
+    for (size_t iv=0; iv<varlist.size()/2; iv++) hdatalist.push_back((TH1F*) finput_datahist->Get(Form("%s_Data", varlist.at(iv).name.Data())));
+
+    TString strinputscale = strinputscalecore;
+    HelperFunctions::replaceString<TString, const TString>(strinputscale, "[OUTFILECORE]", sample_data);
+    TFile* finput_scale = TFile::Open(strinputscale, "read");
+    std::vector<TH3F*> hscale;
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_Nominal"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_JECup"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_JECdn"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_JERup"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_JERdn"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_PUup"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_totMC_PUdn"));
+    hscale.push_back((TH3F*) finput_scale->Get("nak4jets_preselected_jetHT_photon_pt_Data"));
+
+    TString strinputresscale = strinputresscalecore;
+    HelperFunctions::replaceString<TString, const TString>(strinputresscale, "[OUTFILECORE]", sample_data);
+    TFile* finput_resscale = TFile::Open(strinputresscale, "read");
+    std::vector<TH3F*> hresscale;
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_Nominal_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_JECup_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_JECdn_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_JERup_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_JERdn_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_PUup_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_totMC_PUdn_Conditional"));
+    hresscale.push_back((TH3F*) finput_resscale->Get("nak4jets_preselected_abs_uPerp_uParallel_Data_Conditional"));
+
+    foutput->cd();
+    vector<vector<vector<TH1F>>> hMClist;
+    getMCHistograms_1D(strinputcore, sampleList_MC, varlist, hMClist, &hscale, &hresscale, nullptr, &metCorrector);
+
+    for (auto*& hdata:hdatalist) foutput->WriteTObject(hdata);
+    if (!hMClist.empty()){
+      for (size_t iv=0; iv<varlist.size(); iv++){
+        auto& var = varlist.at(iv);
+
+        TH1F*& hdata = hdatalist.at(iv % (varlist.size()/2));
+
+        const size_t nSysts = hMClist.front().size();
+        for (size_t isyst=0; isyst<nSysts; isyst++){
+          TString strappend;
+          if (isyst==0) strappend="_Nominal";
+          else if (isyst==1) strappend="_JECup";
+          else if (isyst==2) strappend="_JECdn";
+          else if (isyst==3) strappend="_JERup";
+          else if (isyst==4) strappend="_JERdn";
+          else if (isyst==5) strappend="_PUup";
+          else if (isyst==6) strappend="_PUdn";
+          TH1F* htotMC_syst = (TH1F*) hdata->Clone(var.name+"_totMC"+strappend);
+          htotMC_syst->Reset("ICESM");
+          htotMC_syst->Sumw2();
+          for (auto const& vs:hMClist) htotMC_syst->Add(&(vs.at(isyst).at(iv)));
+          float dataYield = hdata->Integral(1, hdata->GetNbinsX());
+          float MCyield = htotMC_syst->Integral(1, htotMC_syst->GetNbinsX());
+          float data_MC_scale = dataYield/MCyield;
+          MELAout << "Data/MC = " << dataYield << " / " << MCyield << " = " << data_MC_scale << endl;
+          //htotMC_syst->Scale(data_MC_scale);
+          foutput->WriteTObject(htotMC_syst);
+          delete htotMC_syst;
+        }
+      }
+    }
+
+    finput_resscale->Close();
+    finput_scale->Close();
+    finput_datahist->Close();
+    foutput->Close();
+  }
+
 }
