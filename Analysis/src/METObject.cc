@@ -11,6 +11,10 @@ METVariables::METVariables() :
   phi_original(0),
   met(0),
   phi(0),
+  met_METup(0),
+  phi_METup(0),
+  met_METdn(0),
+  phi_METdn(0),
   met_JECup(0),
   phi_JECup(0),
   met_JECdn(0),
@@ -31,6 +35,10 @@ METVariables::METVariables(METVariables const& other) :
   phi_original(other.phi_original),
   met(other.met),
   phi(other.phi),
+  met_METup(other.met_METup),
+  phi_METup(other.phi_METup),
+  met_METdn(other.met_METdn),
+  phi_METdn(other.phi_METdn),
   met_JECup(other.met_JECup),
   phi_JECup(other.phi_JECup),
   met_JECdn(other.met_JECdn),
@@ -51,6 +59,10 @@ void METVariables::swap(METVariables& other){
   std::swap(phi_original, other.phi_original);
   std::swap(met, other.met);
   std::swap(phi, other.phi);
+  std::swap(met_METup, other.met_METup);
+  std::swap(phi_METup, other.phi_METup);
+  std::swap(met_METdn, other.met_METdn);
+  std::swap(phi_METdn, other.phi_METdn);
   std::swap(met_JECup, other.met_JECup);
   std::swap(phi_JECup, other.phi_JECup);
   std::swap(met_JECdn, other.met_JECdn);

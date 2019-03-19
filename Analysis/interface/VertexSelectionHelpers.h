@@ -8,7 +8,7 @@
 namespace VertexSelectionHelpers{
   constexpr float vtx_rho_thr = 2.;
   constexpr float vtx_z_thr = 24.;
-  constexpr float vtx_ndof_thr = 5.;
+  constexpr float vtx_ndof_thr = 4.;
 
   enum SelectionBits{
     kGoodVertex,

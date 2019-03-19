@@ -42,11 +42,15 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
     eraMap["2017D"] = eraMap["2017E"] = "Fall17_17Nov2017DE_V32_DATA";
     eraMap["2017F"] = "Fall17_17Nov2017F_V32_DATA";
     eraMap["2017F-09May2018"] = "Fall17_09May2018F_V3_DATA";
-    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Fall17_17Nov2017_V32_MC";
+    eraMap["MC_noFS"] = "Fall17_17Nov2017_V32_MC";
+    eraMap["MC_FS"] = "Fall17_FastsimV1";
   }
   else if (theDataYear == 2018 && theDataVersion == kCMSSW_10_X){ // FIXME: 2018 to be updated!
-    eraMap["2018A"] = eraMap["2018B"] = eraMap["2018C"] = eraMap["2018D"] = "Autumn18_V3_DATA";
-    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Autumn18_V3_MC";
+    eraMap["2018A"] = "Autumn18_RunA_V8_DATA";
+    eraMap["2018B"] = "Autumn18_RunB_V8_DATA";
+    eraMap["2018C"] = "Autumn18_RunC_V8_DATA";
+    eraMap["2018D"] = "Autumn18_RunD_V8_DATA";
+    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Autumn18_V8_MC";
   }
   else{
     MELAerr << "JECJERHelpers::getJECFilePath: Data year " << theDataYear << " and data version " << theDataVersion << " are not recognized. Aborting..." << endl;
@@ -134,8 +138,10 @@ TString JECJERHelpers::getJERFilePath(JECJERType /*type*/, bool isMC, bool /*isF
     res = "Summer16_25nsV1_";
     break;
   case 2017:
-  case 2018: // FIXME: Update for the 2018 recipe needed
     res = "Fall17_V3_";
+    break;
+  case 2018:
+    res = "Autumn18_V1_";
     break;
   default:
     MELAerr << "JECJERHelpers::getJERFilePath: Year " << theDataYear << " is unknown." << endl;
