@@ -50,6 +50,7 @@ void doFullProduction(std::string stropts){
   for (auto* tree:theSet.getFrameworkTreeList()) photonHandler.bookBranches(tree);
 
   JetMETHandler jetHandler; // Needed for gen. jets
+  METCorrectionHandler metCorrector;
   BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
   BtagScaleFactorHandler btagSFHandler_MC_FS(BtagHelpers::kDeepCSV_Medium, true);
   jetHandler.registerBtagSFHandlers(&btagSFHandler_MC_noFS, &btagSFHandler_MC_FS);
@@ -108,6 +109,7 @@ void doFullProduction(std::string stropts){
   analyzer.addExternalScaleFactorHandler("JECSFHandler_ak8", &jecSFHandler_ak8);
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak4", &jerSFHandler_ak4);
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak8", &jerSFHandler_ak8);
+  analyzer.addExternalScaleFactorHandler("METCorrectionHandler", &metCorrector);
   // Output tree setup
   analyzer.setExternalProductTree(outtree);
 

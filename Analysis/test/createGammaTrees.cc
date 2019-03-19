@@ -1596,14 +1596,17 @@ void getMCHistograms_1D(
   TTree* tin=nullptr,
   METCorrectionHandler* metCorrector=nullptr
 ){
+  MELAout << "Begin getMCHistograms_1D" << endl;
+
   const size_t nSysts = 7;
+  const size_t nSystsEff = nSysts + (metCorrector ? 2 : 0);
   if (hscale) assert(hscale.size()==nSysts+1);
   if (hresscale) assert(hresscale.size()==nSysts+1);
-  hMClist = std::vector<std::vector<std::vector<TH1F>>>(sampleList_MC.size(), vector<vector<TH1F>>(nSysts, vector<TH1F>()));
+  hMClist = std::vector<std::vector<std::vector<TH1F>>>(sampleList_MC.size(), vector<vector<TH1F>>(nSystsEff, vector<TH1F>()));
 
   for (size_t is=0; is<sampleList_MC.size(); is++){
     auto& vv=hMClist.at(is);
-    for (unsigned int isyst=0; isyst<nSysts; isyst++){
+    for (unsigned int isyst=0; isyst<nSystsEff; isyst++){
       auto& v=vv.at(isyst);
       v.reserve(varlist.size());
       for (auto& var:varlist){
@@ -1615,6 +1618,8 @@ void getMCHistograms_1D(
         else if (isyst==4) hname += "_JERdn";
         else if (isyst==5) hname += "_PUup";
         else if (isyst==6) hname += "_PUdn";
+        else if (isyst==nSysts) hname += "_METup";
+        else if (isyst==nSysts+1) hname += "_METdn";
         v.emplace_back(hname, "", var.getNbins(), var.getBinning());
         v.back().Sumw2();
         v.back().GetXaxis()->SetTitle(var.title);
@@ -1630,7 +1635,7 @@ void getMCHistograms_1D(
     TTree* tree = (TTree*) finput->Get("AnalysisTree"); tree->SetBranchStatus("*", 0);
 
     // Scale MC histograms
-    vector<float> overallWeight(nSysts, 1);
+    vector<float> overallWeight(nSystsEff, 1);
     {
       TTree* tree_md = (TTree*) finput->Get("metadata");
       float /*sumWgts=0, */sumWgts_PU=0, sumWgts_PU_SFUp=0, sumWgts_PU_SFDn=0;
@@ -1642,7 +1647,7 @@ void getMCHistograms_1D(
       tree_md->GetEntry(0);
       if (sumWgts_PU<=0.f) MELAout << "ERROR: sumWgts_PU = " << sumWgts_PU << endl;
       else{
-        for (unsigned int isyst=0; isyst<nSysts; isyst++){
+        for (unsigned int isyst=0; isyst<nSystsEff; isyst++){
           float* sumWgts_ptr = &sumWgts_PU;
           if (isyst==5) sumWgts_ptr = &sumWgts_PU_SFUp;
           else if (isyst==6) sumWgts_ptr = &sumWgts_PU_SFDn;
@@ -1746,9 +1751,9 @@ void getMCHistograms_1D(
       metobj.extras.phi_JECdn = pfmetPhi_JECdn;
       if (metCorrector) metCorrector->correctMET(genMET, genMETPhi, &metobj, false);
 
-      for (unsigned int isyst=0; isyst<nSysts; isyst++){
+      for (unsigned int isyst=0; isyst<nSystsEff; isyst++){
         float totwgt = genweights.at(0)*weight_photons*xsec*overallWeight.at(isyst);
-        if (isyst<5) totwgt *= weight_PU;
+        if (isyst<5 || isyst>=nSysts) totwgt *= weight_PU;
         else if (isyst==5) totwgt *= weight_PU_SFUp;
         else if (isyst==6) totwgt *= weight_PU_SFDn;
         else assert(0);
@@ -1809,6 +1814,14 @@ void getMCHistograms_1D(
           pfmet_corrected_ptr = &metobj.extras.met_PUdn;
           pfmetPhi_corrected_ptr = &metobj.extras.phi_PUdn;
           break;
+        case nSysts:
+          pfmet_corrected_ptr = &metobj.extras.met_METup;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_METup;
+          break;
+        case nSysts+1:
+          pfmet_corrected_ptr = &metobj.extras.met_METdn;
+          pfmetPhi_corrected_ptr = &metobj.extras.phi_METdn;
+          break;
         }
 
         float MET_Perp_corrected=0;
@@ -1819,53 +1832,68 @@ void getMCHistograms_1D(
           MET_Parallel_corrected, MET_Perp_corrected
         );
 
+        size_t isyst_rewgt=(isyst<nSysts ? isyst : 0);
         if (hscale){
-          int bx_MC = hscale->at(isyst)->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
-          int by_MC = hscale->at(isyst)->GetYaxis()->FindBin(*jetHT_ptr);
-          int bz_MC = hscale->at(isyst)->GetZaxis()->FindBin(photon_pt);
-          if (bx_MC<=0) bx_MC=1;
-          else if (bx_MC>hscale->at(isyst)->GetNbinsX()) bx_MC=hscale->at(isyst)->GetNbinsX();
-          if (by_MC<=0) by_MC=1;
-          else if (by_MC>hscale->at(isyst)->GetNbinsY()) by_MC=hscale->at(isyst)->GetNbinsY();
-          if (bz_MC<=0) bz_MC=1;
-          else if (bz_MC>hscale->at(isyst)->GetNbinsZ()) bz_MC=hscale->at(isyst)->GetNbinsZ();
-          float mcval = hscale->at(isyst)->GetBinContent(bx_MC, by_MC, bz_MC);
+          if (isyst_rewgt>=hscale->size()-1){
+            MELAerr << "getMCHistograms_1D: ERROR! hscale size = " << hscale->size()-1 << " <= isyst_rewgt = " << isyst_rewgt << endl;
+            assert(0);
+          }
 
-          int bx_Data = hscale->back()->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
-          int by_Data = hscale->back()->GetYaxis()->FindBin(*jetHT_ptr);
-          int bz_Data = hscale->back()->GetZaxis()->FindBin(photon_pt);
+          TH3F const* hrewgt_MC = hscale->at(isyst_rewgt);
+          int bx_MC = hrewgt_MC->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
+          int by_MC = hrewgt_MC->GetYaxis()->FindBin(*jetHT_ptr);
+          int bz_MC = hrewgt_MC->GetZaxis()->FindBin(photon_pt);
+          if (bx_MC<=0) bx_MC=1;
+          else if (bx_MC>hrewgt_MC->GetNbinsX()) bx_MC=hrewgt_MC->GetNbinsX();
+          if (by_MC<=0) by_MC=1;
+          else if (by_MC>hrewgt_MC->GetNbinsY()) by_MC=hrewgt_MC->GetNbinsY();
+          if (bz_MC<=0) bz_MC=1;
+          else if (bz_MC>hrewgt_MC->GetNbinsZ()) bz_MC=hrewgt_MC->GetNbinsZ();
+          float mcval = hrewgt_MC->GetBinContent(bx_MC, by_MC, bz_MC);
+
+          TH3F const* hrewgt_Data = hscale->back();
+          int bx_Data = hrewgt_Data->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
+          int by_Data = hrewgt_Data->GetYaxis()->FindBin(*jetHT_ptr);
+          int bz_Data = hrewgt_Data->GetZaxis()->FindBin(photon_pt);
           if (bx_Data<=0) bx_Data=1;
-          else if (bx_Data>hscale->back()->GetNbinsX()) bx_Data=hscale->back()->GetNbinsX();
+          else if (bx_Data>hrewgt_Data->GetNbinsX()) bx_Data=hrewgt_Data->GetNbinsX();
           if (by_Data<=0) by_Data=1;
-          else if (by_Data>hscale->back()->GetNbinsY()) by_Data=hscale->back()->GetNbinsY();
+          else if (by_Data>hrewgt_Data->GetNbinsY()) by_Data=hrewgt_Data->GetNbinsY();
           if (bz_Data<=0) bz_Data=1;
-          else if (bz_Data>hscale->back()->GetNbinsZ()) bz_Data=hscale->back()->GetNbinsZ();
-          float dataval = hscale->back()->GetBinContent(bx_Data, by_Data, bz_Data);
+          else if (bz_Data>hrewgt_Data->GetNbinsZ()) bz_Data=hrewgt_Data->GetNbinsZ();
+          float dataval = hrewgt_Data->GetBinContent(bx_Data, by_Data, bz_Data);
 
           totwgt *= (mcval<=0.f ? 0.f : dataval/mcval);
         }
         if (hresscale){
-          int bx_MC = hresscale->at(isyst)->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
-          int by_MC = hresscale->at(isyst)->GetYaxis()->FindBin(fabs(*uPerp_ptr));
-          int bz_MC = hresscale->at(isyst)->GetZaxis()->FindBin(*uParallel_ptr);
-          if (bx_MC<=0) bx_MC=1;
-          else if (bx_MC>hresscale->at(isyst)->GetNbinsX()) bx_MC=hresscale->at(isyst)->GetNbinsX();
-          if (by_MC<=0) by_MC=1;
-          else if (by_MC>hresscale->at(isyst)->GetNbinsY()) by_MC=hresscale->at(isyst)->GetNbinsY();
-          if (bz_MC<=0) bz_MC=1;
-          else if (bz_MC>hresscale->at(isyst)->GetNbinsZ()) bz_MC=hresscale->at(isyst)->GetNbinsZ();
-          float mcval = hresscale->at(isyst)->GetBinContent(bx_MC, by_MC, bz_MC);
+          if (isyst_rewgt>=hresscale->size()-1){
+            MELAerr << "getMCHistograms_1D: ERROR! hresscale size = " << hresscale->size()-1 << " <= isyst_rewgt = " << isyst_rewgt << endl;
+            assert(0);
+          }
 
-          int bx_Data = hresscale->back()->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
-          int by_Data = hresscale->back()->GetYaxis()->FindBin(fabs(*uPerp_ptr));
-          int bz_Data = hresscale->back()->GetZaxis()->FindBin(*uParallel_ptr);
+          TH3F const* hrewgt_MC = hresscale->at(isyst_rewgt);
+          int bx_MC = hrewgt_MC->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
+          int by_MC = hrewgt_MC->GetYaxis()->FindBin(fabs(*uPerp_ptr));
+          int bz_MC = hrewgt_MC->GetZaxis()->FindBin(*uParallel_ptr);
+          if (bx_MC<=0) bx_MC=1;
+          else if (bx_MC>hrewgt_MC->GetNbinsX()) bx_MC=hrewgt_MC->GetNbinsX();
+          if (by_MC<=0) by_MC=1;
+          else if (by_MC>hrewgt_MC->GetNbinsY()) by_MC=hrewgt_MC->GetNbinsY();
+          if (bz_MC<=0) bz_MC=1;
+          else if (bz_MC>hrewgt_MC->GetNbinsZ()) bz_MC=hrewgt_MC->GetNbinsZ();
+          float mcval = hrewgt_MC->GetBinContent(bx_MC, by_MC, bz_MC);
+
+          TH3F const* hrewgt_Data = hresscale->back();
+          int bx_Data = hrewgt_Data->GetXaxis()->FindBin(*nak4jets_preselected_ptr);
+          int by_Data = hrewgt_Data->GetYaxis()->FindBin(fabs(*uPerp_ptr));
+          int bz_Data = hrewgt_Data->GetZaxis()->FindBin(*uParallel_ptr);
           if (bx_Data<=0) bx_Data=1;
-          else if (bx_Data>hresscale->back()->GetNbinsX()) bx_Data=hresscale->back()->GetNbinsX();
+          else if (bx_Data>hrewgt_Data->GetNbinsX()) bx_Data=hrewgt_Data->GetNbinsX();
           if (by_Data<=0) by_Data=1;
-          else if (by_Data>hresscale->back()->GetNbinsY()) by_Data=hresscale->back()->GetNbinsY();
+          else if (by_Data>hrewgt_Data->GetNbinsY()) by_Data=hrewgt_Data->GetNbinsY();
           if (bz_Data<=0) bz_Data=1;
-          else if (bz_Data>hresscale->back()->GetNbinsZ()) bz_Data=hresscale->back()->GetNbinsZ();
-          float dataval = hresscale->back()->GetBinContent(bx_Data, by_Data, bz_Data);
+          else if (bz_Data>hrewgt_Data->GetNbinsZ()) bz_Data=hrewgt_Data->GetNbinsZ();
+          float dataval = hrewgt_Data->GetBinContent(bx_Data, by_Data, bz_Data);
 
           totwgt *= (mcval<=0.f ? 0.f : dataval/mcval);
         }
@@ -1926,6 +1954,8 @@ void getMCHistograms_1D(
 
     finput->Close();
   }
+
+  MELAout << "End getMCHistograms_1D" << endl;
 }
 
 
@@ -2733,11 +2763,11 @@ void fitFinalGammaTrees(){
 
 void checkCorrectedMETDistributions(){
   std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
+   // "Run2017B-31Mar2018-v1",
+   // "Run2017C-31Mar2018-v1",
+   // "Run2017D-31Mar2018-v1",
+   // "Run2017E-31Mar2018-v1",
+   // "Run2017F-31Mar2018-v1",
     "Run2017F-09May2018-v1"
   };
   std::vector<TString> sampleList_MC={
@@ -2852,8 +2882,10 @@ void checkCorrectedMETDistributions(){
         auto& var = varlist.at(iv);
 
         TH1F*& hdata = hdatalist.at(iv % (varlist.size()/2));
+        assert(hdata);
 
         const size_t nSysts = hMClist.front().size();
+        MELAout << "Summing " << nSysts << " MC samples to get the total MC histogram for variable " << var.name << endl;
         for (size_t isyst=0; isyst<nSysts; isyst++){
           TString strappend;
           if (isyst==0) strappend="_Nominal";
@@ -2863,6 +2895,8 @@ void checkCorrectedMETDistributions(){
           else if (isyst==4) strappend="_JERdn";
           else if (isyst==5) strappend="_PUup";
           else if (isyst==6) strappend="_PUdn";
+          else if (isyst==7) strappend="_METup";
+          else if (isyst==8) strappend="_METdn";
           TH1F* htotMC_syst = (TH1F*) hdata->Clone(var.name+"_totMC"+strappend);
           htotMC_syst->Reset("ICESM");
           htotMC_syst->Sumw2();
@@ -2884,4 +2918,191 @@ void checkCorrectedMETDistributions(){
     foutput->Close();
   }
 
+}
+
+void plotCorrectedMETDistributions(){
+  std::vector<TString> sampleList_Data={
+    "Run2017B-31Mar2018-v1",
+    "Run2017C-31Mar2018-v1",
+    "Run2017D-31Mar2018-v1",
+    "Run2017E-31Mar2018-v1",
+    "Run2017F-31Mar2018-v1",
+    "Run2017F-09May2018-v1"
+  };
+
+  SampleHelpers::theDataYear=2017;
+  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+
+  TString const strinputcore = Form("output/GammaTrees/%i/plots/checkCorrectedMET_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
+
+  std::vector<Variable> varlist={
+    Variable("pfmet", "E_{T}^{miss} (GeV)", 100, 0, 200),
+    Variable("MET_Parallel", "E_{T,//}^{miss} (GeV)", 150, -300, 300),
+    Variable("MET_Perp", "E_{T,perp}^{miss} (GeV)", 100, -200, 200),
+  };
+
+  for (auto const& sample_data:sampleList_Data){
+    TString strinput = strinputcore;
+    HelperFunctions::replaceString<TString, const TString>(strinput, "[OUTFILECORE]", sample_data);
+    TFile* finput = TFile::Open(strinput, "read");
+
+    TString thePeriod;
+    float theLumi=-1;
+    for (auto const& tmpstr:SampleHelpers::getValidDataPeriods()){
+      if (sample_data.Contains(tmpstr)){
+        theLumi = getIntegratedLuminosity(tmpstr);
+        thePeriod = tmpstr;
+        break;
+      }
+    }
+
+    for (auto const& var:varlist){
+      enum{
+        i_data=0,
+        i_MCuncor,
+        i_MCcor,
+        i_MCcorr_METdn,
+        i_MCcorr_METup
+      };
+      finput->cd();
+      vector<TH1F*> hlist={
+        (TH1F*) finput->Get(Form("%s_Data", var.name.Data())),
+        (TH1F*) finput->Get(Form("%s_totMC_Nominal", var.name.Data())),
+        (TH1F*) finput->Get(Form("%s_corrected_totMC_Nominal", var.name.Data())),
+        (TH1F*) finput->Get(Form("%s_corrected_totMC_METdn", var.name.Data())),
+        (TH1F*) finput->Get(Form("%s_corrected_totMC_METup", var.name.Data()))
+      };
+
+      TGraphAsymmErrors* tg_data = nullptr;
+      convertTH1FToTGraphAsymmErrors(hlist.at(i_data), tg_data, false, true);
+
+      tg_data->SetLineWidth(1);
+      tg_data->SetLineColor(kBlack);
+      tg_data->SetMarkerColor(kBlack);
+      tg_data->SetMarkerStyle(20);
+      tg_data->SetMarkerSize(1.0);
+
+      hlist.at(i_MCuncor)->SetLineWidth(2);
+      hlist.at(i_MCuncor)->SetLineColor(kBlack);
+      hlist.at(i_MCuncor)->SetMarkerColor(kBlack);
+
+      hlist.at(i_MCcor)->SetLineWidth(2);
+      hlist.at(i_MCcor)->SetLineColor(kViolet);
+      hlist.at(i_MCcor)->SetMarkerColor(kViolet);
+
+      hlist.at(i_MCcorr_METup)->SetLineWidth(2);
+      hlist.at(i_MCcorr_METup)->SetLineStyle(7);
+      hlist.at(i_MCcorr_METup)->SetLineColor(kViolet);
+      hlist.at(i_MCcorr_METup)->SetMarkerColor(kViolet);
+
+      hlist.at(i_MCcorr_METdn)->SetLineWidth(2);
+      hlist.at(i_MCcorr_METdn)->SetLineStyle(2);
+      hlist.at(i_MCcorr_METdn)->SetLineColor(kViolet);
+      hlist.at(i_MCcorr_METdn)->SetMarkerColor(kViolet);
+
+      // Scale the data and the MC by 1/1000
+      for (auto*& h:hlist) h->Scale(0.001);
+      for (int ix=0; ix<tg_data->GetN(); ix++){ tg_data->GetY()[ix] *= 0.001; tg_data->GetEYlow()[ix] *= 0.001; tg_data->GetEYhigh()[ix] *= 0.001; }
+
+      double ymin=0, ymax=0;
+      for (auto*& h:hlist){
+        h->GetXaxis()->SetNdivisions(505);
+        h->GetXaxis()->SetLabelFont(42);
+        h->GetXaxis()->SetLabelOffset(0.007);
+        h->GetXaxis()->SetLabelSize(0.04);
+        h->GetXaxis()->SetTitleSize(0.06);
+        h->GetXaxis()->SetTitleOffset(0.9);
+        h->GetXaxis()->SetTitleFont(42);
+        h->GetYaxis()->SetNdivisions(505);
+        h->GetYaxis()->SetLabelFont(42);
+        h->GetYaxis()->SetLabelOffset(0.007);
+        h->GetYaxis()->SetLabelSize(0.04);
+        h->GetYaxis()->SetTitleSize(0.06);
+        h->GetYaxis()->SetTitleOffset(1.1);
+        h->GetYaxis()->SetTitleFont(42);
+        h->GetYaxis()->SetTitle("Events / 1000");
+        h->GetYaxis()->CenterTitle();
+        h->GetXaxis()->CenterTitle();
+        for (int ix=0; ix<=h->GetNbinsX(); ix++) ymax = std::max(ymax, h->GetBinContent(ix)+h->GetBinError(ix));
+      }
+      if (var.name == "pfmet") ymax *= 1.1;
+      else ymax *= 1.5;
+      for (auto*& h:hlist) h->GetYaxis()->SetRangeUser(ymin, ymax);
+
+      // Plot the histograms
+      TString canvasname = Form("c_%s_%s_comparison", sample_data.Data(), var.name.Data());
+      TCanvas canvas(canvasname, "", 8, 30, 800, 800);
+      canvas.cd();
+      gStyle->SetOptStat(0);
+      canvas.SetFillColor(0);
+      canvas.SetBorderMode(0);
+      canvas.SetBorderSize(2);
+      canvas.SetTickx(1);
+      canvas.SetTicky(1);
+      canvas.SetLeftMargin(0.17);
+      canvas.SetRightMargin(0.05);
+      canvas.SetTopMargin(0.07);
+      canvas.SetBottomMargin(0.13);
+      canvas.SetFrameFillStyle(0);
+      canvas.SetFrameBorderMode(0);
+      canvas.SetFrameFillStyle(0);
+      canvas.SetFrameBorderMode(0);
+
+      float leg_xmin=0.50;
+      float leg_ymin=0.90-0.10/3.*2.*float(3);
+      float leg_xmax=0.80;
+      float leg_ymax=0.90;
+
+      TLegend legend(leg_xmin, leg_ymin, leg_xmax, leg_ymax);
+      legend.SetBorderSize(0);
+      legend.SetTextFont(42);
+      legend.SetTextSize(0.03);
+      legend.SetLineColor(1);
+      legend.SetLineStyle(1);
+      legend.SetLineWidth(1);
+      legend.SetFillColor(0);
+      legend.SetFillStyle(0);
+      TString strDataAppend = thePeriod;
+      if (sample_data.Contains("09May")) strDataAppend += ", May 9";
+      else if (sample_data.Contains("31Mar")) strDataAppend += ", Mar. 31";
+      legend.AddEntry(tg_data, Form("Observed (%s)", strDataAppend.Data()), "e1p");
+      legend.AddEntry(hlist.at(i_MCuncor), "Simulation (w/o correction)", "l");
+      legend.AddEntry(hlist.at(i_MCcor), "Simulation (w/ correction)", "l");
+
+      TText* text;
+      TPaveText pt(0.15, 0.93, 0.85, 1, "brNDC");
+      pt.SetBorderSize(0);
+      pt.SetFillStyle(0);
+      pt.SetTextAlign(12);
+      pt.SetTextFont(42);
+      pt.SetTextSize(0.045);
+      text = pt.AddText(0.025, 0.45, "#font[61]{CMS}");
+      text->SetTextSize(0.044);
+      text = pt.AddText(0.165, 0.42, "#font[52]{Preliminary}");
+      text->SetTextSize(0.0315);
+      int theSqrts=13;
+      TString cErgTev = Form("#font[42]{%.1f fb^{-1} (%i TeV)}", theLumi, theSqrts);
+      text = pt.AddText(0.82, 0.45, cErgTev);
+      text->SetTextSize(0.0315);
+
+      canvas.cd();
+      for (size_t ih=i_MCuncor; ih<hlist.size(); ih++){
+        if (ih==i_MCuncor) hlist.at(ih)->Draw("hist");
+        else hlist.at(ih)->Draw("histsame");
+      }
+      tg_data->Draw("e1psame");
+
+      legend.Draw();
+      pt.Draw();
+      canvas.RedrawAxis();
+      canvas.Modified();
+      canvas.Update();
+      canvas.SaveAs(TString(canvas.GetName())+".pdf");
+      canvas.Close();
+
+      delete tg_data;
+    }
+
+    finput->Close();
+  }
 }

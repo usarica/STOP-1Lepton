@@ -340,6 +340,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
       bool passGoodPrimaryVertex=false;
 
+      unsigned int nGoodPrimaryVertices = 0;
+
       std::vector<bool> vertices_isValid;
       std::vector<bool> vertices_isFake;
       std::vector<float> vertices_ndof;
@@ -353,6 +355,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       for (auto const& vtx:vertices){
         bool isGoodPV = HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
         passGoodPrimaryVertex |= isGoodPV;
+        if (isGoodPV) nGoodPrimaryVertices++;
 
         if (doWriteFailingObjects || isGoodPV){
           vertices_isValid.push_back(vtx->isValid);
@@ -373,6 +376,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       }
 
       product.setNamedVal("passGoodPrimaryVertex", passGoodPrimaryVertex);
+      product.setNamedVal("nGoodPrimaryVertices", nGoodPrimaryVertices);
       if (doWriteSelectionVariables){
         product.setNamedVal("vertices_isValid", vertices_isValid);
         product.setNamedVal("vertices_isFake", vertices_isFake);

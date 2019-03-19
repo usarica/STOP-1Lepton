@@ -5,9 +5,9 @@ void testHandlers(){
   TDirectory* curdir = gDirectory;
 
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WZZ_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WZZ_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=100 ismc=true";
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=1000 ismc=true";
+  //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2018 outdir=./ outfile=WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8.root sample=/WWW_4F_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM year=2018 maxevents=1000 ismc=true";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2017 outdir=./ outfile=GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8_0.root sample=/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM year=2017 maxevents=1000 ismc=true inputfiles=merged_ntuple_1.root";
-  //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2018 outdir=./ outfile=Run2018C-17Sep2018-v1_MET.root sample=/MET/Run2018C-17Sep2018-v1/MINIAOD inputfiles=merged_ntuple_1.root year=2018 maxevents=1000 ismc=false";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2018 outdir=./ outfile=Run2018C-17Sep2018-v1_MET.root sample=/MET/Run2018C-17Sep2018-v1/MINIAOD inputfiles=merged_ntuple_1.root year=2018 maxevents=1000 ismc=false";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2017 outdir=./ outfile=Run2017F-31Mar2018-v1_DoubleEG.root sample=/DoubleEG/Run2017F-31Mar2018-v1/MINIAOD year=2017 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2017 outdir=./ outfile=Run2017F-09May2018-v1_DoubleEG.root sample=/DoubleEG/Run2017F-09May2018-v1/MINIAOD year=2017 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
 
@@ -57,6 +57,7 @@ void testHandlers(){
 
   JetMETHandler jetHandler;
   //jetHandler.setVerbosity(TVar::DEBUG);
+  METCorrectionHandler metCorrector;
   BtagScaleFactorHandler btagSFHandler_MC_noFS(BtagHelpers::kDeepCSV_Medium, false);
   BtagScaleFactorHandler btagSFHandler_MC_FS(BtagHelpers::kDeepCSV_Medium, true);
   jetHandler.registerBtagSFHandlers(&btagSFHandler_MC_noFS, &btagSFHandler_MC_FS);
@@ -109,6 +110,7 @@ void testHandlers(){
   analyzer.addExternalScaleFactorHandler("JECSFHandler_ak8", &jecSFHandler_ak8);
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak4", &jerSFHandler_ak4);
   analyzer.addExternalScaleFactorHandler("JERSFHandler_ak8", &jerSFHandler_ak8);
+  analyzer.addExternalScaleFactorHandler("METCorrectionHandler", &metCorrector);
   // Output tree setup
   analyzer.setExternalProductTree(outtree);
 
