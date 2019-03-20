@@ -1,8 +1,13 @@
 #include <cassert>
+#include "TRandom3.h"
 #include "FrameworkVariables.hh"
 #include "FrameworkSet.h"
 #include "EventFilterHandler.h"
 #include "GoodEventFilter.h"
+#include "ElectronSelectionHelpers.h"
+#include "PhotonSelectionHelpers.h"
+#include "AK4JetSelectionHelpers.h"
+#include "AK8JetSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -189,6 +194,121 @@ bool EventFilterHandler::constructFilter(){
   return true;
 }
 
+bool EventFilterHandler::test2018HEMFilter(
+  std::vector<ElectronObject*> const* electrons,
+  std::vector<PhotonObject*> const* photons,
+  std::vector<AK4JetObject*> const* ak4jets,
+  std::vector<AK8JetObject*> const* ak8jets,
+  SystematicsHelpers::SystematicVariationTypes syst
+) const{
+  if (SampleHelpers::theDataYear != 2018) return true;
+
+  // Do not run clear because this is a special filter that does not modify the actual class
+  if (!currentTree){
+    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: Current tree is null!" << endl;
+    return false;
+  }
+  FrameworkTree* const fwktree = dynamic_cast<FrameworkTree* const>(currentTree);
+  if (!fwktree){
+    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: Current tree is not derived from a FrameworkTree class!" << endl;
+    return false;
+  }
+
+  bool allVariablesPresent = true;
+  RunNumber_t run = 0;
+  Lumisection_t ls = 0;
+  EventNumber_t evt = 0;
+  allVariablesPresent &= (
+    this->getConsumedValue(_event_RunNumber_, run)
+    && this->getConsumedValue(_event_Lumisection_, ls)
+    && this->getConsumedValue(_event_EventNumber_, evt)
+    );
+  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
+    MELAerr << "EventFilterHandler::test2018HEMFilter: Not all data variables are consumed properly!" << endl;
+    assert(0);
+  }
+
+  bool checkVeto = false;
+  if (fwktree->isMC()){
+    TRandom3 rand;
+    unsigned long const seed = (run>0 ? run : 0) + (ls>0 ? ls : 0) + (evt>0 ? evt : 0);
+    assert(seed>0);
+    rand.SetSeed(seed);
+    float veto_x = rand.Uniform();
+    static const float lumi_affected = SampleHelpers::getIntegratedLuminosity("2018_HEMaffected");
+    static const float lumi_total = SampleHelpers::getIntegratedLuminosity("2018");
+    checkVeto = (veto_x<lumi_affected/lumi_total);
+  }
+  else checkVeto = (run>=319077);
+
+  if (!checkVeto) return true;
+
+  using namespace SystematicsHelpers;
+  if (syst != sNominal && fwktree->isData()) syst = sNominal;
+
+  bool doVeto = false;
+  static const std::pair<float, float> eta_region(-4.7, -1.4);
+  static const std::pair<float, float> phi_region(-1.6, -0.8);
+
+  if (!doVeto && electrons){
+    for (auto const* part:(*electrons)){
+      if (!part->testSelection(ElectronSelectionHelpers::kVetoIDReco)) continue;
+      float const eta = part->eta();
+      float const phi = part->phi();
+      if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
+    }
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one electron satisfying HEM15/16." << endl;
+  }
+  if (!doVeto && photons){
+    for (auto const* part:(*photons)){
+      if (!part->testSelection(PhotonSelectionHelpers::kLooseIDReco)) continue;
+      float const eta = part->eta();
+      float const phi = part->phi();
+      if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
+    }
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one photon satisfying HEM15/16." << endl;
+  }
+  // Require a pT>30 GeV cut on jets
+  if (!doVeto && ak4jets){
+    for (auto const* part:(*ak4jets)){
+      bool isSelectedJet=false;
+      if (syst == eJECUp) isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && part->getCorrectedMomentum(1).Pt()>=30.f);
+      else if (syst == eJECDn) isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && part->getCorrectedMomentum(-1).Pt()>=30.f);
+      else if (syst == eJERUp) isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && part->getCorrectedMomentum(2).Pt()>=30.f);
+      else if (syst == eJERDn) isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && part->getCorrectedMomentum(-2).Pt()>=30.f);
+      else isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && part->getCorrectedMomentum(0).Pt()>=30.f);
+
+      if (!isSelectedJet) continue;
+
+      float const eta = part->eta();
+      float const phi = part->phi();
+      if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
+    }
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one AK4 jet satisfying HEM15/16." << endl;
+  }
+  // Be careful! There is no equivalent of tight ID in ak8 jets, so testing is done on all jets
+  if (!doVeto && ak8jets){
+    for (auto const* part:(*ak8jets)){
+      bool isSelectedJet=false;
+      if (syst == eJECUp) isSelectedJet = (part->getCorrectedMomentum(1).Pt()>=30.f);
+      else if (syst == eJECDn) isSelectedJet = (part->getCorrectedMomentum(-1).Pt()>=30.f);
+      else if (syst == eJERUp) isSelectedJet = (part->getCorrectedMomentum(2).Pt()>=30.f);
+      else if (syst == eJERDn) isSelectedJet = (part->getCorrectedMomentum(-2).Pt()>=30.f);
+      else isSelectedJet = (part->getCorrectedMomentum(0).Pt()>=30.f);
+
+      if (!isSelectedJet) continue;
+
+      float const eta = part->eta();
+      float const phi = part->phi();
+      if (eta>=eta_region.first && eta<=eta_region.second && phi>=phi_region.first && phi<=phi_region.second){ doVeto=true; break; }
+    }
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one AK8 jet satisfying HEM15/16." << endl;
+  }
+
+  return !doVeto;
+}
+
+
 void EventFilterHandler::bookBranches(BaseTree* tree){
   if (!tree || !tree->isValid()) return;
   FrameworkTree* fwktree = dynamic_cast<FrameworkTree*>(tree);
@@ -216,7 +336,7 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
   
   // For data, will also need access to RunNumber, LumiSection and EventNumber
   // This is needed to test for the JSON file
-  if (fwktree->isData()){
+  if (fwktree->isData() || SampleHelpers::theDataYear == 2018){ // 2018 MC also needs these for the HEM filter seed
     fwktree->bookEDMBranch<RunNumber_t>(_event_RunNumber_, 0);
     this->addConsumed<RunNumber_t>(_event_RunNumber_);
     this->defineConsumedSloppy(_event_RunNumber_);
@@ -260,7 +380,7 @@ std::vector<TString> EventFilterHandler::getMETFilterFlags(FrameworkTree* fwktre
       _filt_hbheNoiseIso_,
       _filt_ecalTP_,
       _filt_BadPFMuon_filter_,
-      _filt_BadChargedCandidate_filter_,
+      //_filt_BadChargedCandidate_filter_, // FIXME: To be updated following https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2017_data
       _filt_ecalBadCalib_filterUpdate_
     };
     if (!fwktree->isFastSim()) metfilters.push_back(_filt_globalSuperTightHalo2016_); // For data or non-FS MC
@@ -273,7 +393,7 @@ std::vector<TString> EventFilterHandler::getMETFilterFlags(FrameworkTree* fwktre
       _filt_hbheNoiseIso_,
       _filt_ecalTP_,
       _filt_BadPFMuon_filter_,
-      _filt_BadChargedCandidate_filter_,
+      //_filt_BadChargedCandidate_filter_, // FIXME: To be updated following https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2018_data
       _filt_ecalBadCalib_filterUpdate_
     };
     if (!fwktree->isFastSim()) metfilters.push_back(_filt_globalSuperTightHalo2016_); // For data or non-FS MC

@@ -59,7 +59,7 @@ bool AK4JetSelectionHelpers::isTightAK4JetPOG(AK4JetObject const& part){
   }
   else if (SampleHelpers::theDataYear==2017){
     if (eta <= 2.4){
-      if (chf == 0.00) return false;
+      if (chf == 0.f) return false;
       if (cm == 0) return false;
     }
     if (eta <= 2.7){

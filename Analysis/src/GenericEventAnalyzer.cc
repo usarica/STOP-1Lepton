@@ -935,6 +935,10 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   /********************/
   /**  JetMET BLOCK  **/
   /********************/
+  std::vector<GenJetObject*> genjets;
+  std::vector<AK4JetObject*> ak4jets;
+  std::vector<AK8JetObject*> ak8jets;
+  std::vector<TFTopObject*> tftops;
   validProducts &= (!doJetMET || jetHandler!=nullptr);
   if (!validProducts){
     MELAerr << "GenericEventAnalyzer::runEvent: JetMET handle is invalid (Tree: " << tree->sampleIdentifier << ")." << endl;
@@ -953,10 +957,10 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       return validProducts;
     }
 
-    std::vector<GenJetObject*> const& genjets = jetHandler->getGenJets();
-    std::vector<AK4JetObject*> const& ak4jets = jetHandler->getAK4Jets();
-    std::vector<AK8JetObject*> const& ak8jets = jetHandler->getAK8Jets();
-    std::vector<TFTopObject*> const& tftops = jetHandler->getTFTops();
+    genjets = jetHandler->getGenJets();
+    ak4jets = jetHandler->getAK4Jets();
+    ak8jets = jetHandler->getAK8Jets();
+    tftops = jetHandler->getTFTops();
     METObject* metobject = jetHandler->getMET();
     if (jetHandler->getMETFlag()){
       product.setNamedVal("pfmet_original", metobject->extras.met_original);
@@ -1566,6 +1570,21 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("taus_pfDecayModeFinding", pfDecayModeFinding);
         product.setNamedVal("taus_pfIso", pfIso);
       }
+    }
+  }
+
+
+  /****************************************/
+  /* Extra event filters for special runs */
+  /****************************************/
+  // HEM filter
+  if (SampleHelpers::theDataYear == 2018 && doEventFilter && eventFilter){
+    bool passHEMFilter = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::sNominal); product.setNamedVal("passHEMFilter", passHEMFilter);
+    if (tree->isMC()){
+      bool passHEMFilter_JECup = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::eJECUp); product.setNamedVal("passHEMFilter_JECup", passHEMFilter_JECup);
+      bool passHEMFilter_JECdn = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::eJECDn); product.setNamedVal("passHEMFilter_JECdn", passHEMFilter_JECdn);
+      bool passHEMFilter_JERup = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::eJERUp); product.setNamedVal("passHEMFilter_JERup", passHEMFilter_JERup);
+      bool passHEMFilter_JERdn = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::eJERDn); product.setNamedVal("passHEMFilter_JERdn", passHEMFilter_JERdn);
     }
   }
 
