@@ -32,3 +32,4 @@ Analysis/test/*.eps
 Analysis/test/*.root
 Analysis/test/*.txt
 Analysis/test/*.log
+Analysis/test/tmpcheck
