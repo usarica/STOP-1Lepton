@@ -111,7 +111,7 @@ void FrameworkOptionParser::analyze(){
       if (theDataPeriod.find("2018")!=std::string::npos) theDataVersion="10x";
       else if (theDataPeriod.find("2017")!=std::string::npos) theDataVersion="94x";
       else if (theDataPeriod.find("2016")!=std::string::npos){
-        if (sample.find("2018")!=std::string::npos || sample.find("2019")!=std::string::npos || sample.find("94X")!=std::string::npos) theDataVersion="94x"; // 94X samples are made in 2018 and 2019
+        if (sample.find("2018")!=std::string::npos || sample.find("2019")!=std::string::npos || sample.find("94X")!=std::string::npos || sample.find("94x")!=std::string::npos) theDataVersion="94x"; // 94X samples are made in 2018 and 2019
         else theDataVersion="80x";
       }
       else{

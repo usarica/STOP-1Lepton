@@ -316,7 +316,7 @@ bool JetMETHandler::constructMET(){
       && this->getConsumedValue(_pfmetrawPhi_old_, metrawPhi)
       );
   }
-  else */if (SampleHelpers::theDataYear == 2016){
+  else */if (SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X){
     // For 2016 data, MuEG cleaning needs to be done
     allVariablesPresent &= (
       this->getConsumedValue(_pfmetraw_muegclean_, metraw)
@@ -324,7 +324,7 @@ bool JetMETHandler::constructMET(){
       );
   }
   else{
-    // For 2017 and 2018, this variables corresponds to having all fixes applied. This is why 2017F version 09May2018 should NOT use this one.
+    // For 2017 and 2018, this variables corresponds to having all fixes applied.
     // For 2016, this variable does not apply fixes, so the one above should be used instead.
     allVariablesPresent = (
       this->getConsumedValue(_pfmetraw_, metraw)
@@ -463,8 +463,7 @@ bool JetMETHandler::applyJEC(){
   if (!fwktree) return false;
 
   bool const use2017EENoiseRecipe = (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && !fwktree->sampleIdentifier.Contains("09May2018"));
-  //bool const use2017SkipEENoiseRecipe = (SampleHelpers::theDataYear == 2017 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_9_4_X && fwktree->sampleIdentifier.Contains("09May2018"));
-  //bool const useMuEGCleanedMETRecipe = (SampleHelpers::theDataYear == 2016);
+  //bool const useMuEGCleanedMETRecipe = (SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X);
 
   constexpr bool doCorrectAK4Jets = true;
   if (registeredJECSFHandler_ak4jets && doCorrectAK4Jets){
@@ -793,7 +792,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
       fwktree->bookEDMBranch<float>(_pfmetraw_old_, 0);
       fwktree->bookEDMBranch<float>(_pfmetrawPhi_old_, 0);
     }
-    else */if (SampleHelpers::theDataYear == 2016){
+    else */if (SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X){
       this->addConsumed<float>(_pfmetraw_muegclean_);
       this->addConsumed<float>(_pfmetrawPhi_muegclean_);
       this->defineConsumedSloppy(_pfmetraw_muegclean_);
