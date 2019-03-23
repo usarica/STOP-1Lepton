@@ -1,6 +1,11 @@
 #!/bin/bash
 
 chkdir=$1
+let multiprod=1
+if [[ "$2" != "" ]];then
+  let multiprod=$2
+fi
+
 
 let nOK=0
 let nCOPYFAIL=0
@@ -15,8 +20,12 @@ for d in $(ls ./); do
     continue
   fi
 
+  let countOK=0
   let dirok=1
+  let nsubjobs=0
   for logfilename in $(ls ./$d/Logs | grep -e "log_"); do
+    let nsubjobs=$nsubjobs+1
+
     res=$(grep -e "File generation was successful" $d/Logs/$logfilename)
     res2=$(grep -e "Copied successfully" $d/Logs/$logfilename)
 
@@ -27,6 +36,7 @@ for d in $(ls ./); do
         if [[ -s $res3 ]];then
           echo $d" ran successfully"
           let nOK=$nOK+1
+          let countOK=$countOK+1
         else
           echo $d" ran successfully, but the file does not exist!"
           let nFILEDNE=$nFILEDNE+1
@@ -48,6 +58,15 @@ for d in $(ls ./); do
     fi
 
   done
+
+  if [[ $countOK -gt 0 ]] && [[ $dirok -eq 0 ]];then
+    if [[ $multiprod -eq 1 ]];then
+      echo $d" has multiple submissions with $countOK / $nsubjobs success rate, but the folder will be treated as if it failed."
+    else
+      echo $d" has multiple submissions with $countOK / $nsubjobs success rate, but the user specified the folders to be treated as single jobs."
+      let dirok=1
+    fi
+  fi
 
   if [[ $dirok -eq 1 ]];then
     TARFILE="${d}.tar"
