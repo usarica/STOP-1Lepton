@@ -516,7 +516,9 @@ bool JetMETHandler::applyJEC(){
     }
   }
 
-  bool const doCorrectAK8Jets = !(SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X);
+  //bool const doCorrectAK8Jets = !(SampleHelpers::theDataYear == 2016 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_8_0_X);
+  //bool const doCorrectAK8Jets = (SampleHelpers::theDataYear != 2016);
+  constexpr bool doCorrectAK8Jets = true;
   if (registeredJECSFHandler_ak8jets && doCorrectAK8Jets){
     for (AK8JetObject* jet:ak8jets) registeredJECSFHandler_ak8jets->applyJEC(jet, fwktree->isMC(), fwktree->isFastSim());
   }

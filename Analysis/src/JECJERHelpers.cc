@@ -34,7 +34,7 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
     eraMap["2016E"] = eraMap["2016F"] = "Summer16_07Aug2017EF_V11_DATA";
     eraMap["2016G"] = eraMap["2016H"] = "Summer16_07Aug2017GH_V11_DATA";
     eraMap["MC_noFS"] = "Summer16_07Aug2017_V11_MC";
-    eraMap["MC_FS"] = "Spring16_FastSimV1";
+    eraMap["MC_FS"] = "Spring16_FastSimV1"; // FIXME: To be updated!
   }
   else if (theDataYear == 2017 && theDataVersion == kCMSSW_9_4_X){
     eraMap["2017B"] = "Fall17_17Nov2017B_V32_DATA";
@@ -98,7 +98,8 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
 }
 std::vector<TString> JECJERHelpers::getJECFileNames(JECJERType type, bool isMC, bool isFastSim){
   std::vector<TString> res;
-  if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
+  //if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
+  if (type == kAK8 && theDataYear == 2016 && isFastSim) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
   if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);
@@ -115,7 +116,8 @@ std::vector<TString> JECJERHelpers::getJECFileNames(JECJERType type, bool isMC, 
 }
 TString JECJERHelpers::getJECUncertaintyFileName(JECJERType type, bool isMC, bool isFastSim){
   TString res;
-  if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
+  //if (type == kAK8 && theDataYear == 2016 && theDataVersion == kCMSSW_8_0_X) return res;
+  if (type == kAK8 && theDataYear == 2016 && isFastSim) return res;
   TString jecVer = getJECFilePath(type, isMC, isFastSim);
   if (jecVer=="") return res;
   TString jetType = getJECJERTypeName(type);
