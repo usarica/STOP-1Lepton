@@ -65,16 +65,19 @@ bool EventFilterHandler::constructFilter(){
     &&
     this->getConsumedValue(_hlt_trigNames_, hlt_trigNames)
     );
-  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
-    MELAerr << "EventFilterHandler::constructFilter: Not all trigger variables are consumed properly!" << endl;
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructFilter: Not all trigger variables are consumed properly!" << endl;
     assert(0);
   }
-  bool skipTriggerChecks=false;
+  bool skipTriggerChecks = false;
   if (!hlt_trigNames || !hlt_l1prescales || !hlt_prescales){
-    if (this->verbosity>=TVar::DEBUG){
-      if (!hlt_trigNames) MELAerr << "EventFilterHandler::constructFilter: Trigger names pointer is null, but this issue should have been caught earlier!" << endl;
-      if (!hlt_l1prescales) MELAerr << "EventFilterHandler::constructFilter: L1 prescales pointer is null, but this issue should have been caught earlier!" << endl;
-      if (!hlt_prescales) MELAerr << "EventFilterHandler::constructFilter: HLT prescales pointer is null, but this issue should have been caught earlier!" << endl;
+    if (verbosity>=TVar::DEBUG){
+      MELAerr << "EventFilterHandler::constructFilter: The following trigger pointers are null: ";
+      std::vector<TString> strtmpprint; strtmpprint.reserve(3);
+      if (!hlt_trigNames) strtmpprint.emplace_back("hlt_trigNames");
+      if (!hlt_l1prescales) strtmpprint.emplace_back("hlt_l1prescales");
+      if (!hlt_prescales) strtmpprint.emplace_back("hlt_prescales");
+      MELAerr << strtmpprint << endl;
     }
     skipTriggerChecks = true;
   }
@@ -200,7 +203,14 @@ bool EventFilterHandler::constructFilter(){
       MELAerr << "EventFilterHandler::constructFilter: Not all data variables are consumed properly!" << endl;
       assert(0);
     }
-    passEventFilterFlag &= GoodEventFilter::testEvent(run, ls);
+    bool const passJSON = GoodEventFilter::testEvent(run, ls);
+    passEventFilterFlag &= passJSON;
+    if (passJSON && skipTriggerChecks && verbosity>=TVar::ERROR){
+      MELAerr << "EventFilterHandler::constructFilter: SEVERE ALERT! Data event with no trigger information passed the JSON filter." << endl;
+      MELAerr << "\t- Run: " << run << endl;
+      MELAerr << "\t- Lumi section: " << ls << endl;
+      MELAerr << "\t- Event: " << evt << endl;
+    }
     if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Event flag is " << passEventFilterFlag << " after the JSON filter." << endl;
     if (!passEventFilterFlag) return true; // No need to proceed further
   }
