@@ -37,6 +37,8 @@ void EventFilterHandler::clear(){
 }
 
 bool EventFilterHandler::constructFilter(){
+  if (verbosity>=TVar::DEBUG) MELAout << "Begin EventFilterHandler::constructFilter..." << endl;
+
   clear();
   if (!currentTree){
     if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructFilter: Current tree is null!" << endl;
@@ -215,6 +217,7 @@ bool EventFilterHandler::constructFilter(){
     if (!passEventFilterFlag) return true; // No need to proceed further
   }
 
+  if (verbosity>=TVar::DEBUG) MELAout << "End EventFilterHandler::constructFilter successfully." << endl;
   return true;
 }
 
@@ -226,6 +229,7 @@ bool EventFilterHandler::test2018HEMFilter(
   SystematicsHelpers::SystematicVariationTypes syst
 ) const{
   if (SampleHelpers::theDataYear != 2018) return true;
+  if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::test2018HEMFilter..." << endl;
 
   // Do not run clear because this is a special filter that does not modify the actual class
   if (!currentTree){
@@ -329,6 +333,7 @@ bool EventFilterHandler::test2018HEMFilter(
     if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2018HEMFilter: Found at least one AK8 jet satisfying HEM15/16." << endl;
   }
 
+  if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::test2018HEMFilter successfully." << endl;
   return !doVeto;
 }
 

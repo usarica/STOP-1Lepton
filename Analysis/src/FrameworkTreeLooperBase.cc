@@ -17,6 +17,8 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase() :
   
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   maxNEvents(-1),
+  skipNselected(-1),
+  skipNfailed(-1),
   recordEveryNEvents(-1)
 {
   setExternalProductList();
@@ -27,6 +29,8 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkTree* inTree) :
   
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   maxNEvents(-1),
+  skipNselected(-1),
+  skipNfailed(-1),
   recordEveryNEvents(-1)
 {
   this->addTree(inTree);
@@ -39,6 +43,8 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase(std::vector<FrameworkTree*> con
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeList),
   maxNEvents(-1),
+  skipNselected(-1),
+  skipNfailed(-1),
   recordEveryNEvents(-1)
 {
   setExternalProductList();
@@ -50,6 +56,8 @@ FrameworkTreeLooperBase::FrameworkTreeLooperBase(FrameworkSet const* inTreeSet) 
   sampleIdOpt(FrameworkTreeLooperBase::kNoStorage),
   treeList(inTreeSet->getFrameworkTreeList()),
   maxNEvents(-1),
+  skipNselected(-1),
+  skipNfailed(-1),
   recordEveryNEvents(-1)
 {
   setExternalProductList();
@@ -92,6 +100,10 @@ void FrameworkTreeLooperBase::setExternalProductTree(BaseTree* extTree){
 }
 
 void FrameworkTreeLooperBase::setMaximumEvents(int n){ maxNEvents=n; }
+
+void FrameworkTreeLooperBase::setNSkippedSelected(int n){ skipNselected=n; }
+
+void FrameworkTreeLooperBase::setNSkippedFailed(int n){ skipNfailed=n; }
 
 void FrameworkTreeLooperBase::setRecordEveryNEvents(int n){ recordEveryNEvents=n; }
 
@@ -169,11 +181,14 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
 
     // Loop over selected events
     if (loopSelected){
-      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " selected events" << endl;
-      int ev=0;
       const int nevents = tree->getSelectedNEvents();
+      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << nevents << " selected events in tree " << tree->sampleIdentifier << endl;
+      int ev=0;
+      if (skipNselected>0) ev = skipNselected;
       auto time_begin = std::chrono::steady_clock::now();
       while (tree->getSelectedEvent(ev)){
+        if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "Processing selected event " << ev << endl;
+
         if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
         SimpleEntry product;
         if (tree->isValidEvent()){
@@ -212,6 +227,8 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
 
         // Record products to external tree if recordEveryNEvents>0 is specified
         if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
+
+        if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "Successfully processed selected event " << ev-1 << endl;
       }
       auto time_end = std::chrono::steady_clock::now();
       float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_begin)).count(); // In miliseconds
@@ -219,11 +236,14 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
     }
     // Loop over failed events
     if (loopFailed){
-      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << tree->sampleIdentifier << " failed events" << endl;
-      int ev=0;
       const int nevents = tree->getFailedNEvents();
+      int ev=0;
+      if (skipNfailed>0) ev = skipNfailed;
+      MELAout << "FrameworkTreeLooperBase::loop: Looping over " << nevents << " failed events in tree " << tree->sampleIdentifier << endl;
       auto time_begin = std::chrono::steady_clock::now();
       while (tree->getFailedEvent(ev)){
+        if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "Processing failed event " << ev << endl;
+
         if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
         SimpleEntry product;
         if (tree->isValidEvent()){
@@ -262,6 +282,8 @@ void FrameworkTreeLooperBase::loop(bool loopSelected, bool loopFailed, bool keep
 
         // Record products to external tree if recordEveryNEvents>0 is specified
         if (recordEveryNEvents>0 && ev_rec%recordEveryNEvents==0) this->recordProductsToTree();
+
+        if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "Successfully processed failed event " << ev-1 << endl;
       }
       auto time_end = std::chrono::steady_clock::now();
       float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_begin)).count(); // In miliseconds

@@ -77,7 +77,7 @@ bool PFCandHandler::constructPFCands(){
   unsigned int nProducts = id->size();
   productList.reserve(nProducts);
   for (unsigned int ip=0; ip<nProducts; ip++){
-    if (this->verbosity>=TVar::DEBUG) MELAout << "PFCandHandler::constructPFCands: Attempting muon " << ip << "..." << endl;
+    if (this->verbosity>=TVar::DEBUG) MELAout << "PFCandHandler::constructPFCands: Attempting PFCand " << ip << "..." << endl;
 
     productList.push_back(new PFCandObject(id->at(ip), momentum->at(ip)));
     PFCandObject*& obj = productList.back();

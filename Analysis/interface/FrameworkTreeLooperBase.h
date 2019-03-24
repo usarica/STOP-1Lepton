@@ -24,6 +24,10 @@ protected:
   // Max. events to process
   int maxNEvents;
 
+  // Skip first N selected or failed events
+  int skipNselected;
+  int skipNfailed;
+
   // Max. events before recording
   int recordEveryNEvents;
 
@@ -67,6 +71,10 @@ public:
 
   // Max. events
   void setMaximumEvents(int n);
+
+  // Number of events to skip
+  void setNSkippedSelected(int n);
+  void setNSkippedFailed(int n);
 
   // Max. events to hold before recording
   void setRecordEveryNEvents(int n);
