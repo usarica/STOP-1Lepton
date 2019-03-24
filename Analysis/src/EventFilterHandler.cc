@@ -69,6 +69,15 @@ bool EventFilterHandler::constructFilter(){
     MELAerr << "EventFilterHandler::constructFilter: Not all trigger variables are consumed properly!" << endl;
     assert(0);
   }
+  bool skipTriggerChecks=false;
+  if (!hlt_trigNames || !hlt_l1prescales || !hlt_prescales){
+    if (this->verbosity>=TVar::DEBUG){
+      if (!hlt_trigNames) MELAerr << "EventFilterHandler::constructFilter: Trigger names pointer is null, but this issue should have been caught earlier!" << endl;
+      if (!hlt_l1prescales) MELAerr << "EventFilterHandler::constructFilter: L1 prescales pointer is null, but this issue should have been caught earlier!" << endl;
+      if (!hlt_prescales) MELAerr << "EventFilterHandler::constructFilter: HLT prescales pointer is null, but this issue should have been caught earlier!" << endl;
+    }
+    skipTriggerChecks = true;
+  }
   std::unordered_map<TString, std::vector<TString>> HLTPathMap = EventFilterHandler::getHLTPaths(fwktree);
   for (auto const& pair:HLTPathMap){
     TString HLTPathType = pair.first;
@@ -81,17 +90,22 @@ bool EventFilterHandler::constructFilter(){
       // Don't really care about the option, already tested it...
       HLTPathType = wish;
     }
+
+    if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "EventFilterHandler::constructFilter: Checking HLT path type " << HLTPathType << endl;
+
     std::unordered_map<TString, bool>::iterator it_product = product_HLTpaths.find(HLTPathType);
     if (it_product == product_HLTpaths.end()){
       product_HLTpaths[HLTPathType] = false;
       it_product = product_HLTpaths.find(HLTPathType);
     }
     for (TString const& hltpath:HLTPathsToTest){
+      if (skipTriggerChecks) break;
+      if (verbosity>=TVar::DEBUG_VERBOSE) MELAout << "\t- Testing HLT path " << hltpath << endl;
       int trigIndx = -1;
       std::vector<TString>::const_iterator begin_it = hlt_trigNames->cbegin();
       std::vector<TString>::const_iterator end_it = hlt_trigNames->cend();
       std::vector<TString>::const_iterator found_it = end_it;
-      for (auto it=hlt_trigNames->cbegin(); it!=end_it; it++){
+      for (auto it=begin_it; it!=end_it; it++){
         if (it->Contains(hltpath)){
           found_it=it;
           break;
