@@ -374,77 +374,249 @@ void get2DParallelAndPerpendicularComponents(TVector3 axis, TVector3 ref, float&
   perp = unitAxis.Cross(refPerp).Z();
 }
 
-void createGammaTrees(TString strSampleSet){
+
+void setDataYearPeriod(int year){
+  switch (year){
+  case 2016:
+    SampleHelpers::theDataYear=2016;
+    SampleHelpers::theDataPeriod="2016";
+    SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+    break;
+  case 2017:
+    SampleHelpers::theDataYear=2017;
+    SampleHelpers::theDataPeriod="2017";
+    SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+    break;
+  case 2018:
+    SampleHelpers::theDataYear=2018;
+    SampleHelpers::theDataPeriod="2018";
+    SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_10_X;
+    break;
+  }
+}
+
+void addDataTreeList(std::vector<TString>& list){
+  switch (SampleHelpers::theDataYear){
+  case 2016:
+    list.push_back("Run2016B-17Jul2018_ver2-v1_SinglePhoton");
+    list.push_back("Run2016C-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016D-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016E-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016F-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016G-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016H-17Jul2018-v1_SinglePhoton");
+    list.push_back("Run2016B-17Jul2018_ver2-v1_SingleElectron");
+    list.push_back("Run2016C-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016D-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016E-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016F-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016G-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016H-17Jul2018-v1_SingleElectron");
+    list.push_back("Run2016B-17Jul2018_ver2-v1_SingleMuon");
+    list.push_back("Run2016C-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016D-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016E-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016F-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016G-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016H-17Jul2018-v1_SingleMuon");
+    list.push_back("Run2016B-17Jul2018_ver2-v1_MET");
+    list.push_back("Run2016C-17Jul2018-v1_MET");
+    list.push_back("Run2016D-17Jul2018-v1_MET");
+    list.push_back("Run2016E-17Jul2018-v1_MET");
+    list.push_back("Run2016F-17Jul2018-v1_MET");
+    list.push_back("Run2016G-17Jul2018-v1_MET");
+    list.push_back("Run2016H-17Jul2018-v1_MET");
+    break;
+  case 2017:
+    list.push_back("Run2017B-31Mar2018-v1_SinglePhoton");
+    list.push_back("Run2017C-31Mar2018-v1_SinglePhoton");
+    list.push_back("Run2017D-31Mar2018-v1_SinglePhoton");
+    list.push_back("Run2017E-31Mar2018-v1_SinglePhoton");
+    list.push_back("Run2017F-31Mar2018-v1_SinglePhoton");
+    list.push_back("Run2017F-09May2018-v1_SinglePhoton");
+    list.push_back("Run2017B-31Mar2018-v1_SingleElectron");
+    list.push_back("Run2017C-31Mar2018-v1_SingleElectron");
+    list.push_back("Run2017D-31Mar2018-v1_SingleElectron");
+    list.push_back("Run2017E-31Mar2018-v1_SingleElectron");
+    list.push_back("Run2017F-31Mar2018-v1_SingleElectron");
+    list.push_back("Run2017F-09May2018-v1_SingleElectron");
+    list.push_back("Run2017B-31Mar2018-v1_SingleMuon");
+    list.push_back("Run2017C-31Mar2018-v1_SingleMuon");
+    list.push_back("Run2017D-31Mar2018-v1_SingleMuon");
+    list.push_back("Run2017E-31Mar2018-v1_SingleMuon");
+    list.push_back("Run2017F-31Mar2018-v1_SingleMuon");
+    list.push_back("Run2017F-09May2018-v1_SingleMuon");
+    list.push_back("Run2017B-31Mar2018-v1_MET");
+    list.push_back("Run2017C-31Mar2018-v1_MET");
+    list.push_back("Run2017D-31Mar2018-v1_MET");
+    list.push_back("Run2017E-31Mar2018-v1_MET");
+    list.push_back("Run2017F-31Mar2018-v1_MET");
+    list.push_back("Run2017F-09May2018-v1_MET");
+    break;
+  case 2018:
+    list.push_back("Run2018A-17Sep2018-v2_EGamma");
+    list.push_back("Run2018B-17Sep2018-v1_EGamma");
+    list.push_back("Run2018C-17Sep2018-v1_EGamma");
+    list.push_back("Run2018D-PromptReco-v2_EGamma");
+    list.push_back("Run2018A-17Sep2018-v2_SingleMuon");
+    list.push_back("Run2018B-17Sep2018-v1_SingleMuon");
+    list.push_back("Run2018C-17Sep2018-v1_SingleMuon");
+    list.push_back("Run2018D-PromptReco-v2_SingleMuon");
+    list.push_back("Run2018A-17Sep2018-v2_MET");
+    list.push_back("Run2018B-17Sep2018-v1_MET");
+    list.push_back("Run2018C-17Sep2018-v1_MET");
+    list.push_back("Run2018D-PromptReco-v2_MET");
+    break;
+  }
+}
+
+void addDataTreeList_Combined(std::vector<TString>& list){
+  switch (SampleHelpers::theDataYear){
+  case 2016:
+    list.push_back("Run2016B-17Jul2018_ver2-v1");
+    list.push_back("Run2016C-17Jul2018-v1");
+    list.push_back("Run2016D-17Jul2018-v1");
+    list.push_back("Run2016E-17Jul2018-v1");
+    list.push_back("Run2016F-17Jul2018-v1");
+    list.push_back("Run2016G-17Jul2018-v1");
+    list.push_back("Run2016H-17Jul2018-v1");
+    break;
+  case 2017:
+    list.push_back("Run2017B-31Mar2018-v1");
+    list.push_back("Run2017C-31Mar2018-v1");
+    list.push_back("Run2017D-31Mar2018-v1");
+    list.push_back("Run2017E-31Mar2018-v1");
+    list.push_back("Run2017F-31Mar2018-v1");
+    list.push_back("Run2017F-09May2018-v1");
+    break;
+  case 2018:
+    list.push_back("Run2018A-17Sep2018-v2");
+    list.push_back("Run2018B-17Sep2018-v1");
+    list.push_back("Run2018C-17Sep2018-v1");
+    list.push_back("Run2018D-PromptReco-v2");
+    break;
+  }
+}
+
+void addMCTreeList(std::vector<TString>& list){
+  switch (SampleHelpers::theDataYear){
+  case 2016:
+    list.push_back("GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+
+    list.push_back("QCD_HT200to300_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT300to500_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT500to700_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraph-pythia8");
+
+    list.push_back("TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8");
+    list.push_back("TGJets_leptonDecays_TuneCUETP8M1_PSweights_13TeV-amcatnlo-pythia8");
+    //list.push_back("TTGamma_Dilept_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromT_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromTbar_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
+    list.push_back("TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8");
+
+    list.push_back("WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8");
+
+    list.push_back("ZJetsToNuNu_HT-100To200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-200To400_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-400To600_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-600To800_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-800To1200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-1200To2500_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph");
+    break;
+  case 2017:
+    list.push_back("GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8");
+
+    list.push_back("QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8");
+
+    list.push_back("TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8");
+    list.push_back("TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8");
+    //list.push_back("TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    list.push_back("TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8");
+
+    list.push_back("WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("WZG_TuneCP5_13TeV-amcatnlo-pythia8");
+
+    list.push_back("ZJetsToNuNu_HT-100To200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-200To400_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-400To600_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-600To800_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-800To1200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-1200To2500_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph");
+    break;
+  case 2018:
+    //list.push_back("GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8");
+
+    list.push_back("QCD_HT100to200_TuneCP5_13TeV-madgraph-pythia8");
+    //list.push_back("QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8");
+
+    list.push_back("TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8");
+    list.push_back("TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8");
+    //list.push_back("TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    //list.push_back("TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8");
+    list.push_back("TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8");
+
+    list.push_back("WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("WZG_TuneCP5_13TeV-amcatnlo-pythia8");
+
+    list.push_back("ZJetsToNuNu_HT-100To200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-200To400_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-400To600_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-600To800_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-800To1200_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-1200To2500_13TeV-madgraph");
+    list.push_back("ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph");
+    break;
+  }
+}
+
+
+void createGammaTrees(TString strSampleSet, int year){
   gStyle->SetOptStat(0);
   RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
 
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
-  //float const btagWP = BtagHelpers::getBtagWP(BtagHelpers::kDeepCSV_Medium);
-  //float const totalLumi=150.f*1000.f;
+  setDataYearPeriod(year);
 
   // For data only
   unordered_map<TString, DuplicateEventHandler> dupEventHandles;
 
-  std::vector<TString> sampleList={
-    "Run2017B-31Mar2018-v1_SinglePhoton",
-    "Run2017C-31Mar2018-v1_SinglePhoton",
-    "Run2017D-31Mar2018-v1_SinglePhoton",
-    "Run2017E-31Mar2018-v1_SinglePhoton",
-    "Run2017F-31Mar2018-v1_SinglePhoton",
-    "Run2017F-09May2018-v1_SinglePhoton",
-    "Run2017B-31Mar2018-v1_SingleElectron",
-    "Run2017C-31Mar2018-v1_SingleElectron",
-    "Run2017D-31Mar2018-v1_SingleElectron",
-    "Run2017E-31Mar2018-v1_SingleElectron",
-    "Run2017F-31Mar2018-v1_SingleElectron",
-    "Run2017F-09May2018-v1_SingleElectron",
-    "Run2017B-31Mar2018-v1_SingleMuon",
-    "Run2017C-31Mar2018-v1_SingleMuon",
-    "Run2017D-31Mar2018-v1_SingleMuon",
-    "Run2017E-31Mar2018-v1_SingleMuon",
-    "Run2017F-31Mar2018-v1_SingleMuon",
-    "Run2017F-09May2018-v1_SingleMuon",
-    "Run2017B-31Mar2018-v1_MET",
-    "Run2017C-31Mar2018-v1_MET",
-    "Run2017D-31Mar2018-v1_MET",
-    "Run2017E-31Mar2018-v1_MET",
-    "Run2017F-31Mar2018-v1_MET",
-    "Run2017F-09May2018-v1_MET",
+  std::vector<TString> sampleList;
+  addDataTreeList(sampleList);
+  addMCTreeList(sampleList);
 
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
-
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    "TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
   {
     std::vector<TString> tmplist;
     for (TString const& strSample:sampleList){
@@ -459,6 +631,7 @@ void createGammaTrees(TString strSampleSet){
     }
     std::swap(sampleList, tmplist);
   }
+  MELAout << "Processing sample list " << sampleList << endl;
   for (TString const& strSample:sampleList){
     if (strSample.Contains("Run")){
       TString key, junk;
@@ -470,15 +643,28 @@ void createGammaTrees(TString strSampleSet){
 
   gSystem->Exec(Form("mkdir -p output/GammaTrees/%i", SampleHelpers::theDataYear));
   TString const stroutputcore = Form("output/GammaTrees/%i", SampleHelpers::theDataYear);
-  TString const strinputcore = "/nfs-7/userdata/usarica/STOP-1L/Samples_2017/[DATE]";
+  TString const strinputcore = Form("/nfs-7/userdata/usarica/STOP-1L/Samples_%i/[DATE]", SampleHelpers::theDataYear);
+  bool isFirstSample = true;
   for (auto const& strSample:sampleList){
     bool const isData = (strSample.BeginsWith("Run"));
     TString strinput = strinputcore;
     switch (SampleHelpers::theDataYear){
+    case 2016:
+    {
+      if (isData) HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190324"));
+      else HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190325"));
+      break;
+    }
     case 2017:
     {
       if (isData) HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190220"));
       else HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190224"));
+      break;
+    }
+    case 2018:
+    {
+      if (isData) HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190319"));
+      else HelperFunctions::replaceString<TString, const TString>(strinput, TString("[DATE]"), TString("190322"));
       break;
     }
     default:
@@ -519,6 +705,28 @@ void createGammaTrees(TString strSampleSet){
         TString bname = WeightVariables::getWeightName((WeightVariables::WeightType) iwt);
         tree->SetBranchStatus(bname, 1); tree->SetBranchAddress(bname, &(genweights.at(iwt)));
       }
+    }
+
+    bool passHEMFilter=false;
+    bool passHEMFilter_JECup=false;
+    bool passHEMFilter_JECdn=false;
+    bool passHEMFilter_JERup=false;
+    bool passHEMFilter_JERdn=false;
+    if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+      tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      if (!isData){
+        tree->SetBranchStatus("passHEMFilter_JECup", 1); tree->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+        tree->SetBranchStatus("passHEMFilter_JECdn", 1); tree->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+        tree->SetBranchStatus("passHEMFilter_JERup", 1); tree->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+        tree->SetBranchStatus("passHEMFilter_JERdn", 1); tree->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+      }
+    }
+    else{
+      passHEMFilter=true;
+      passHEMFilter_JECup=true;
+      passHEMFilter_JECdn=true;
+      passHEMFilter_JERup=true;
+      passHEMFilter_JERdn=true;
     }
 
     // Extra weights
@@ -622,6 +830,15 @@ void createGammaTrees(TString strSampleSet){
       tout.Branch("weight_PU_SFUp", &weight_PU_SFUp);
       tout.Branch("weight_PU_SFDn", &weight_PU_SFDn);
     }
+    if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+      tout.Branch("passHEMFilter", &passHEMFilter);
+      if (!isData){
+        tout.Branch("passHEMFilter_JECup", &passHEMFilter_JECup);
+        tout.Branch("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+        tout.Branch("passHEMFilter_JERup", &passHEMFilter_JERup);
+        tout.Branch("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+      }
+    }
 
     BOOK_BRANCH(unsigned int, nak4jets_preselected, tout);
     BOOK_BRANCH(float, jetHT, tout);
@@ -677,7 +894,6 @@ void createGammaTrees(TString strSampleSet){
       HelperFunctions::progressbar(ev, nEntries);
 
       if (ev==0 && !isData) tree->SetBranchStatus("xsec", 0);
-      if (isData && !dupEventHandle->isUnique(RunNumber, LumiSection, EventNumber)) continue;
 
       for (size_t iwt=0; iwt<genweights.size(); iwt++){
         sumCtrWgt[iwt] += genweights[iwt];
@@ -686,6 +902,20 @@ void createGammaTrees(TString strSampleSet){
         sumCtrWgt_PU_SFDn[iwt] += genweights[iwt]*weight_PU_SFDn;
         sumCtrOne[iwt]++;
       }
+
+      bool doSkipEvent = !(
+        passEventFilters
+        && passGoodPrimaryVertex
+        && (
+          passHLTPath_SingleEle
+          || passHLTPath_SingleMu
+          || passHLTPath_SinglePhoton
+          || passHLTPath_MET
+          )
+        );
+      if (doSkipEvent) continue;
+
+      if (isData && !dupEventHandle->isUnique(RunNumber, LumiSection, EventNumber)) continue;
 
 
       genJetHT = -1;
@@ -721,18 +951,6 @@ void createGammaTrees(TString strSampleSet){
           }
         }
       }
-
-      bool doSkipEvent = !(
-        passEventFilters
-        && passGoodPrimaryVertex
-        && (
-        passHLTPath_SingleEle
-        || passHLTPath_SingleMu
-        || passHLTPath_SinglePhoton
-        || passHLTPath_MET
-          )
-        );
-      if (doSkipEvent) continue;
 
       // Reco particles
       size_t const nmuons = muons_selectionBits->size();
@@ -903,58 +1121,18 @@ void createGammaTrees(TString strSampleSet){
     delete tree;
     foutput->WriteTObject(&tout);
     foutput->Close();
+
+    isFirstSample = false;
   }
 
 }
 
 
-void getCorrections_DataMC(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
-  std::vector<TString> sampleList_MC={
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+void getCorrections_DataMC(int year){
+  setDataYearPeriod(year);
 
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    //"TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
-
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
-  float const btagWP = BtagHelpers::getBtagWP(BtagHelpers::kDeepCSV_Medium);
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
+  std::vector<TString> sampleList_MC; addMCTreeList(sampleList_MC);
 
   TString const strinputcore = Form("output/GammaTrees/%i/[OUTFILECORE].root", SampleHelpers::theDataYear);
   TString const stroutputcore = Form("output/GammaTrees/%i/plots/scale_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
@@ -1010,6 +1188,21 @@ void getCorrections_DataMC(){
       tree->SetBranchStatus(bname, 1);
       tree->SetBranchAddress(bname, &(genweights.at(iwt)));
     }
+
+    // 2018 HEM flags
+    bool passHEMFilter=true;
+    bool passHEMFilter_JECup=true;
+    bool passHEMFilter_JECdn=true;
+    bool passHEMFilter_JERup=true;
+    bool passHEMFilter_JERdn=true;
+    if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+      tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      tree->SetBranchStatus("passHEMFilter_JECup", 1); tree->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+      tree->SetBranchStatus("passHEMFilter_JECdn", 1); tree->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+      tree->SetBranchStatus("passHEMFilter_JERup", 1); tree->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+      tree->SetBranchStatus("passHEMFilter_JERdn", 1); tree->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+    }
+
     DATA_SIMPLE(float, xsec);
     DATA_SIMPLE(float, weight_photons);
     DATA_SIMPLE(float, weight_PU);
@@ -1040,22 +1233,28 @@ void getCorrections_DataMC(){
         else if (isyst==6) totwgt *= weight_PU_SFDn;
         else assert(0);
 
+        bool* passHEMFilter_ptr = &passHEMFilter;
+
         unsigned int* nak4jets_preselected_ptr = &nak4jets_preselected;
         float* jetHT_ptr = &jetHT;
         switch (isyst){
         case 1:
+          passHEMFilter_ptr = &passHEMFilter_JECup;
           nak4jets_preselected_ptr = &nak4jets_preselected_JECup;
           jetHT_ptr = &jetHT_JECup;
           break;
         case 2:
+          passHEMFilter_ptr = &passHEMFilter_JECdn;
           nak4jets_preselected_ptr = &nak4jets_preselected_JECdn;
           jetHT_ptr = &jetHT_JECdn;
           break;
         case 3:
+          passHEMFilter_ptr = &passHEMFilter_JERup;
           nak4jets_preselected_ptr = &nak4jets_preselected_JERup;
           jetHT_ptr = &jetHT_JERup;
           break;
         case 4:
+          passHEMFilter_ptr = &passHEMFilter_JERdn;
           nak4jets_preselected_ptr = &nak4jets_preselected_JERdn;
           jetHT_ptr = &jetHT_JERdn;
           break;
@@ -1063,10 +1262,13 @@ void getCorrections_DataMC(){
 
         if (firstEvent){
           MELAout << "First event, systematic " << isyst << ":\n";
+          MELAout << "passHEMFilter: " << *passHEMFilter_ptr << " (address: " << passHEMFilter_ptr << ")" << endl;
           MELAout << "nak4jets_preselected: " << *nak4jets_preselected_ptr << " (address: " << nak4jets_preselected_ptr << ")" << endl;
           MELAout << "jetHT: " << *jetHT_ptr << " (address: " << jetHT_ptr << ")" << endl;
           MELAout << "photon: " << photon_pt << " (address: " << &photon_pt << ")" << endl;
         }
+
+        if (!(*passHEMFilter_ptr)) continue;
 
         xvar.setVal(*nak4jets_preselected_ptr, 1);
         yvar.setVal(*jetHT_ptr, 1);
@@ -1141,6 +1343,13 @@ void getCorrections_DataMC(){
           MELAout << "Adding " << strtmp << endl;
         }
       }
+
+      // 2018 HEM flags
+      bool passHEMFilter=true;
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      }
+
       DATA_SIMPLE(unsigned int, nak4jets_preselected);
       DATA_SIMPLE(float, photon_pt);
       DATA_SIMPLE(float, jetHT);
@@ -1148,6 +1357,8 @@ void getCorrections_DataMC(){
       for (int ev=0; ev<nEntries; ev++){
         tree->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
+
+        if (!passHEMFilter) continue;
 
         xvar.setVal(nak4jets_preselected, 1);
         yvar.setVal(jetHT, 1);
@@ -1201,53 +1412,11 @@ void getCorrections_DataMC(){
   }
 }
 
-void getResidualCorrections_DataMC(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
-  std::vector<TString> sampleList_MC={
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+void getResidualCorrections_DataMC(int year){
+  setDataYearPeriod(year);
 
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    //"TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
-
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
-  float const btagWP = BtagHelpers::getBtagWP(BtagHelpers::kDeepCSV_Medium);
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
+  std::vector<TString> sampleList_MC; addMCTreeList(sampleList_MC);
 
   TString const strinputcore = Form("output/GammaTrees/%i/[OUTFILECORE].root", SampleHelpers::theDataYear);
   TString const strinputscalecore = Form("output/GammaTrees/%i/plots/scale_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
@@ -1295,6 +1464,13 @@ void getResidualCorrections_DataMC(){
           MELAout << "Adding " << strtmp << endl;
         }
       }
+
+      // 2018 HEM flags
+      bool passHEMFilter=true;
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      }
+
       DATA_SIMPLE(unsigned int, nak4jets_preselected);
       DATA_SIMPLE(float, uParallel);
       DATA_SIMPLE(float, uPerp);
@@ -1304,6 +1480,7 @@ void getResidualCorrections_DataMC(){
         tree->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
 
+        if (!passHEMFilter) continue;
         if (photon_pt<130.f) continue;
 
         xvar.setVal(nak4jets_preselected, 1);
@@ -1375,6 +1552,21 @@ void getResidualCorrections_DataMC(){
           tree->SetBranchStatus(bname, 1);
           tree->SetBranchAddress(bname, &(genweights.at(iwt)));
         }
+
+        // 2018 HEM flags
+        bool passHEMFilter=true;
+        bool passHEMFilter_JECup=true;
+        bool passHEMFilter_JECdn=true;
+        bool passHEMFilter_JERup=true;
+        bool passHEMFilter_JERdn=true;
+        if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+          tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+          tree->SetBranchStatus("passHEMFilter_JECup", 1); tree->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+          tree->SetBranchStatus("passHEMFilter_JECdn", 1); tree->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+          tree->SetBranchStatus("passHEMFilter_JERup", 1); tree->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+          tree->SetBranchStatus("passHEMFilter_JERdn", 1); tree->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+        }
+
         DATA_SIMPLE(float, xsec);
         DATA_SIMPLE(float, weight_photons);
         DATA_SIMPLE(float, weight_PU);
@@ -1419,30 +1611,36 @@ void getResidualCorrections_DataMC(){
             else assert(0);
             totalWeights_prescaling.at(isyst) += totwgt;
 
+            bool* passHEMFilter_ptr = &passHEMFilter;
+
             unsigned int* nak4jets_preselected_ptr = &nak4jets_preselected;
             float* uParallel_ptr = &uParallel;
             float* uPerp_ptr = &uPerp;
             float* jetHT_ptr = &jetHT;
             switch (isyst){
             case 1:
+              passHEMFilter_ptr = &passHEMFilter_JECup;
               nak4jets_preselected_ptr = &nak4jets_preselected_JECup;
               uParallel_ptr = &uParallel_JECup;
               uPerp_ptr = &uPerp_JECup;
               jetHT_ptr = &jetHT_JECup;
               break;
             case 2:
+              passHEMFilter_ptr = &passHEMFilter_JECdn;
               nak4jets_preselected_ptr = &nak4jets_preselected_JECdn;
               uParallel_ptr = &uParallel_JECdn;
               uPerp_ptr = &uPerp_JECdn;
               jetHT_ptr = &jetHT_JECdn;
               break;
             case 3:
+              passHEMFilter_ptr = &passHEMFilter_JERup;
               nak4jets_preselected_ptr = &nak4jets_preselected_JERup;
               uParallel_ptr = &uParallel_JERup;
               uPerp_ptr = &uPerp_JERup;
               jetHT_ptr = &jetHT_JERup;
               break;
             case 4:
+              passHEMFilter_ptr = &passHEMFilter_JERdn;
               nak4jets_preselected_ptr = &nak4jets_preselected_JERdn;
               uParallel_ptr = &uParallel_JERdn;
               uPerp_ptr = &uPerp_JERdn;
@@ -1452,11 +1650,14 @@ void getResidualCorrections_DataMC(){
 
             if (firstEvent){
               MELAout << "First event, systematic " << isyst << ":\n";
+              MELAout << "passHEMFilter: " << *passHEMFilter_ptr << " (address: " << passHEMFilter_ptr << ")" << endl;
               MELAout << "nak4jets_preselected: " << *nak4jets_preselected_ptr << " (address: " << nak4jets_preselected_ptr << ")" << endl;
               MELAout << "jetHT: " << *jetHT_ptr << " (address: " << jetHT_ptr << ")" << endl;
               MELAout << "uParallel: " << *uParallel_ptr << " (address: " << uParallel_ptr << ")" << endl;
               MELAout << "uPerp: " << *uPerp_ptr << " (address: " << uPerp_ptr << ")" << endl;
             }
+
+            if (!(*passHEMFilter_ptr)) continue;
 
             {
               TH3F const*& hscale_MC = hscale.at(isyst);
@@ -1662,6 +1863,21 @@ void getMCHistograms_1D(
       tree->SetBranchStatus(bname, 1);
       tree->SetBranchAddress(bname, &(genweights.at(iwt)));
     }
+
+    // 2018 HEM flags
+    bool passHEMFilter=true;
+    bool passHEMFilter_JECup=true;
+    bool passHEMFilter_JECdn=true;
+    bool passHEMFilter_JERup=true;
+    bool passHEMFilter_JERdn=true;
+    if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+      tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      tree->SetBranchStatus("passHEMFilter_JECup", 1); tree->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+      tree->SetBranchStatus("passHEMFilter_JECdn", 1); tree->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+      tree->SetBranchStatus("passHEMFilter_JERup", 1); tree->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+      tree->SetBranchStatus("passHEMFilter_JERdn", 1); tree->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+    }
+
     DATA_SIMPLE(float, xsec);
     DATA_SIMPLE(float, weight_photons);
     DATA_SIMPLE(float, weight_PU);
@@ -1699,6 +1915,14 @@ void getMCHistograms_1D(
 
     float totwgt_Nominal, totwgt_JECup, totwgt_JECdn, totwgt_JERup, totwgt_JERdn, totwgt_PUup, totwgt_PUdn;
     if (tin && is==0){
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tin->Branch("passHEMFilter", &passHEMFilter);
+        tin->Branch("passHEMFilter_JECup", &passHEMFilter_JECup);
+        tin->Branch("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+        tin->Branch("passHEMFilter_JERup", &passHEMFilter_JERup);
+        tin->Branch("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+      }
+
       tin->Branch("nak4jets_preselected", &nak4jets_preselected);
       tin->Branch("nak4jets_preselected_JECup", &nak4jets_preselected_JECup); tin->Branch("nak4jets_preselected_JECdn", &nak4jets_preselected_JECdn);
       tin->Branch("nak4jets_preselected_JERup", &nak4jets_preselected_JERup); tin->Branch("nak4jets_preselected_JERdn", &nak4jets_preselected_JERdn);
@@ -1713,6 +1937,15 @@ void getMCHistograms_1D(
     }
     else if (tin){
       tin->ResetBranchAddresses();
+
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tin->SetBranchAddress("passHEMFilter", &passHEMFilter);
+        tin->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+        tin->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+        tin->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+        tin->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+      }
+
       tin->SetBranchAddress("nak4jets_preselected", &nak4jets_preselected);
       tin->SetBranchAddress("nak4jets_preselected_JECup", &nak4jets_preselected_JECup); tin->SetBranchAddress("nak4jets_preselected_JECdn", &nak4jets_preselected_JECdn);
       tin->SetBranchAddress("nak4jets_preselected_JERup", &nak4jets_preselected_JERup); tin->SetBranchAddress("nak4jets_preselected_JERdn", &nak4jets_preselected_JERdn);
@@ -1730,6 +1963,16 @@ void getMCHistograms_1D(
     for (int ev=0; ev<nEntries; ev++){
       tree->GetEntry(ev);
       HelperFunctions::progressbar(ev, nEntries);
+
+      if (
+        !(
+          passHEMFilter
+          || passHEMFilter_JECup
+          || passHEMFilter_JECdn
+          || passHEMFilter_JERup
+          || passHEMFilter_JERdn
+          )
+        ) continue;
 
       float photon_phi = pfmetPhi - atan2(MET_Perp, MET_Parallel);
 
@@ -1758,6 +2001,8 @@ void getMCHistograms_1D(
         else if (isyst==6) totwgt *= weight_PU_SFDn;
         else assert(0);
 
+        bool* passHEMFilter_ptr = &passHEMFilter;
+
         unsigned int* nak4jets_preselected_ptr = &nak4jets_preselected;
         float* uParallel_ptr = &uParallel;
         float* uPerp_ptr = &uPerp;
@@ -1769,6 +2014,7 @@ void getMCHistograms_1D(
         float* MET_Perp_ptr = &MET_Perp;
         switch (isyst){
         case 1:
+          passHEMFilter_ptr = &passHEMFilter_JECup;
           nak4jets_preselected_ptr = &nak4jets_preselected_JECup;
           uParallel_ptr = &uParallel_JECup;
           uPerp_ptr = &uPerp_JECup;
@@ -1780,6 +2026,7 @@ void getMCHistograms_1D(
           MET_Perp_ptr = &MET_Perp_JECup;
           break;
         case 2:
+          passHEMFilter_ptr = &passHEMFilter_JECdn;
           nak4jets_preselected_ptr = &nak4jets_preselected_JECdn;
           uParallel_ptr = &uParallel_JECdn;
           uPerp_ptr = &uPerp_JECdn;
@@ -1791,6 +2038,7 @@ void getMCHistograms_1D(
           MET_Perp_ptr = &MET_Perp_JECdn;
           break;
         case 3:
+          passHEMFilter_ptr = &passHEMFilter_JERup;
           nak4jets_preselected_ptr = &nak4jets_preselected_JERup;
           uParallel_ptr = &uParallel_JERup;
           uPerp_ptr = &uPerp_JERup;
@@ -1799,6 +2047,7 @@ void getMCHistograms_1D(
           pfmetPhi_corrected_ptr = &metobj.extras.phi_JERup;
           break;
         case 4:
+          passHEMFilter_ptr = &passHEMFilter_JERdn;
           nak4jets_preselected_ptr = &nak4jets_preselected_JERdn;
           uParallel_ptr = &uParallel_JERdn;
           uPerp_ptr = &uPerp_JERdn;
@@ -1823,6 +2072,8 @@ void getMCHistograms_1D(
           pfmetPhi_corrected_ptr = &metobj.extras.phi_METdn;
           break;
         }
+
+        if (!(*passHEMFilter_ptr)) continue;
 
         float MET_Perp_corrected=0;
         float MET_Parallel_corrected=0;
@@ -1959,53 +2210,11 @@ void getMCHistograms_1D(
 }
 
 
-void plotGammaTrees_DataMC(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
-  std::vector<TString> sampleList_MC={
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+void plotGammaTrees_DataMC(int year){
+  setDataYearPeriod(year);
 
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    "TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
-
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
-  float const btagWP = BtagHelpers::getBtagWP(BtagHelpers::kDeepCSV_Medium);
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
+  std::vector<TString> sampleList_MC; addMCTreeList(sampleList_MC);
 
   TString const strinputcore = Form("output/GammaTrees/%i/[OUTFILECORE].root", SampleHelpers::theDataYear);
   TString const stroutputcore = Form("output/GammaTrees/%i/plots/compare_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
@@ -2056,6 +2265,13 @@ void plotGammaTrees_DataMC(){
           MELAout << "Adding " << strtmp << endl;
         }
       }
+
+      // 2018 HEM flags
+      bool passHEMFilter=true;
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      }
+
       DATA_SIMPLE(unsigned int, nak4jets_preselected);
       DATA_SIMPLE(float, pfmet);
       //DATA_SIMPLE(float, pfmetPhi);
@@ -2074,6 +2290,8 @@ void plotGammaTrees_DataMC(){
       for (int ev=0; ev<nEntries; ev++){
         tree->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
+
+        if (!passHEMFilter) continue;
 
         for (size_t iv=0; iv<varlist.size(); iv++){
           auto& var = varlist.at(iv);
@@ -2124,53 +2342,11 @@ void plotGammaTrees_DataMC(){
   }
 }
 
-void plotGammaTrees_Scaled_DataMC(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
-  std::vector<TString> sampleList_MC={
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+void plotGammaTrees_Scaled_DataMC(int year){
+  setDataYearPeriod(year);
 
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    "TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
-
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
-  float const btagWP = BtagHelpers::getBtagWP(BtagHelpers::kDeepCSV_Medium);
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
+  std::vector<TString> sampleList_MC; addMCTreeList(sampleList_MC);
 
   TString const strinputcore = Form("output/GammaTrees/%i/[OUTFILECORE].root", SampleHelpers::theDataYear);
   TString const strinputscalecore = Form("output/GammaTrees/%i/plots/scale_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
@@ -2225,6 +2401,13 @@ void plotGammaTrees_Scaled_DataMC(){
           MELAout << "Adding " << strtmp << endl;
         }
       }
+
+      // 2018 HEM flags
+      bool passHEMFilter=true;
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+      }
+
       DATA_SIMPLE(unsigned int, nak4jets_preselected);
       DATA_SIMPLE(float, pfmet);
       DATA_SIMPLE(float, photon_pt);
@@ -2234,6 +2417,9 @@ void plotGammaTrees_Scaled_DataMC(){
       DATA_SIMPLE(float, MET_Parallel);
       DATA_SIMPLE(float, MET_Perp);
 
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tout_Data.Branch("passHEMFilter", &passHEMFilter);
+      }
       tout_Data.Branch("nak4jets_preselected", &nak4jets_preselected);
       tout_Data.Branch("MET_Parallel", &MET_Parallel);
       tout_Data.Branch("MET_Perp", &MET_Perp);
@@ -2243,6 +2429,8 @@ void plotGammaTrees_Scaled_DataMC(){
       for (int ev=0; ev<nEntries; ev++){
         tree->GetEntry(ev);
         HelperFunctions::progressbar(ev, nEntries);
+
+        if (!passHEMFilter) continue;
 
         for (size_t iv=0; iv<varlist.size(); iv++){
           auto& var = varlist.at(iv);
@@ -2382,19 +2570,10 @@ void getFitCovarianceMatrix(RooFitResult const* fitResult, RooArgList const& ord
   }
 }
 
-void fitFinalGammaTrees(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
+void fitFinalGammaTrees(int year){
+  setDataYearPeriod(year);
 
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataPeriod="2017";
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
 
   TString const strinputcore = Form("output/GammaTrees/%i/plots/compare_scaled_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
   TString const stroutputtxtcore = Form("output/GammaTrees/%i/plots/fitparameters_[OUTFILECORE]_MC.txt", SampleHelpers::theDataYear);
@@ -2436,6 +2615,22 @@ void fitFinalGammaTrees(){
 
     for (size_t it=0; it<trees.size(); it++){
       TTree*& tree = trees.at(it);
+
+      // 2018 HEM flags
+      bool passHEMFilter=true;
+      bool passHEMFilter_JECup=true;
+      bool passHEMFilter_JECdn=true;
+      bool passHEMFilter_JERup=true;
+      bool passHEMFilter_JERdn=true;
+      if (SampleHelpers::theDataYear == 2018 && SampleHelpers::theDataVersion == SampleHelpers::kCMSSW_10_X){
+        tree->SetBranchStatus("passHEMFilter", 1); tree->SetBranchAddress("passHEMFilter", &passHEMFilter);
+        if (it==1){
+          tree->SetBranchStatus("passHEMFilter_JECup", 1); tree->SetBranchAddress("passHEMFilter_JECup", &passHEMFilter_JECup);
+          tree->SetBranchStatus("passHEMFilter_JECdn", 1); tree->SetBranchAddress("passHEMFilter_JECdn", &passHEMFilter_JECdn);
+          tree->SetBranchStatus("passHEMFilter_JERup", 1); tree->SetBranchAddress("passHEMFilter_JERup", &passHEMFilter_JERup);
+          tree->SetBranchStatus("passHEMFilter_JERdn", 1); tree->SetBranchAddress("passHEMFilter_JERdn", &passHEMFilter_JERdn);
+        }
+      }
 
       float totwgt=1;
       unsigned int nak4jets_preselected;
@@ -2483,25 +2678,31 @@ void fitFinalGammaTrees(){
         for (int ev=0; ev<nEntries; ev++){
           tree->GetEntry(ev);
 
+          bool* passHEMFilter_ptr = &passHEMFilter;
+
           unsigned int* nak4jets_preselected_ptr = &nak4jets_preselected;
           float* MET_Perp_ptr = &MET_Perp;
           float* totwgt_ptr = &totwgt;
           switch (isyst){
           case 1:
+            passHEMFilter_ptr = &passHEMFilter_JECup;
             nak4jets_preselected_ptr = &nak4jets_preselected_JECup;
             MET_Perp_ptr = &MET_Perp_JECup;
             totwgt_ptr = &totwgt_JECup;
             break;
           case 2:
+            passHEMFilter_ptr = &passHEMFilter_JECdn;
             nak4jets_preselected_ptr = &nak4jets_preselected_JECdn;
             MET_Perp_ptr = &MET_Perp_JECdn;
             totwgt_ptr = &totwgt_JECdn;
             break;
           case 3:
+            passHEMFilter_ptr = &passHEMFilter_JERup;
             nak4jets_preselected_ptr = &nak4jets_preselected_JERup;
             totwgt_ptr = &totwgt_JERup;
             break;
           case 4:
+            passHEMFilter_ptr = &passHEMFilter_JERdn;
             nak4jets_preselected_ptr = &nak4jets_preselected_JERdn;
             totwgt_ptr = &totwgt_JERdn;
             break;
@@ -2761,51 +2962,11 @@ void fitFinalGammaTrees(){
   }
 }
 
-void checkCorrectedMETDistributions(){
-  std::vector<TString> sampleList_Data={
-   // "Run2017B-31Mar2018-v1",
-   // "Run2017C-31Mar2018-v1",
-   // "Run2017D-31Mar2018-v1",
-   // "Run2017E-31Mar2018-v1",
-   // "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
-  std::vector<TString> sampleList_MC={
-    "GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8",
+void checkCorrectedMETDistributions(int year){
+  setDataYearPeriod(year);
 
-    "QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8",
-    "QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8",
-
-    "TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8",
-    "TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8",
-    //"TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    //"TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8",
-    "TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8",
-
-    "WGToLNuG_TuneCP5_13TeV-madgraphMLM-pythia8",
-    "WZG_TuneCP5_13TeV-amcatnlo-pythia8",
-
-    "ZJetsToNuNu_HT-100To200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-200To400_13TeV-madgraph",
-    "ZJetsToNuNu_HT-400To600_13TeV-madgraph",
-    "ZJetsToNuNu_HT-600To800_13TeV-madgraph",
-    "ZJetsToNuNu_HT-800To1200_13TeV-madgraph",
-    "ZJetsToNuNu_HT-1200To2500_13TeV-madgraph",
-    "ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph"
-  };
-
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
+  std::vector<TString> sampleList_MC; addMCTreeList(sampleList_MC);
 
   METCorrectionHandler metCorrector;
 
@@ -2920,18 +3081,10 @@ void checkCorrectedMETDistributions(){
 
 }
 
-void plotCorrectedMETDistributions(){
-  std::vector<TString> sampleList_Data={
-    "Run2017B-31Mar2018-v1",
-    "Run2017C-31Mar2018-v1",
-    "Run2017D-31Mar2018-v1",
-    "Run2017E-31Mar2018-v1",
-    "Run2017F-31Mar2018-v1",
-    "Run2017F-09May2018-v1"
-  };
+void plotCorrectedMETDistributions(int year){
+  setDataYearPeriod(year);
 
-  SampleHelpers::theDataYear=2017;
-  SampleHelpers::theDataVersion=SampleHelpers::kCMSSW_9_4_X;
+  std::vector<TString> sampleList_Data; addDataTreeList_Combined(sampleList_Data);
 
   TString const strinputcore = Form("output/GammaTrees/%i/plots/checkCorrectedMET_[OUTFILECORE]_MC.root", SampleHelpers::theDataYear);
 
