@@ -13,7 +13,8 @@ void testHandlers(){
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2018 outdir=./ outfile=Run2018C-17Sep2018-v1_MET.root sample=/MET/Run2018C-17Sep2018-v1/MINIAOD inputfiles=merged_ntuple_19.root year=2018 maxevents=1000 ismc=false";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2017 outdir=./ outfile=Run2017F-31Mar2018-v1_DoubleEG.root sample=/DoubleEG/Run2017F-31Mar2018-v1/MINIAOD year=2017 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
   //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2017 outdir=./ outfile=Run2017F-09May2018-v1_DoubleEG.root sample=/DoubleEG/Run2017F-09May2018-v1/MINIAOD year=2017 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
-  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2016_94x outdir=./ outfile=Run2016B-17Jul2018_ver2-v1_DoubleEG.root sample=/DoubleEG/Run2016B-17Jul2018_ver2-v1/MINIAOD year=2016 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
+  //std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_data2016_94x outdir=./ outfile=Run2016B-17Jul2018_ver2-v1_DoubleEG.root sample=/DoubleEG/Run2016B-17Jul2018_ver2-v1/MINIAOD year=2016 maxevents=1000 ismc=false inputfiles=merged_ntuple_1.root";
+  std::string stropts = "indir=/hadoop/cms/store/group/snt/run2_mc2016_94x outdir=./ outfile=GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8.root sample=/GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM year=2016 maxevents=1000 ismc=true inputfiles=merged_ntuple_1.root";
 
   FrameworkOptionParser opts(stropts);
 

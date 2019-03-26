@@ -118,6 +118,7 @@ void FrameworkOptionParser::analyze(){
         MELAerr << "\t- Could not determine the data set version." << endl;
         hasInvalidOption |= true;
       }
+      MELAout << "\t- The data set version is " << theDataVersion << endl;
     }
   }
 
