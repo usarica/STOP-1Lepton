@@ -375,6 +375,57 @@ void get2DParallelAndPerpendicularComponents(TVector3 axis, TVector3 ref, float&
 }
 
 
+std::vector<float> getWeightThresholds(TTree* tree, std::vector<float*> const& genweightptrs){
+  if (!tree || genweightptrs.empty()) return std::vector<float>();
+
+  constexpr float fractionRequirement=0.999;
+  constexpr unsigned int minimumNevents=0;
+
+  int const nevents = tree->GetEntries();
+
+  const size_t nwgts = genweightptrs.size();
+  std::vector<float> res(nwgts, -1.f);
+  std::vector<std::vector<SimpleEntry>> indexList(nwgts, std::vector<SimpleEntry>());
+  const size_t maxPrunedSize = std::max((size_t) (fractionRequirement>=0. ? std::ceil(float(nevents)*(1.-fractionRequirement)) : nevents), (size_t) 3);
+  for (auto& indexPruned:indexList) indexPruned.reserve(maxPrunedSize);
+
+  MELAout << "getWeightThresholds: Determining the thresholds for " << nwgts << " weights in tree " << tree->GetName() << " with Nevents = " << nevents << endl;
+  for (int ev=0; ev<nevents; ev++){
+    tree->GetEntry(ev);
+    HelperFunctions::progressbar(ev, nevents);
+    for (size_t iwgt=0; iwgt<nwgts; iwgt++){
+      float const* wgt = genweightptrs.at(iwgt);
+      std::vector<SimpleEntry>& indexPruned = indexList.at(iwgt);
+      SimpleEntry theEntry(0, fabs(*wgt), *wgt);
+      if (indexPruned.size()<maxPrunedSize) HelperFunctions::addByHighest(indexPruned, theEntry, false);
+      else if (indexPruned.back().trackingval<theEntry.trackingval){
+        addByHighest(indexPruned, theEntry, false);
+        indexPruned.pop_back();
+      }
+    }
+  }
+
+  for (size_t iwgt=0; iwgt<nwgts; iwgt++){
+    std::vector<SimpleEntry> const& indexPruned = indexList.at(iwgt);
+    const size_t nTotalPruned = indexPruned.size();
+    float& threshold = res.at(iwgt);
+    if (nTotalPruned>2){
+      // Find the threshold
+      const size_t index_entry = maxPrunedSize-2;
+      const size_t index_entry_prev=index_entry+1;
+      threshold = (indexPruned.at(index_entry_prev).trackingval + indexPruned.at(index_entry).trackingval)*0.5;
+      //MELAout << "Threshold raw: " << threshold << endl;
+      if ((threshold>0.f && indexPruned.front().trackingval<threshold*5.) || fractionRequirement>=1.) threshold = indexPruned.front().trackingval; // Prevent false-positives
+    }
+    else if (nTotalPruned==2) threshold = std::max(indexPruned.back().trackingval, indexPruned.front().trackingval);
+    else if (nTotalPruned==1) threshold = indexPruned.front().trackingval;
+    MELAout << "getWeightThresholds: Final threshold for weight " << iwgt << ": " << threshold << " (max. weight: " << (indexPruned.empty() ? -1.f : indexPruned.front().weight) << ", nTotalPruned: " << nTotalPruned << ")" << endl;
+  }
+
+  return res;
+}
+
+
 void setDataYearPeriod(int year){
   switch (year){
   case 2016:
@@ -425,7 +476,7 @@ void addDataTreeList(std::vector<TString>& list){
     list.push_back("Run2016E-17Jul2018-v1_MET");
     list.push_back("Run2016F-17Jul2018-v1_MET");
     list.push_back("Run2016G-17Jul2018-v1_MET");
-    list.push_back("Run2016H-17Jul2018-v1_MET");
+    list.push_back("Run2016H-17Jul2018-v2_MET");
     break;
   case 2017:
     list.push_back("Run2017B-31Mar2018-v1_SinglePhoton");
@@ -462,7 +513,7 @@ void addDataTreeList(std::vector<TString>& list){
     list.push_back("Run2018B-17Sep2018-v1_SingleMuon");
     list.push_back("Run2018C-17Sep2018-v1_SingleMuon");
     list.push_back("Run2018D-PromptReco-v2_SingleMuon");
-    list.push_back("Run2018A-17Sep2018-v2_MET");
+    list.push_back("Run2018A-17Sep2018-v1_MET");
     list.push_back("Run2018B-17Sep2018-v1_MET");
     list.push_back("Run2018C-17Sep2018-v1_MET");
     list.push_back("Run2018D-PromptReco-v2_MET");
@@ -473,13 +524,13 @@ void addDataTreeList(std::vector<TString>& list){
 void addDataTreeList_Combined(std::vector<TString>& list){
   switch (SampleHelpers::theDataYear){
   case 2016:
-    list.push_back("Run2016B-17Jul2018_ver2-v1");
-    list.push_back("Run2016C-17Jul2018-v1");
-    list.push_back("Run2016D-17Jul2018-v1");
-    list.push_back("Run2016E-17Jul2018-v1");
-    list.push_back("Run2016F-17Jul2018-v1");
-    list.push_back("Run2016G-17Jul2018-v1");
-    list.push_back("Run2016H-17Jul2018-v1");
+    list.push_back("Run2016B-17Jul2018_ver2");
+    list.push_back("Run2016C-17Jul2018");
+    list.push_back("Run2016D-17Jul2018");
+    list.push_back("Run2016E-17Jul2018");
+    list.push_back("Run2016F-17Jul2018");
+    list.push_back("Run2016G-17Jul2018");
+    list.push_back("Run2016H-17Jul2018");
     break;
   case 2017:
     list.push_back("Run2017B-31Mar2018-v1");
@@ -490,10 +541,10 @@ void addDataTreeList_Combined(std::vector<TString>& list){
     list.push_back("Run2017F-09May2018-v1");
     break;
   case 2018:
-    list.push_back("Run2018A-17Sep2018-v2");
-    list.push_back("Run2018B-17Sep2018-v1");
-    list.push_back("Run2018C-17Sep2018-v1");
-    list.push_back("Run2018D-PromptReco-v2");
+    list.push_back("Run2018A-17Sep2018");
+    list.push_back("Run2018B-17Sep2018");
+    list.push_back("Run2018C-17Sep2018");
+    list.push_back("Run2018D-PromptReco");
     break;
   }
 }
@@ -501,28 +552,30 @@ void addDataTreeList_Combined(std::vector<TString>& list){
 void addMCTreeList(std::vector<TString>& list){
   switch (SampleHelpers::theDataYear){
   case 2016:
+    list.push_back("GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
-    list.push_back("GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
 
-    list.push_back("QCD_HT200to300_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT300to500_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT500to700_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT50to100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT200to300_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT500to700_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT1500to2000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
 
-    list.push_back("TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8");
-    list.push_back("TGJets_leptonDecays_TuneCUETP8M1_PSweights_13TeV-amcatnlo-pythia8");
+    list.push_back("TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8");
+    list.push_back("TGJets_leptonDecays_13TeV_amcatnlo_madspin_pythia8");
     //list.push_back("TTGamma_Dilept_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
     //list.push_back("TTGamma_SingleLeptFromT_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
     //list.push_back("TTGamma_SingleLeptFromTbar_TuneCUETP8M1_PSweights_13TeV_madgraph_pythia8");
     list.push_back("TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8");
 
-    list.push_back("WGToLNuG_TuneCUETP8M1_13TeV-madgraphMLM-pythia8");
+    list.push_back("WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8");
     list.push_back("WZG_TuneCUETP8M1_13TeV-amcatnlo-pythia8");
 
     list.push_back("ZJetsToNuNu_HT-100To200_13TeV-madgraph");
@@ -567,23 +620,23 @@ void addMCTreeList(std::vector<TString>& list){
     list.push_back("ZJetsToNuNu_HT-2500ToInf_13TeV-madgraph");
     break;
   case 2018:
-    //list.push_back("GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8");
-    list.push_back("GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8");
     list.push_back("GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8");
 
-    list.push_back("QCD_HT100to200_TuneCP5_13TeV-madgraph-pythia8");
-    //list.push_back("QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8");
-    list.push_back("QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8");
+    list.push_back("QCD_HT100to200_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT200to300_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT300to500_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT500to700_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT700to1000_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8");
+    list.push_back("QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8");
 
     list.push_back("TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8");
-    list.push_back("TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8");
+    list.push_back("TGJets_leptonDecays_TuneCP5_13TeV-madgraph-pythia8");
     //list.push_back("TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8");
     //list.push_back("TTGamma_SingleLeptFromT_TuneCP5_PSweights_13TeV_madgraph_pythia8");
     //list.push_back("TTGamma_SingleLeptFromTbar_TuneCP5_PSweights_13TeV_madgraph_pythia8");
@@ -1188,6 +1241,12 @@ void getCorrections_DataMC(int year){
       tree->SetBranchStatus(bname, 1);
       tree->SetBranchAddress(bname, &(genweights.at(iwt)));
     }
+    std::vector<float> genweightthrs;
+    {
+      std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
+      for (float& wgt:genweights) genweightptrs.push_back(&wgt);
+      genweightthrs = getWeightThresholds(tree, genweightptrs);
+    }
 
     // 2018 HEM flags
     bool passHEMFilter=true;
@@ -1227,7 +1286,9 @@ void getCorrections_DataMC(int year){
       HelperFunctions::progressbar(ev, nEntries);
 
       for (unsigned int isyst=0; isyst<nSysts; isyst++){
-        float totwgt = genweights.at(0)*weight_photons*xsec;
+        float genweight = genweights.at(0);
+        if (genweightthrs.at(0)>0.f && std::abs(genweight)>genweightthrs.at(0)) genweight = pow(genweightthrs.at(0), 2)/genweight;
+        float totwgt = genweight*weight_photons*xsec;
         if (isyst<5) totwgt *= weight_PU;
         else if (isyst==5) totwgt *= weight_PU_SFUp;
         else if (isyst==6) totwgt *= weight_PU_SFDn;
@@ -1549,8 +1610,13 @@ void getResidualCorrections_DataMC(int year){
         std::vector<float> genweights(WeightVariables::nWeightTypes, 0);
         for (int iwt=WeightVariables::wCentral; iwt<WeightVariables::nWeightTypes; iwt++){
           TString bname = WeightVariables::getWeightName((WeightVariables::WeightType) iwt);
-          tree->SetBranchStatus(bname, 1);
-          tree->SetBranchAddress(bname, &(genweights.at(iwt)));
+          tree->SetBranchStatus(bname, 1); tree->SetBranchAddress(bname, &(genweights.at(iwt)));
+        }
+        std::vector<float> genweightthrs;
+        {
+          std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
+          for (float& wgt:genweights) genweightptrs.push_back(&wgt);
+          genweightthrs = getWeightThresholds(tree, genweightptrs);
         }
 
         // 2018 HEM flags
@@ -1604,7 +1670,9 @@ void getResidualCorrections_DataMC(int year){
           if (photon_pt<130.f) continue;
 
           for (unsigned int isyst=0; isyst<nSysts; isyst++){
-            float totwgt = genweights.at(0)*weight_photons*xsec;
+            float genweight = genweights.at(0);
+            if (genweightthrs.at(0)>0.f && std::abs(genweight)>genweightthrs.at(0)) genweight = pow(genweightthrs.at(0), 2)/genweight;
+            float totwgt = genweight*weight_photons*xsec;
             if (isyst<5) totwgt *= weight_PU;
             else if (isyst==5) totwgt *= weight_PU_SFUp;
             else if (isyst==6) totwgt *= weight_PU_SFDn;
@@ -1860,8 +1928,13 @@ void getMCHistograms_1D(
     std::vector<float> genweights(WeightVariables::nWeightTypes, 0);
     for (int iwt=WeightVariables::wCentral; iwt<WeightVariables::nWeightTypes; iwt++){
       TString bname = WeightVariables::getWeightName((WeightVariables::WeightType) iwt);
-      tree->SetBranchStatus(bname, 1);
-      tree->SetBranchAddress(bname, &(genweights.at(iwt)));
+      tree->SetBranchStatus(bname, 1); tree->SetBranchAddress(bname, &(genweights.at(iwt)));
+    }
+    std::vector<float> genweightthrs;
+    {
+      std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
+      for (float& wgt:genweights) genweightptrs.push_back(&wgt);
+      genweightthrs = getWeightThresholds(tree, genweightptrs);
     }
 
     // 2018 HEM flags
@@ -1995,7 +2068,9 @@ void getMCHistograms_1D(
       if (metCorrector) metCorrector->correctMET(genMET, genMETPhi, &metobj, false);
 
       for (unsigned int isyst=0; isyst<nSystsEff; isyst++){
-        float totwgt = genweights.at(0)*weight_photons*xsec*overallWeight.at(isyst);
+        float genweight = genweights.at(0);
+        if (genweightthrs.at(0)>0.f && std::abs(genweight)>genweightthrs.at(0)) genweight = pow(genweightthrs.at(0), 2)/genweight;
+        float totwgt = genweight*weight_photons*xsec*overallWeight.at(isyst);
         if (isyst<5 || isyst>=nSysts) totwgt *= weight_PU;
         else if (isyst==5) totwgt *= weight_PU_SFUp;
         else if (isyst==6) totwgt *= weight_PU_SFDn;
@@ -2666,6 +2741,16 @@ void fitFinalGammaTrees(int year){
         tree->SetBranchAddress("totwgt_PUdn", &totwgt_PUdn); // = wgtvar
       }
       const int nSysts=(it==0 ? 1 : 7);
+      std::vector<float> genweightthrs;
+      if (it==1){
+        std::vector<float*> genweightptrs; genweightptrs.reserve(nSysts);
+        genweightptrs.push_back(&totwgt);
+        genweightptrs.push_back(&totwgt_JECup); genweightptrs.push_back(&totwgt_JECdn);
+        genweightptrs.push_back(&totwgt_JERup); genweightptrs.push_back(&totwgt_JERdn);
+        genweightptrs.push_back(&totwgt_PUup); genweightptrs.push_back(&totwgt_PUdn);
+        genweightthrs = getWeightThresholds(tree, genweightptrs);
+      }
+
       for (int isyst=0; isyst<nSysts; isyst++){
         RooArgSet treevars(xvar, wgtvar);
         RooDataSet fit_data("fit_data", "", treevars, WeightVar(wgtvar));
@@ -2713,6 +2798,7 @@ void fitFinalGammaTrees(int year){
             totwgt_ptr = &totwgt_PUdn;
             break;
           }
+          if (it==1 && genweightthrs.at(isyst)>0.f && genweightthrs.at(isyst)<fabs(*totwgt_ptr)) *totwgt_ptr = pow(genweightthrs.at(isyst), 2)/(*totwgt_ptr);
 
           if (*nak4jets_preselected_ptr>0){
             sumWgts += *totwgt_ptr;

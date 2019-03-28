@@ -36,20 +36,47 @@ bool METCorrectionHandler::setup(){
     MELAerr << "METCorrectionHandler::setup: Need to have a valid data period set." << endl;
     assert(0);
   }
-  if (theDataYear == 2017){
+
+  std::vector<TString> strValidPeriods = getValidDataPeriods();
+  const size_t nValidPeriods = strValidPeriods.size();
+
+  if (theDataYear == 2016){
     applyCorrection = true;
-    // 5 here corresponds to the number of data eras, not the number of parameters, which is also 5 coincidentally.
     // Use reserve since the push is done at the reading stage.
-    lumilist.reserve(5);
-    values_data_map.reserve(5);
-    values_MC_map[sNominal] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[sNominal].reserve(5);
-    values_MC_map[eJECDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECDn].reserve(5);
-    values_MC_map[eJECUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECUp].reserve(5);
-    values_MC_map[eJERDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERDn].reserve(5);
-    values_MC_map[eJERUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERUp].reserve(5);
-    values_MC_map[ePUDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUDn].reserve(5);
-    values_MC_map[ePUUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUUp].reserve(5);
-    for (TString const& period:getValidDataPeriods()){
+    lumilist.reserve(nValidPeriods);
+    values_data_map.reserve(nValidPeriods);
+    values_MC_map[sNominal] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[sNominal].reserve(nValidPeriods);
+    values_MC_map[eJECDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECDn].reserve(nValidPeriods);
+    values_MC_map[eJECUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECUp].reserve(nValidPeriods);
+    values_MC_map[eJERDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERDn].reserve(nValidPeriods);
+    values_MC_map[eJERUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERUp].reserve(nValidPeriods);
+    values_MC_map[ePUDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUDn].reserve(nValidPeriods);
+    values_MC_map[ePUUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUUp].reserve(nValidPeriods);
+    for (TString const& period:strValidPeriods){
+      if (theDataPeriod == "2016" || theDataPeriod == period){
+        if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period " << period << "..." << endl;
+        if (period != "2016B") this->readFile(strdatacore+Form("fitparameters_Run%s-17Jul2018_MC.txt", period.Data()));
+        else this->readFile(strdatacore+Form("fitparameters_Run%s-17Jul2018_ver2_MC.txt", period.Data()));
+        lumilist.push_back(getIntegratedLuminosity(period));
+      }
+    }
+    // Accumulate integrated luminosity and divide by the last one
+    for (unsigned int il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
+    for (unsigned int il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
+  }
+  else if (theDataYear == 2017){
+    applyCorrection = true;
+    // Use reserve since the push is done at the reading stage.
+    lumilist.reserve(nValidPeriods);
+    values_data_map.reserve(nValidPeriods);
+    values_MC_map[sNominal] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[sNominal].reserve(nValidPeriods);
+    values_MC_map[eJECDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECDn].reserve(nValidPeriods);
+    values_MC_map[eJECUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECUp].reserve(nValidPeriods);
+    values_MC_map[eJERDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERDn].reserve(nValidPeriods);
+    values_MC_map[eJERUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERUp].reserve(nValidPeriods);
+    values_MC_map[ePUDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUDn].reserve(nValidPeriods);
+    values_MC_map[ePUUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUUp].reserve(nValidPeriods);
+    for (TString const& period:strValidPeriods){
       if (theDataPeriod == "2017" || theDataPeriod == period){
         if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period " << period << "..." << endl;
         this->readFile(strdatacore+Form("fitparameters_Run%s-31Mar2018-v1_MC.txt", period.Data())); lumilist.push_back(getIntegratedLuminosity(period));
@@ -58,6 +85,30 @@ bool METCorrectionHandler::setup(){
     if (theDataPeriod == "2017F-09May2018"){
       if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period Run2017F-09May2018..." << endl;
       this->readFile(strdatacore+"fitparameters_Run2017F-09May2018-v1_MC.txt"); lumilist.push_back(getIntegratedLuminosity("2017F"));
+    }
+    // Accumulate integrated luminosity and divide by the last one
+    for (unsigned int il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
+    for (unsigned int il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
+  }
+  else if (theDataYear == 2018){
+    applyCorrection = true;
+    // Use reserve since the push is done at the reading stage.
+    lumilist.reserve(nValidPeriods);
+    values_data_map.reserve(nValidPeriods);
+    values_MC_map[sNominal] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[sNominal].reserve(nValidPeriods);
+    values_MC_map[eJECDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECDn].reserve(nValidPeriods);
+    values_MC_map[eJECUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJECUp].reserve(nValidPeriods);
+    values_MC_map[eJERDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERDn].reserve(nValidPeriods);
+    values_MC_map[eJERUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[eJERUp].reserve(nValidPeriods);
+    values_MC_map[ePUDn] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUDn].reserve(nValidPeriods);
+    values_MC_map[ePUUp] = std::vector<std::vector<std::pair<float, float>>>(); values_MC_map[ePUUp].reserve(nValidPeriods);
+    for (TString const& period:strValidPeriods){
+      if (theDataPeriod == "2018" || theDataPeriod == period){
+        if (verbosity >= TVar::DEBUG) MELAout << "METCorrectionHandler::setup: Adding data period " << period << "..." << endl;
+        if (period != "2018D") this->readFile(strdatacore+Form("fitparameters_Run%s-17Sep2018_MC.txt", period.Data()));
+        else this->readFile(strdatacore+Form("fitparameters_Run%s-PromptReco_MC.txt", period.Data()));
+        lumilist.push_back(getIntegratedLuminosity(period));
+      }
     }
     // Accumulate integrated luminosity and divide by the last one
     for (unsigned int il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);

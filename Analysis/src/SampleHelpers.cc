@@ -54,14 +54,20 @@ void SampleHelpers::setDataPeriod(TString s){
   if (theDataPeriod.Contains("2016")) theDataYear = 2016;
   else if (theDataPeriod.Contains("2017")) theDataYear = 2017;
   else if (theDataPeriod.Contains("2018")) theDataYear = 2018;
-  else assert(0);
+  else{
+    MELAerr << "SampleHelpers::setDataPeriod: Could not recognize the data period string " << s << " to assign the data year." << endl;
+    assert(0);
+  }
 }
 void SampleHelpers::setDataVersion(TString s){
   s.ToLower();
   if (s.Contains("80x")) theDataVersion = kCMSSW_8_0_X;
   else if (s.Contains("94x")) theDataVersion = kCMSSW_9_4_X;
   else if (s.Contains("10x")) theDataVersion = kCMSSW_10_X;
-  else assert(0);
+  else{
+    MELAerr << "SampleHelpers::setDataVersion: Could not recognize the data version string " << s << "." << endl;
+    assert(0);
+  }
 }
 void SampleHelpers::setInputDirectory(TString s){ theInputDirectory=s; }
 void SampleHelpers::setupUsingOptions(FrameworkOptionParser const& opts, bool doForce){
