@@ -229,6 +229,7 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
   if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The i_era and i_frac random numbers: " << i_era << ", " << i_frac << endl;
 
   bool correctUpperError=false;
+  float scale_nominal=1.f;
   float* met_value=nullptr;
   float* phi_value=nullptr;
   for (auto& syst:validSysts){
@@ -303,8 +304,16 @@ void METCorrectionHandler::correctMET(float const& genMET, float const& genMETPh
     }
 
     float scale = data_sigma/mc_sigma;
-    if (syst == sNominal) correctUpperError = (scale<1.f);
-    if (correctUpperError && syst == eMETUp && scale<1.f) scale = 1.f;
+    if (syst == sNominal){
+      scale_nominal = scale;
+      correctUpperError = (scale_nominal<1.f);
+    }
+    // When correcting the METup value to 1, require that the deviation of the nominal scale factor is <7 sigma. Otherwise, leave the METup scale as it is.
+    if (correctUpperError && syst == eMETUp && scale<1.f){
+      float scale_diff = fabs(scale - scale_nominal);
+      float scale_diff_nominal = fabs(1.f - scale_nominal);
+      if (scale_diff>0.f && scale_diff_nominal/scale_diff<7.f) scale = 1.f;
+    }
 
     if (verbosity>=TVar::DEBUG) MELAout << "METCorrectionHandler::correctMET: The MET scale for systematic " << syst << ": " << data_sigma << " / " << mc_sigma << " = " << scale << endl;
 
