@@ -375,10 +375,9 @@ void get2DParallelAndPerpendicularComponents(TVector3 axis, TVector3 ref, float&
 }
 
 
-std::vector<float> getWeightThresholds(TTree* tree, std::vector<float*> const& genweightptrs){
+std::vector<float> getWeightThresholds(TTree* tree, std::vector<float*> const& genweightptrs, float const fractionRequirement){
   if (!tree || genweightptrs.empty()) return std::vector<float>();
 
-  constexpr float fractionRequirement=0.999;
   constexpr unsigned int minimumNevents=0;
 
   int const nevents = tree->GetEntries();
@@ -1245,7 +1244,7 @@ void getCorrections_DataMC(int year){
     {
       std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
       for (float& wgt:genweights) genweightptrs.push_back(&wgt);
-      genweightthrs = getWeightThresholds(tree, genweightptrs);
+      genweightthrs = getWeightThresholds(tree, genweightptrs, 0.999);
     }
 
     // 2018 HEM flags
@@ -1616,7 +1615,7 @@ void getResidualCorrections_DataMC(int year){
         {
           std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
           for (float& wgt:genweights) genweightptrs.push_back(&wgt);
-          genweightthrs = getWeightThresholds(tree, genweightptrs);
+          genweightthrs = getWeightThresholds(tree, genweightptrs, 0.999);
         }
 
         // 2018 HEM flags
@@ -1934,7 +1933,7 @@ void getMCHistograms_1D(
     {
       std::vector<float*> genweightptrs; genweightptrs.reserve(genweights.size());
       for (float& wgt:genweights) genweightptrs.push_back(&wgt);
-      genweightthrs = getWeightThresholds(tree, genweightptrs);
+      genweightthrs = getWeightThresholds(tree, genweightptrs, (metCorrector ? 0.99 : 0.999));
     }
 
     // 2018 HEM flags
@@ -2270,7 +2269,8 @@ void getMCHistograms_1D(
               else if (var.name == "totPerp") var.setVal((*uPerp_ptr) + (*MET_Perp_ptr), 1);
             }
           }
-          hMClist.at(is).at(isyst).at(iv).Fill(var.val, totwgt);
+          if (!(SampleHelpers::theDataYear == 2016 && metCorrector && totwgt>500.f && -12<MET_Perp && MET_Perp<-11)) // Hack to kill large-weight events
+            hMClist.at(is).at(isyst).at(iv).Fill(var.val, totwgt);
           var.reset();
         }
       }
@@ -2673,6 +2673,16 @@ void fitFinalGammaTrees(int year){
   RooAddPdf pdf("pdf", "", RooArgList(g1_pdf, g2_pdf, g3_pdf), RooArgList(g1_frac, g2_frac), true);
 
   for (auto const& sample_data:sampleList_Data){
+    TString thePeriod;
+    float theLumi=-1;
+    for (auto const& tmpstr:SampleHelpers::getValidDataPeriods()){
+      if (sample_data.Contains(tmpstr)){
+        theLumi = getIntegratedLuminosity(tmpstr);
+        thePeriod = tmpstr;
+        break;
+      }
+    }
+
     TString strinput = strinputcore;
     HelperFunctions::replaceString<TString, const TString>(strinput, "[OUTFILECORE]", sample_data);
     MELAout << "Opening input file " << strinput << endl;
@@ -2748,7 +2758,7 @@ void fitFinalGammaTrees(int year){
         genweightptrs.push_back(&totwgt_JECup); genweightptrs.push_back(&totwgt_JECdn);
         genweightptrs.push_back(&totwgt_JERup); genweightptrs.push_back(&totwgt_JERdn);
         genweightptrs.push_back(&totwgt_PUup); genweightptrs.push_back(&totwgt_PUdn);
-        genweightthrs = getWeightThresholds(tree, genweightptrs);
+        genweightthrs = getWeightThresholds(tree, genweightptrs, 0.999);
       }
 
       for (int isyst=0; isyst<nSysts; isyst++){
@@ -2971,6 +2981,7 @@ void fitFinalGammaTrees(int year){
             fit_plot.SetTitleSize(0.06, "Y");
             fit_plot.SetTitleOffset(1.2, "Y");
             fit_plot.SetTitleFont(42, "Y");
+            fit_plot.GetYaxis()->SetRangeUser(0.5, pow(10., static_cast<int>(log10(sumWgts)+0.5)));
 
             TString canvasname = Form("fit_%s_%s", sample_data.Data(), (it==0 ? "Data" : "MC"));
             if (it==1) canvasname += "_" + systname;
@@ -2989,6 +3000,7 @@ void fitFinalGammaTrees(int year){
             can.SetFrameBorderMode(0);
             can.SetFrameFillStyle(0);
             can.SetFrameBorderMode(0);
+            can.SetLogy(1);
 
             TLegend legend(0.20, 0.90-0.15, 0.50, 0.90);
             legend.SetBorderSize(0);
@@ -3016,16 +3028,20 @@ void fitFinalGammaTrees(int year){
               text = pavetext.AddText(0.165, 0.42, "#font[52]{Simulation}");
               text->SetTextSize(0.0315);
             }
-            TString cErgTev = Form("#font[42]{%i TeV (%s)}", theSqrts, theDataPeriod.Data());
-            text = pavetext.AddText(0.87, 0.45, cErgTev);
+            TString cErgTev = Form("#font[42]{%.1f fb^{-1} (%i TeV)}", theLumi, theSqrts);
+            text = pavetext.AddText(0.82, 0.45, cErgTev);
             text->SetTextSize(0.0315);
 
-            TString strDataTitle=(it==0 ? "Data" : "Simulation");
+            TString strDataAppend = thePeriod;
+            if (sample_data.Contains("09May")) strDataAppend += ", May 9";
+            else if (sample_data.Contains("31Mar")) strDataAppend += ", Mar. 31";
+            if (it==1) strDataAppend += ", w/ correction, " + systlabel;
+            TString strDataTitle=(it==0 ? "Observed" : "Simulation");
             TString strPdfTitle="Fit";
             fit_plot.Draw();
             //reference_hists.at(it)->Draw("histsame");
             //xcheck_hists.at(it).Draw("histsame");
-            TString datalabel = strDataTitle; if (it==1) datalabel = datalabel + " (" + systlabel + ")";
+            TString datalabel = strDataTitle + " (" + strDataAppend + ")";
             legend.AddEntry("Data", datalabel, "lp");
             legend.AddEntry("FitPdf", strPdfTitle, "l");
             //legend.AddEntry(reference_hists.at(it), "Reference hist.", "l");
@@ -3184,6 +3200,15 @@ void plotCorrectedMETDistributions(int year){
     TString strinput = strinputcore;
     HelperFunctions::replaceString<TString, const TString>(strinput, "[OUTFILECORE]", sample_data);
     TFile* finput = TFile::Open(strinput, "read");
+
+    if (finput){
+      if (finput->IsZombie()){
+        if (finput->IsOpen()) finput->Close();
+        else delete finput;
+        continue;
+      }
+    }
+    else continue;
 
     TString thePeriod;
     float theLumi=-1;
