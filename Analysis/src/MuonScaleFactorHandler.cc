@@ -50,7 +50,6 @@ bool MuonScaleFactorHandler::setup(){
   this->reset();
 
   // Recipe: https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
-  // More info: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations
   if (theDataYear == 2016){
     // ID/Iso./IP and tracking SF files
     finput_SF_id = TFile::Open(STOP1LPKGDATAPATH+"MuSFs/2016/TnP_NUM_MediumID_DENOM_generalTracks_VAR_map_pt_eta.root", "read");

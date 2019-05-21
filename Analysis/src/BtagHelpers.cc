@@ -25,19 +25,19 @@ TString BtagHelpers::getBtagSFFileName(BtagWPType type, bool isFastSim){
   }
   else if (theDataYear == 2016 && theDataVersion == kCMSSW_9_4_X){
     fn_btagSF_DeepCSV = "DeepCSV_2016LegacySF_V1.csv";
-    fn_btagSF_FS_DeepCSV = "deepcsv_13TEV_16_6_3_2019.csv";
+    fn_btagSF_FS_DeepCSV = "deepcsv_13TEV_16SL_18_3_2019.csv";
     fn_btagSF_CSVv2 = "CSVv2_Moriond17_B_H.csv";
     fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }
   else if (theDataYear == 2017){
-    fn_btagSF_DeepCSV = "DeepCSV_94XSF_V3_B_F.csv";
-    fn_btagSF_FS_DeepCSV = "fastsim_deepcsv_ttbar_26_1_2017.csv";
+    fn_btagSF_DeepCSV = "DeepCSV_94XSF_V4_B_F.csv";
+    fn_btagSF_FS_DeepCSV = "deepcsv_13TEV_17SL_18_3_2019.csv";
     fn_btagSF_CSVv2 = "CSVv2_94XSF_V2_B_F.csv";
     fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }
   else if (theDataYear == 2018){
     fn_btagSF_DeepCSV = "DeepCSV_102XSF_V1.csv";
-    fn_btagSF_FS_DeepCSV = "deepcsv_13TEV_1718Same_10_3_2019ExUnc.csv";
+    fn_btagSF_FS_DeepCSV = "deepcsv_13TEV_18SL_7_5_2019.csv";
     fn_btagSF_CSVv2 = "CSVv2_94XSF_V2_B_F.csv";
     fn_btagSF_FS_CSVv2 = "fastsim_csvv2_ttbar_26_1_2017.csv";
   }

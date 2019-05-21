@@ -248,6 +248,17 @@ typedef unsigned long long EventNumber_t;
 // End ak8 jet variables
 
 
+// Secondary vertex objects (soft b)
+#define _svs_nTrks_ "svs_nTrks"
+#define _svs_IP2D_ "svs_distXYval"
+#define _svs_SIP2D_ "svs_distXYsig"
+#define _svs_IP3D_ "svs_dist3Dval"
+#define _svs_SIP3D_ "svs_dist3Dsig"
+#define _svs_anglePV_ "svs_anglePV"
+#define _svs_position_ "svs_position"
+#define _svs_p4_ "svs_p4"
+// End soft b objects
+
 // Gen. jet variables
 // vCMSLorentzVector
 #define _genjets_momentum_ "genjets_p4NoMuNoNu"
