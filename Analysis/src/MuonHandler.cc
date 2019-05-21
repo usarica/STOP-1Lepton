@@ -29,6 +29,8 @@ VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, TrkKink) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, SegComp) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, dxyPV) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, dzPV) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, IP3D) \
+VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, IP3Derr) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_ch) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_nh) \
 VECTOR_ITERATOR_HANDLER_DIRECTIVE(std::vector<float>, miniIso_em) \
@@ -105,6 +107,8 @@ bool MuonHandler::constructMuons(){
       obj->extras.SegComp = *it_SegComp;
       obj->extras.dxyPV = *it_dxyPV;
       obj->extras.dzPV = *it_dzPV;
+      obj->extras.IP3D = *it_IP3D;
+      obj->extras.IP3Derr = *it_IP3Derr;
       obj->extras.miniIso_ch = *it_miniIso_ch;
       obj->extras.miniIso_nh = *it_miniIso_nh;
       obj->extras.miniIso_em = *it_miniIso_em;

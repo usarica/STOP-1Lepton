@@ -174,6 +174,8 @@ typedef unsigned long long EventNumber_t;
 #define _muons_SegComp_ "mus_segmCompatibility"
 #define _muons_dxyPV_ "mus_dxyPV"
 #define _muons_dzPV_ "mus_dzPV"
+#define _muons_IP3D_ "mus_ip3d"
+#define _muons_IP3Derr_ "mus_ip3derr"
 #define _muons_miniIso_ch_ "mus_miniIso_ch"
 #define _muons_miniIso_nh_ "mus_miniIso_nh"
 #define _muons_miniIso_em_ "mus_miniIso_em"
@@ -249,14 +251,17 @@ typedef unsigned long long EventNumber_t;
 
 
 // Secondary vertex objects (soft b)
-#define _svs_nTrks_ "svs_nTrks"
+// vint
+#define _svs_nTracks_ "svs_nTrks"
+// vfloat
 #define _svs_IP2D_ "svs_distXYval"
 #define _svs_SIP2D_ "svs_distXYsig"
 #define _svs_IP3D_ "svs_dist3Dval"
 #define _svs_SIP3D_ "svs_dist3Dsig"
 #define _svs_anglePV_ "svs_anglePV"
+// vCMSLorentzVector
 #define _svs_position_ "svs_position"
-#define _svs_p4_ "svs_p4"
+#define _svs_momentum_ "svs_p4"
 // End soft b objects
 
 // Gen. jet variables

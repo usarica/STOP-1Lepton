@@ -62,6 +62,8 @@ namespace MuonSelectionHelpers{
     kSkimPtEta,
     kPreselection,
 
+    kSoftLepton, // This is a totally different selection type
+
     nSelectionBits
   };
   const SelectionBits bit_preselection_idiso = kMediumID;
@@ -91,6 +93,8 @@ namespace MuonSelectionHelpers{
 
   bool testPtEtaSkim(MuonObject const& part);
   bool testPreselection(MuonObject const& part);
+
+  bool testSoftLeptonSelection(MuonObject const& part);
 
   void setSelectionBits(MuonObject& part);
 

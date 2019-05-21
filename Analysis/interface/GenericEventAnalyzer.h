@@ -22,6 +22,7 @@ protected:
   bool recordIsoTracks;
   bool recordTaus;
   bool doWriteFailingObjects;
+  bool doWriteSoftObjects;
   bool doWriteSelectionVariables;
 
   bool runEvent(FrameworkTree* tree, float const& externalWgt, SimpleEntry& product);
@@ -48,6 +49,7 @@ public:
   void setRecordIsoTracksFlag(bool flag){ recordIsoTracks = flag; }
   void setRecordTausFlag(bool flag){ recordTaus = flag; }
   void setWriteFailingObjects(bool flag){ doWriteFailingObjects = flag; }
+  void setWriteSoftObjects(bool flag){ doWriteSoftObjects = flag; }
   void setWriteSelectionVariables(bool flag){ doWriteSelectionVariables = flag; }
 
 };

@@ -24,6 +24,8 @@ public:
   float SegComp;
   float dxyPV;
   float dzPV;
+  float IP3D;
+  float IP3Derr;
   float miniIso_ch;
   float miniIso_nh;
   float miniIso_em;

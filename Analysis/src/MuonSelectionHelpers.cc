@@ -132,7 +132,6 @@ bool MuonSelectionHelpers::testLooseSelection(MuonObject const& part){
   return true;
 }
 
-
 bool MuonSelectionHelpers::testMediumCutBasedId(MuonObject const& part){
   MuonVariables const& extras = part.extras;
 
@@ -180,6 +179,16 @@ bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
       //(bit_preselection_idisoreco == kTightIDReco && testTightSelection(part))
       ) && testPtEtaSkim(part)
     );
+}
+
+bool MuonSelectionHelpers::testSoftLeptonSelection(MuonObject const& part){
+  MuonVariables const& extras = part.extras;
+  // Id cuts
+  if (fabs(extras.dxyPV) > 0.2) return false;
+  if (extras.IP3Derr<=0. || fabs(extras.IP3D/extras.IP3Derr) <= 3.) return false;
+  // Iso cut
+  float reliso = miniRelIso_DR0p3(part);
+  return (reliso>0.2);
 }
 
 void MuonSelectionHelpers::setSelectionBits(MuonObject& part){

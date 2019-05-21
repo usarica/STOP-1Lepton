@@ -50,6 +50,7 @@ GenericEventAnalyzer::GenericEventAnalyzer() :
   recordIsoTracks(true),
   recordTaus(true),
   doWriteFailingObjects(true),
+  doWriteSoftObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
@@ -70,6 +71,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkTree* inTree) :
   recordIsoTracks(true),
   recordTaus(true),
   doWriteFailingObjects(true),
+  doWriteSoftObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& inTreeList) :
@@ -90,6 +92,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(std::vector<FrameworkTree*> const& in
   recordIsoTracks(true),
   recordTaus(true),
   doWriteFailingObjects(true),
+  doWriteSoftObjects(true),
   doWriteSelectionVariables(true)
 {}
 GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
@@ -110,6 +113,7 @@ GenericEventAnalyzer::GenericEventAnalyzer(FrameworkSet const* inTreeSet) :
   recordIsoTracks(true),
   recordTaus(true),
   doWriteFailingObjects(true),
+  doWriteSoftObjects(true),
   doWriteSelectionVariables(true)
 {}
 
@@ -534,6 +538,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     std::vector<float> SegComp;
     std::vector<float> dxyPV;
     std::vector<float> dzPV;
+    std::vector<float> IP3D;
+    std::vector<float> IP3Derr;
     std::vector<float> miniIso_ch;
     std::vector<float> miniIso_nh;
     std::vector<float> miniIso_em;
@@ -552,9 +558,14 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (MuonObject const* muon:muons){
       if (!muon) continue;
-      if (!muon->testSelection(MuonSelectionHelpers::kGenPtEta)) continue;
 
-      if (doWriteFailingObjects || muon->testSelection(MuonSelectionHelpers::kSkimPtEta)){
+      if (
+        doWriteFailingObjects
+        ||
+        muon->testSelection(MuonSelectionHelpers::kSkimPtEta)
+        ||
+        (doWriteSoftObjects && muon->testSelection(MuonSelectionHelpers::kSoftLepton))
+        ){
         MuonVariables const& extras = muon->extras;
 
         id.push_back(muon->id);
@@ -580,6 +591,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         SegComp.push_back(extras.SegComp);
         dxyPV.push_back(extras.dxyPV);
         dzPV.push_back(extras.dzPV);
+        IP3D.push_back(extras.IP3D);
+        IP3Derr.push_back(extras.IP3Derr);
         miniIso_ch.push_back(extras.miniIso_ch);
         miniIso_nh.push_back(extras.miniIso_nh);
         miniIso_em.push_back(extras.miniIso_em);
@@ -642,6 +655,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       product.setNamedVal<std::vector<float>>("muons_SegComp", SegComp);
       product.setNamedVal<std::vector<float>>("muons_dxyPV", dxyPV);
       product.setNamedVal<std::vector<float>>("muons_dzPV", dzPV);
+      product.setNamedVal<std::vector<float>>("muons_IP3D", IP3D);
+      product.setNamedVal<std::vector<float>>("muons_IP3Derr", IP3Derr);
       product.setNamedVal<std::vector<float>>("muons_miniIso_ch", miniIso_ch);
       product.setNamedVal<std::vector<float>>("muons_miniIso_nh", miniIso_nh);
       product.setNamedVal<std::vector<float>>("muons_miniIso_em", miniIso_em);
@@ -715,7 +730,6 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (ElectronObject const* electron:electrons){
       if (!electron) continue;
-      if (!electron->testSelection(ElectronSelectionHelpers::kGenPtEta)) continue;
 
       if (doWriteFailingObjects || electron->testSelection(ElectronSelectionHelpers::kSkimPtEta)){
         ElectronVariables const& extras = electron->extras;
@@ -870,7 +884,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (PhotonObject const* photon:photons){
       if (!photon) continue;
-      if (!photon->testSelection(PhotonSelectionHelpers::kGenPtEta)) continue;
+      if (!doWriteFailingObjects && !photon->testSelection(PhotonSelectionHelpers::kGenPtEta)) continue;
 
       if (doWriteFailingObjects || photon->testSelection(PhotonSelectionHelpers::kSkimPtEta)){
         PhotonVariables const& extras = photon->extras;

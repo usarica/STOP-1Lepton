@@ -15,7 +15,7 @@ public:
   float anglePV;
   long long selectionBits;
   TVector3 position;
-  TLorentzVector momentum;
+  CMSLorentzVector momentum;
 
   SecondaryVertexObject();
   SecondaryVertexObject(SecondaryVertexObject const& other);

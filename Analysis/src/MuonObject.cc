@@ -23,6 +23,8 @@ MuonVariables::MuonVariables() :
   SegComp(0),
   dxyPV(0),
   dzPV(0),
+  IP3D(0),
+  IP3Derr(0),
   miniIso_ch(0),
   miniIso_nh(0),
   miniIso_em(0)
@@ -46,6 +48,8 @@ MuonVariables::MuonVariables(MuonVariables const& other) :
   SegComp(other.SegComp),
   dxyPV(other.dxyPV),
   dzPV(other.dzPV),
+  IP3D(other.IP3D),
+  IP3Derr(other.IP3Derr),
   miniIso_ch(other.miniIso_ch),
   miniIso_nh(other.miniIso_nh),
   miniIso_em(other.miniIso_em)
@@ -69,6 +73,8 @@ void MuonVariables::swap(MuonVariables& other){
   std::swap(SegComp, other.SegComp);
   std::swap(dxyPV, other.dxyPV);
   std::swap(dzPV, other.dzPV);
+  std::swap(IP3D, other.IP3D);
+  std::swap(IP3Derr, other.IP3Derr);
   std::swap(miniIso_ch, other.miniIso_ch);
   std::swap(miniIso_nh, other.miniIso_nh);
   std::swap(miniIso_em, other.miniIso_em);

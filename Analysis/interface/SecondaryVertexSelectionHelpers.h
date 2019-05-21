@@ -13,7 +13,7 @@ namespace SecondaryVertexSelectionHelpers{
   constexpr float softb_cosPVangle_thr = 0.98; // >0.98
 
   enum SelectionBits{
-    kSoftB,
+    kSoftB, // Notice that this selection does not check for overlapping ak4 jets
 
     nSelectionBits
   };
