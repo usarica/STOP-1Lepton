@@ -182,6 +182,9 @@ bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
 }
 
 bool MuonSelectionHelpers::testSoftLeptonSelection(MuonObject const& part){
+  // Momentum cuts
+  // Implement here rather than testPtEtaSkim because this is NOT a skim selection!
+  if (part.pt()<=ptThr_soft || part.pt()>=ptUpperThr_soft) return false;
   MuonVariables const& extras = part.extras;
   // Id cuts
   if (fabs(extras.dxyPV) > 0.2) return false;

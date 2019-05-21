@@ -11,6 +11,8 @@ namespace MuonSelectionHelpers{
   constexpr float ptThr_skim_veto = 5.;
   constexpr float ptThr_skim_loose = 10.;
   constexpr float ptThr_skim_medium = 20.;
+  constexpr float ptThr_soft = 3.;
+  constexpr float ptUpperThr_soft = 20.;
   constexpr float etaThr_gen = 2.4;
   constexpr float etaThr_skim_veto = 2.4;
   constexpr float etaThr_skim_loose = 2.4;
