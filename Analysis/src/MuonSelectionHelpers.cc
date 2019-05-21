@@ -205,4 +205,7 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   //if (testTightSelection(part)) part.setSelectionBit(kTightIDReco);
   if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
   if (testPreselection(part)) part.setSelectionBit(kPreselection);
+
+  // Other selection requirements
+  if (testSoftLeptonSelection(part)) part.setSelectionBit(kSoftLepton);
 }

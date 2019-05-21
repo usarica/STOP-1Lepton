@@ -62,7 +62,7 @@ namespace MuonSelectionHelpers{
     kSkimPtEta,
     kPreselection,
 
-    kSoftLepton, // This is a totally different selection type
+    kSoftLepton, // This is a totally different selection type. Requirement of DR>0.4 from b jets should be done outside.
 
     nSelectionBits
   };
