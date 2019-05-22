@@ -43,14 +43,15 @@ TString JECJERHelpers::getJECFilePath(JECJERType /*type*/, bool isMC, bool isFas
     eraMap["2017F"] = "Fall17_17Nov2017F_V32_DATA";
     eraMap["2017F-09May2018"] = "Fall17_09May2018F_V3_DATA";
     eraMap["MC_noFS"] = "Fall17_17Nov2017_V32_MC";
-    eraMap["MC_FS"] = "Fall17_FastsimV1";
+    eraMap["MC_FS"] = "Fall17_FastSimV1_MC";
   }
   else if (theDataYear == 2018 && theDataVersion == kCMSSW_10_X){ // FIXME: 2018 to be updated!
     eraMap["2018A"] = "Autumn18_RunA_V8_DATA";
     eraMap["2018B"] = "Autumn18_RunB_V8_DATA";
     eraMap["2018C"] = "Autumn18_RunC_V8_DATA";
     eraMap["2018D"] = "Autumn18_RunD_V8_DATA";
-    eraMap["MC_noFS"] = eraMap["MC_FS"] = "Autumn18_V8_MC";
+    eraMap["MC_noFS"] = "Autumn18_V8_MC";
+    eraMap["MC_FS"] = "Autumn18_FastSimV1_MC";
   }
   else{
     MELAerr << "JECJERHelpers::getJECFilePath: Data year " << theDataYear << " and data version " << theDataVersion << " are not recognized. Aborting..." << endl;

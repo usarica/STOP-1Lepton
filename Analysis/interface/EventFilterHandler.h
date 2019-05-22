@@ -34,6 +34,10 @@ public:
   static std::unordered_map<TString, std::vector<TString>> getHLTPaths(FrameworkTree* fwktree);
 
   // Special event filters for various specific issues
+  bool test2017_2018HTFilter(
+    std::vector<AK4JetObject*> const* ak4jets,
+    SystematicsHelpers::SystematicVariationTypes syst
+  ) const;
   bool test2018HEMFilter(
     std::vector<ElectronObject*> const* electrons,
     std::vector<PhotonObject*> const* photons,

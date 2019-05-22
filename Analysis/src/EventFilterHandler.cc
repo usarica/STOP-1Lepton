@@ -221,6 +221,56 @@ bool EventFilterHandler::constructFilter(){
   return true;
 }
 
+bool EventFilterHandler::test2017_2018HTFilter(
+  std::vector<AK4JetObject*> const* ak4jets,
+  SystematicsHelpers::SystematicVariationTypes syst
+) const{
+  if (SampleHelpers::theDataYear != 2017 && SampleHelpers::theDataYear != 2018) return true;
+  if (verbosity>=TVar::DEBUG) MELAerr << "Begin EventFilterHandler::test2017_2018HTFilter..." << endl;
+
+  // Do not run clear because this is a special filter that does not modify the actual class
+  if (!currentTree){
+    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2017_2018HTFilter: Current tree is null!" << endl;
+    return false;
+  }
+  FrameworkTree* const fwktree = dynamic_cast<FrameworkTree* const>(currentTree);
+  if (!fwktree){
+    if (verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2017_2018HTFilter: Current tree is not derived from a FrameworkTree class!" << endl;
+    return false;
+  }
+
+  using namespace SystematicsHelpers;
+  if (syst != sNominal && fwktree->isData()) syst = sNominal;
+
+  bool doVeto = false;
+  bool hasJets = false;
+  float HT2p4 = 0;
+  float HT5p0 = 0;
+  // Require tight ID and pT>30 GeV cut on jets
+  if (ak4jets){
+    hasJets = !(ak4jets->empty());
+    for (auto const* part:(*ak4jets)){
+      float pt=-1;
+      if (syst == eJECUp) pt = part->getCorrectedMomentum(1).Pt();
+      else if (syst == eJECDn) pt = part->getCorrectedMomentum(-1).Pt();
+      else if (syst == eJERUp) pt = part->getCorrectedMomentum(2).Pt();
+      else if (syst == eJERDn) pt = part->getCorrectedMomentum(-2).Pt();
+      else pt = part->getCorrectedMomentum(0).Pt();
+
+      bool isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && pt>=30.f);
+      if (!isSelectedJet) continue;
+
+      float const abs_eta = fabs(part->eta());
+      if (abs_eta<2.4f) HT2p4 += pt;
+      if (abs_eta<5.f) HT5p0 += pt;
+    }
+    doVeto = !(!hasJets || (HT2p4>0.f && HT5p0/HT2p4<1.5));
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2017_2018HTFilter: Failed the HT cut. (hasJets=" << hasJets << ", HT(2.4)=" << HT2p4 << ", HT(5)=" << HT5p0 << ")" << endl;
+  }
+
+  if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::test2017_2018HTFilter successfully." << endl;
+  return !doVeto;
+}
 bool EventFilterHandler::test2018HEMFilter(
   std::vector<ElectronObject*> const* electrons,
   std::vector<PhotonObject*> const* photons,

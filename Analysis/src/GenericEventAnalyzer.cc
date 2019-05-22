@@ -243,6 +243,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       std::vector<float> genparticles_mass;
 
       for (auto const& part:genparts){
+        if (!part) continue;
+
         auto const& extras = part->extras;
 
         // Anything that has status 21 (incoming), 22 (intermediate), 23 (outgoing hard process), 1 (outgoing without treatment except momentum balance) and 2 (only in hard process, like 1 but with subsequent Pythia decay, like in taus)
@@ -357,6 +359,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       std::vector<long long> vertices_selectionBits;
 
       for (auto const& vtx:vertices){
+        if (!vtx) continue;
+
         bool isGoodPV = HelperFunctions::test_bit(vtx->selectionBits, VertexSelectionHelpers::kGoodVertex);
         passGoodPrimaryVertex |= isGoodPV;
         if (isGoodPV) nGoodPrimaryVertices++;
@@ -393,7 +397,72 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
         product.setNamedVal("vertices_selectionBits", vertices_selectionBits);
       }
     }
+    if (vtxPUHandler->getSecondaryVerticesFlag()){
+      auto const& secondaryVertices = vtxPUHandler->getSecondaryVertices();
 
+      std::vector<unsigned int> secondaryVertices_nTracks;
+      std::vector<float> secondaryVertices_IP2D;
+      std::vector<float> secondaryVertices_SIP2D;
+      std::vector<float> secondaryVertices_IP3D;
+      std::vector<float> secondaryVertices_SIP3D;
+      std::vector<float> secondaryVertices_anglePV;
+
+      // Position variables, always in x, y, z
+      std::vector<float> secondaryVertices_x;
+      std::vector<float> secondaryVertices_y;
+      std::vector<float> secondaryVertices_z;
+
+      // Momentum variables, always named either px, py, pz, and E; or pt, eta, phi, mass
+      std::vector<float> secondaryVertices_pt;
+      std::vector<float> secondaryVertices_eta;
+      std::vector<float> secondaryVertices_phi;
+      std::vector<float> secondaryVertices_mass;
+
+      std::vector<long long> secondaryVertices_selectionBits;
+
+      for (auto const& vtx:secondaryVertices){
+        if (!vtx) continue;
+
+        if (doWriteFailingObjects || vtx->selectionBits>0){
+          secondaryVertices_nTracks.push_back(vtx->nTracks);
+          secondaryVertices_IP2D.push_back(vtx->IP2D);
+          secondaryVertices_SIP2D.push_back(vtx->SIP2D);
+          secondaryVertices_IP3D.push_back(vtx->IP3D);
+          secondaryVertices_SIP3D.push_back(vtx->SIP3D);
+          secondaryVertices_anglePV.push_back(vtx->anglePV);
+
+          secondaryVertices_x.push_back(vtx->x());
+          secondaryVertices_y.push_back(vtx->y());
+          secondaryVertices_z.push_back(vtx->z());
+
+          secondaryVertices_pt.push_back(vtx->pt());
+          secondaryVertices_eta.push_back(vtx->momEta());
+          secondaryVertices_phi.push_back(vtx->momPhi());
+          secondaryVertices_mass.push_back(vtx->m());
+
+          secondaryVertices_selectionBits.push_back(vtx->selectionBits);
+        }
+      }
+
+      product.setNamedVal("secondaryVertices_x", secondaryVertices_x);
+      product.setNamedVal("secondaryVertices_y", secondaryVertices_y);
+      product.setNamedVal("secondaryVertices_z", secondaryVertices_z);
+
+      product.setNamedVal("secondaryVertices_pt", secondaryVertices_pt);
+      product.setNamedVal("secondaryVertices_eta", secondaryVertices_eta);
+      product.setNamedVal("secondaryVertices_phi", secondaryVertices_phi);
+      product.setNamedVal("secondaryVertices_mass", secondaryVertices_mass);
+
+      product.setNamedVal("secondaryVertices_selectionBits", secondaryVertices_selectionBits);
+      if (doWriteSelectionVariables){
+        product.setNamedVal("secondaryVertices_nTracks", secondaryVertices_nTracks);
+        product.setNamedVal("secondaryVertices_IP2D", secondaryVertices_IP2D);
+        product.setNamedVal("secondaryVertices_SIP2D", secondaryVertices_SIP2D);
+        product.setNamedVal("secondaryVertices_IP3D", secondaryVertices_IP3D);
+        product.setNamedVal("secondaryVertices_SIP3D", secondaryVertices_SIP3D);
+        product.setNamedVal("secondaryVertices_anglePV", secondaryVertices_anglePV);
+      }
+    }
     if (vtxPUHandler->getPUInfosFlag() && tree->isMC()){
       auto const& puinfos = vtxPUHandler->getPUInfos();
 
@@ -403,6 +472,8 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       std::vector<float> puinfos_nTrueVertices;
 
       for (auto const& puinfo:puinfos){
+        if (!puinfo) continue;
+
         puinfos_bunchCrossing.push_back(puinfo->bunchCrossing);
         puinfos_nPUVertices.push_back(puinfo->nPUVertices);
         puinfos_nTrueVertices.push_back(puinfo->nTrueVertices);
@@ -884,7 +955,6 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
 
     for (PhotonObject const* photon:photons){
       if (!photon) continue;
-      if (!doWriteFailingObjects && !photon->testSelection(PhotonSelectionHelpers::kGenPtEta)) continue;
 
       if (doWriteFailingObjects || photon->testSelection(PhotonSelectionHelpers::kSkimPtEta)){
         PhotonVariables const& extras = photon->extras;
@@ -1030,6 +1100,7 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
     if (tree->isMC()){
       for (GenJetObject const* jet:genjets){
         if (!jet) continue;
+
         CMSLorentzVector const& momentum = jet->momentum;
         genjets_pt.push_back(momentum.Pt());
         genjets_eta.push_back(momentum.Eta());
@@ -1591,6 +1662,16 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
   /****************************************/
   /* Extra event filters for special runs */
   /****************************************/
+  // HT filter
+  if ((SampleHelpers::theDataYear == 2017 || SampleHelpers::theDataYear == 2018) && doEventFilter && eventFilter){
+    bool passHTFilter = eventFilter->test2017_2018HTFilter(&ak4jets, SystematicsHelpers::sNominal); product.setNamedVal("passHTFilter", passHTFilter);
+    if (tree->isMC()){
+      bool passHTFilter_JECup = eventFilter->test2017_2018HTFilter(&ak4jets, SystematicsHelpers::eJECUp); product.setNamedVal("passHTFilter_JECup", passHTFilter_JECup);
+      bool passHTFilter_JECdn = eventFilter->test2017_2018HTFilter(&ak4jets, SystematicsHelpers::eJECDn); product.setNamedVal("passHTFilter_JECdn", passHTFilter_JECdn);
+      bool passHTFilter_JERup = eventFilter->test2017_2018HTFilter(&ak4jets, SystematicsHelpers::eJERUp); product.setNamedVal("passHTFilter_JERup", passHTFilter_JERup);
+      bool passHTFilter_JERdn = eventFilter->test2017_2018HTFilter(&ak4jets, SystematicsHelpers::eJERDn); product.setNamedVal("passHTFilter_JERdn", passHTFilter_JERdn);
+    }
+  }
   // HEM filter
   if (SampleHelpers::theDataYear == 2018 && doEventFilter && eventFilter){
     bool passHEMFilter = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::sNominal); product.setNamedVal("passHEMFilter", passHEMFilter);
@@ -1601,7 +1682,6 @@ bool GenericEventAnalyzer::runEvent(FrameworkTree* tree, float const& externalWg
       bool passHEMFilter_JERdn = eventFilter->test2018HEMFilter(&electrons, &photons, &ak4jets, &ak8jets, SystematicsHelpers::eJERDn); product.setNamedVal("passHEMFilter_JERdn", passHEMFilter_JERdn);
     }
   }
-
 
   return validProducts;
 }

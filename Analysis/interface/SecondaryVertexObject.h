@@ -32,14 +32,16 @@ public:
   float z() const{ return position.Z(); }
   float mag() const{ return position.Mag(); }
   float rho() const{ return position.Perp(); }
-  float eta() const{ return position.Eta(); }
-  float phi() const{ return position.Phi(); }
+  float posEta() const{ return position.Eta(); }
+  float posPhi() const{ return position.Phi(); }
   float px() const{ return momentum.X(); }
   float py() const{ return momentum.Y(); }
   float pz() const{ return momentum.Z(); }
   float pt() const{ return momentum.Pt(); }
-  float E() const{ return momentum.T(); }
-  float M() const{ return momentum.M(); }
+  float momEta() const{ return momentum.Eta(); }
+  float momPhi() const{ return momentum.Phi(); }
+  float energy() const{ return momentum.T(); }
+  float m() const{ return momentum.M(); }
 };
 
 #endif
