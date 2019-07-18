@@ -243,12 +243,11 @@ bool EventFilterHandler::test2017_2018HTFilter(
   if (syst != sNominal && fwktree->isData()) syst = sNominal;
 
   bool doVeto = false;
-  bool hasJets = false;
-  float HT2p4 = 0;
-  float HT5p0 = 0;
+  size_t nLooseJets = 0;
+  float HT2p4 = 0; // Sum over tight-ID jets
+  float HT5p0 = 0; // Sum over tight-ID jets
   // Require tight ID and pT>30 GeV cut on jets
   if (ak4jets){
-    hasJets = !(ak4jets->empty());
     for (auto const* part:(*ak4jets)){
       float pt=-1;
       if (syst == eJECUp) pt = part->getCorrectedMomentum(1).Pt();
@@ -257,15 +256,17 @@ bool EventFilterHandler::test2017_2018HTFilter(
       else if (syst == eJERDn) pt = part->getCorrectedMomentum(-2).Pt();
       else pt = part->getCorrectedMomentum(0).Pt();
 
-      bool isSelectedJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && pt>=30.f);
-      if (!isSelectedJet) continue;
+      bool isTightJet = (part->testSelection(AK4JetSelectionHelpers::kTightID) && pt>=30.f);
+      bool isLooseJet = (part->testSelection(AK4JetSelectionHelpers::kLooseID) && pt>=30.f);
+      if (isLooseJet) nLooseJets++;
+      if (!isTightJet) continue;
 
       float const abs_eta = fabs(part->eta());
       if (abs_eta<2.4f) HT2p4 += pt;
       if (abs_eta<5.f) HT5p0 += pt;
     }
-    doVeto = !(!hasJets || (HT2p4>0.f && HT5p0/HT2p4<1.5));
-    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2017_2018HTFilter: Failed the HT cut. (hasJets=" << hasJets << ", HT(2.4)=" << HT2p4 << ", HT(5)=" << HT5p0 << ")" << endl;
+    doVeto = !(nLooseJets>0 && (HT2p4==0.f || (HT2p4>0.f && HT5p0/HT2p4<1.5f)));
+    if (verbosity>=TVar::DEBUG && doVeto) MELAout << "EventFilterHandler::test2017_2018HTFilter: Failed the HT cut. (nLooseJets=" << nLooseJets << ", HT(2.4)=" << HT2p4 << ", HT(5)=" << HT5p0 << ")" << endl;
   }
 
   if (verbosity>=TVar::DEBUG) MELAerr << "End EventFilterHandler::test2017_2018HTFilter successfully." << endl;
